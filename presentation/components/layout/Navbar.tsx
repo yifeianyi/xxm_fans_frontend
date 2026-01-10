@@ -16,7 +16,7 @@ const Navbar: React.FC = () => {
       </ReactRouterDOM.Link>
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 md:w-11 md:h-11 rounded-[1.5rem] overflow-hidden border-2 md:border-4 border-white shadow-sm transition-transform hover:scale-110">
-          <img src="https://picsum.photos/seed/xxm/150/150" alt="Avatar" className="w-full h-full object-cover" />
+          <img src="/咻咻满.jpg" alt="Avatar" className="w-full h-full object-cover" />
         </div>
         <div className="flex flex-col">
           <h1 className="text-base md:text-xl font-black text-[#4a3728] tracking-tighter leading-none">小满虫之家</h1>
