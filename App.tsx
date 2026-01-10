@@ -9,7 +9,7 @@ import FansDIYPage from './presentation/pages/FansDIYPage';
 
 const App: React.FC = () => {
   return (
-    <ReactRouterDOM.HashRouter>
+    <ReactRouterDOM.BrowserRouter>
       <ErrorBoundary>
         <div className="min-h-screen flex flex-col transition-all duration-500">
           <Navbar />
@@ -23,7 +23,7 @@ const App: React.FC = () => {
           <Footer />
         </div>
       </ErrorBoundary>
-    </ReactRouterDOM.HashRouter>
+    </ReactRouterDOM.BrowserRouter>
   );
 };
 
