@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>小满虫之家 - 咻咻满粉丝站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --sage-bg: #f2f9f1;
+        --meadow-green: #8eb69b;
+        --peach-accent: #f8b195;
+        --butter-yellow: #fff4d1;
+        --earthy-brown: #4a3728;
+      }
+      body {
+        font-family: 'Quicksand', 'Noto Sans SC', sans-serif;
+        background-color: var(--sage-bg);
+        color: var(--earthy-brown);
+        overflow-x: hidden;
+      }
+      ::selection {
+        background-color: #d1e7d0;
+        color: #2d4a3e;
+      }
+      /* Custom background mimicking the provided image structure */
+      .bg-pastoral {
+        background: 
+          radial-gradient(circle at 10% 10%, rgba(248, 177, 149, 0.1) 0%, transparent 20%),
+          radial-gradient(circle at 90% 80%, rgba(142, 182, 155, 0.1) 0%, transparent 30%),
+          var(--sage-bg);
+        background-attachment: fixed;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(12px);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 12px 40px -10px rgba(142, 182, 155, 0.15);
+      }
+      .bubble-button {
+        border-radius: 9999px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .bubble-button:hover {
+        transform: translateY(-2px) scale(1.02);
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1d9c0;
+        border-radius: 10px;
+        border: 2px solid var(--sage-bg);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--meadow-green);
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      .float-anim {
+        animation: float 4s ease-in-out infinite;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-pastoral min-h-screen">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
