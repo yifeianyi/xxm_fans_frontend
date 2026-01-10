@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { mockApi } from '../../../infrastructure/api/mockApi';
+import { songService } from '../../../infrastructure/api/MockSongService';
 import { SongRecord } from '../../../domain/types';
 import { Play } from 'lucide-react';
+import { Loading } from '../common/Loading';
 
 interface RecordListProps {
   songId: string;
@@ -16,14 +17,14 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await mockApi.getRecords(songId);
-      setRecords(data);
+      const result = await songService.getRecords(songId, { page_size: 20 });
+      if (result.data) setRecords(result.data.results);
       setLoading(false);
     };
     load();
   }, [songId]);
 
-  if (loading) return <div className="p-10 text-center text-[#8eb69b] font-black">正在搜集音符...</div>;
+  if (loading) return <div className="p-10"><Loading text="正在搜集音符..." size="sm" /></div>;
   if (records.length === 0) return <div className="p-10 text-center text-[#8eb69b]/40 font-black">暂无记录</div>;
 
   return (

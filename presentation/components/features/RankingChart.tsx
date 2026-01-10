@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { mockApi } from '../../../infrastructure/api/mockApi';
+import { songService } from '../../../infrastructure/api/MockSongService';
 import { Song, TimeRange, Recommendation } from '../../../domain/types';
 import { Sparkles } from 'lucide-react';
+import { Loading } from '../common/Loading';
 import MysteryBoxModal from '../common/MysteryBoxModal';
 import VideoModal from '../common/VideoModal';
 
@@ -17,16 +18,13 @@ const RankingChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      try {
-        const [songs, rec] = await Promise.all([
-          mockApi.getSongs({ sortBy: 'performanceCount', sortDir: 'desc', page: 1 }),
-          mockApi.getRecommendation()
-        ]);
-        setTopSongs(songs.songs.slice(0, 10));
-        setRecommendation(rec);
-      } finally {
-        setLoading(false);
-      }
+      const [songsResult, recResult] = await Promise.all([
+        songService.getTopSongs({ limit: 10 }),
+        songService.getRecommendation()
+      ]);
+      if (songsResult.data) setTopSongs(songsResult.data);
+      if (recResult.data) setRecommendation(recResult.data);
+      setLoading(false);
     };
     fetchData();
   }, [range]);
@@ -62,9 +60,7 @@ const RankingChart: React.FC = () => {
       {/* 排行榜主体 - 高密度布局 */}
       <div className="glass-card p-6 rounded-[2.5rem] border-2 border-white shadow-xl">
         {loading ? (
-          <div className="py-24 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-[#f8b195] border-t-transparent rounded-full animate-spin"></div>
-          </div>
+          <div className="py-24"><Loading text="加载中..." /></div>
         ) : (
           <div className="flex flex-col gap-2">
             {topSongs.map((song, index) => (

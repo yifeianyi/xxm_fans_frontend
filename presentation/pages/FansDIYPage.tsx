@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Filter } from 'lucide-react';
-import { mockApi } from '../../infrastructure/api/mockApi';
+import { Play } from 'lucide-react';
+import { fanDIYService } from '../../infrastructure/api/MockSongService';
 import { FanWork, FanCollection } from '../../domain/types';
+import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
 
 const FansDIYPage: React.FC = () => {
@@ -15,16 +16,13 @@ const FansDIYPage: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      try {
-        const [cols, allWorks] = await Promise.all([
-          mockApi.getCollections(),
-          mockApi.getFanWorks()
-        ]);
-        setCollections(cols);
-        setWorks(allWorks);
-      } finally {
-        setLoading(false);
-      }
+      const [colsResult, worksResult] = await Promise.all([
+        fanDIYService.getCollections({ limit: 20 }),
+        fanDIYService.getWorks({ limit: 100 })
+      ]);
+      if (colsResult.data) setCollections(colsResult.data.results);
+      if (worksResult.data) setWorks(worksResult.data.results);
+      setLoading(false);
     };
     init();
   }, []);
@@ -63,10 +61,7 @@ const FansDIYPage: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="py-32 text-center flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#f8b195] border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-[#8eb69b] font-black tracking-widest">正在布置展厅...</span>
-        </div>
+        <div className="py-32"><Loading text="正在布置展厅..." size="lg" /></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredWorks.map(work => (

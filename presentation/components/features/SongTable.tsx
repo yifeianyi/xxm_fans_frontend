@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft } from 'lucide-react';
-import { mockApi } from '../../../infrastructure/api/mockApi';
+import { songService } from '../../../infrastructure/api/MockSongService';
 import { Song, FilterState } from '../../../domain/types';
 import { GENRES, TAGS, LANGUAGES } from '../../../infrastructure/config/constants';
+import { Loading } from '../common/Loading';
+import { formatDate, copyToClipboard } from '../../../shared/utils';
 import RecordList from './RecordList';
 import MysteryBoxModal from '../common/MysteryBoxModal';
 import VideoModal from '../common/VideoModal';
@@ -25,11 +27,21 @@ const SongTable: React.FC = () => {
 
   const fetchSongs = useCallback(async (targetPage: number = 1) => {
     setLoading(true);
-    try {
-      const res = await mockApi.getSongs({ search, ...filters, page: targetPage, sortBy: sortBy || undefined, sortDir });
-      setSongs(res.songs);
-      setTotal(res.total);
-    } finally { setLoading(false); }
+    const ordering = sortBy ? `${sortDir === 'asc' ? '' : '-'}${sortBy}` : undefined;
+    const result = await songService.getSongs({
+      q: search,
+      page: targetPage,
+      limit: 50,
+      ordering,
+      styles: filters.genres.join(','),
+      tags: filters.tags.join(','),
+      language: filters.languages.join(',')
+    });
+    if (result.data) {
+      setSongs(result.data.results);
+      setTotal(result.data.total);
+    }
+    setLoading(false);
   }, [search, filters, sortBy, sortDir]);
 
   useEffect(() => { fetchSongs(page); }, [fetchSongs, page]);
@@ -48,8 +60,14 @@ const SongTable: React.FC = () => {
       setSearch('');
       setFilters({ genres: [], tags: [], languages: [], [type]: [value] });
     }
-    setPage(1);
-    setShowFilters(false);
+  };
+
+  const handleCopy = async (text: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopyStatus(text);
+      setTimeout(() => setCopyStatus(null), 2000);
+    }
   };
 
   const toggleFilter = (type: keyof FilterState, value: string) => {
@@ -61,8 +79,16 @@ const SongTable: React.FC = () => {
   };
 
   const handleSort = (field: string) => {
-    if (sortBy === field) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
-    else { setSortBy(field); setSortDir('desc'); }
+    const mapField = (f: string) => {
+      if (f === 'originalArtist') return 'singer';
+      if (f === 'lastPerformance') return 'last_performed';
+      if (f === 'firstPerformance') return 'last_performed';
+      if (f === 'performanceCount') return 'perform_count';
+      return f;
+    };
+    const mappedField = mapField(field);
+    if (sortBy === mappedField) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(mappedField); setSortDir('desc'); }
     setPage(1);
   };
 
@@ -145,15 +171,12 @@ const SongTable: React.FC = () => {
           </thead>
           <tbody className="text-[#4a3728] text-[11px] font-bold">
             {loading ? (
-              <tr><td colSpan={9} className="py-24 text-center"><div className="inline-block w-8 h-8 border-4 border-[#f8b195] border-t-transparent rounded-full animate-spin"></div></td></tr>
+              <tr><td colSpan={9} className="py-24"><Loading text="" /></td></tr>
             ) : songs.map(song => (
               <React.Fragment key={song.id}>
                 <tr className={`border-b border-white/10 hover:bg-white/40 transition-all ${expandedId === song.id ? 'bg-white/50' : ''}`}>
                   <td className="px-1 py-4">
-                    <button 
-                      onClick={() => { navigator.clipboard.writeText(song.name); setCopyStatus(song.name); setTimeout(() => setCopyStatus(null), 2000); }} 
-                      className="group flex flex-col items-center hover:text-[#f8b195] font-black transition-all mx-auto max-w-full leading-tight"
-                    >
+                    <button onClick={() => handleCopy(song.name)} className="group flex flex-col items-center hover:text-[#f8b195] font-black transition-all mx-auto max-w-full leading-tight">
                       <span className="text-[12px] break-words px-1">{song.name}</span>
                       {copyStatus === song.name && <span className="text-[8px] text-green-500 font-normal">已复制</span>}
                     </button>
