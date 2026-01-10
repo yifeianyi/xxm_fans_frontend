@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { songService } from '../../../infrastructure/api/MockSongService';
+import { songService } from '../../../infrastructure/api';
 import { Song, TimeRange, Recommendation } from '../../../domain/types';
 import { Sparkles } from 'lucide-react';
 import { Loading } from '../common/Loading';
@@ -10,6 +10,7 @@ import VideoModal from '../common/VideoModal';
 const RankingChart: React.FC = () => {
   const [topSongs, setTopSongs] = useState<Song[]>([]);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [recommendedSongsDetails, setRecommendedSongsDetails] = useState<any[]>([]);
   const [range, setRange] = useState<TimeRange>(TimeRange.ALL);
   const [loading, setLoading] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -18,18 +19,32 @@ const RankingChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [songsResult, recResult] = await Promise.all([
-        songService.getTopSongs({ limit: 10 }),
-        songService.getRecommendation()
-      ]);
-      if (songsResult.data) setTopSongs(songsResult.data);
-      if (recResult.data) setRecommendation(recResult.data);
-      setLoading(false);
+      try {
+        const [songsResult, recResult] = await Promise.all([
+          songService.getTopSongs({ limit: 10 }),
+          songService.getRecommendation()
+        ]);
+        if (songsResult.data) setTopSongs(songsResult.data);
+        if (recResult.data) {
+          setRecommendation(recResult.data);
+          // 保存推荐歌曲的详细信息
+          if ((recResult as any).recommendedSongsDetails) {
+            setRecommendedSongsDetails((recResult as any).recommendedSongsDetails);
+          }
+        }
+        
+        if (songsResult.error) console.error('获取热歌榜失败:', songsResult.error);
+        if (recResult.error) console.error('获取推荐语失败:', recResult.error);
+      } catch (error) {
+        console.error('数据加载失败:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [range]);
 
-  const maxCount = Math.max(...topSongs.map(s => s.performanceCount), 1);
+  const maxCount = topSongs.length > 0 ? Math.max(...topSongs.map(s => s.performanceCount), 1) : 1;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -41,16 +56,28 @@ const RankingChart: React.FC = () => {
             <span className="text-[11px] font-black tracking-wider whitespace-nowrap">{recommendation.content}</span>
           </div>
           <div className="flex gap-2">
-            {recommendation.recommendedSongs.map(id => (
+            {recommendedSongsDetails.map(song => (
               <button 
-                key={id} 
-                onClick={async () => {
-                  const res = await mockApi.getSongs({ search: id });
-                  if (res.songs[0]) setSelectedSong(res.songs[0]);
+                key={song.id} 
+                onClick={() => {
+                  // 将推荐歌曲转换为Song对象格式
+                  const songObject: Song = {
+                    id: song.id,
+                    name: song.name,
+                    originalArtist: song.singer,
+                    genres: [], // 推荐歌曲API不返回这些信息
+                    languages: [],
+                    firstPerformance: '',
+                    lastPerformance: '',
+                    performanceCount: song.performCount || 0,
+                    tags: []
+                  };
+                  setSelectedSong(songObject);
                 }}
                 className="px-3 py-1 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black transition-all"
+                title={`${song.name} - ${song.singer}`}
               >
-                #{id}
+                {song.name}
               </button>
             ))}
           </div>

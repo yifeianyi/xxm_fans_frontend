@@ -59,7 +59,7 @@ export class RealSongService implements ISongService {
     if (params.language) queryParams.set('language', params.language);
 
     const result = await apiClient.get<PaginatedResult<any>>(
-      `/api/songs/?${queryParams.toString()}`
+      `/songs/?${queryParams.toString()}`
     );
 
     if (result.data) {
@@ -88,7 +88,7 @@ export class RealSongService implements ISongService {
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
 
     const result = await apiClient.get<PaginatedResult<any>>(
-      `/api/songs/${songId}/records/?${queryParams.toString()}`
+      `/songs/${songId}/records/?${queryParams.toString()}`
     );
 
     if (result.data) {
@@ -113,7 +113,11 @@ export class RealSongService implements ISongService {
     if (params?.range) queryParams.set('range', params.range);
     if (params?.limit) queryParams.set('limit', params.limit.toString());
 
-    const result = await apiClient.get<any[]>(`/api/top_songs/?${queryParams.toString()}`);
+    const result = await apiClient.get<any[]>(
+
+          `/top_songs/?${queryParams.toString()}`
+
+        );
     
     if (result.data) {
       const transformed: Song[] = result.data.map(item => ({
@@ -133,7 +137,9 @@ export class RealSongService implements ISongService {
   }
 
   async getRandomSong(): Promise<ApiResult<Song>> {
-    const result = await apiClient.get<any>('/api/random-song/');
+    const result = await apiClient.get<any>(
+          '/random-song/'
+        );
     
     if (result.data) {
       const transformed: Song = {
@@ -153,7 +159,24 @@ export class RealSongService implements ISongService {
   }
 
   async getRecommendation(): Promise<ApiResult<Recommendation>> {
-    const result = await apiClient.get<any>('/api/recommendation/');
+    const result = await apiClient.get<any>(
+          '/recommendation/'
+        );
+    
+    if (result.data) {
+      const transformed: Recommendation = {
+        content: result.data.content || '',
+        recommendedSongs: result.data.recommended_songs?.map((song: any) => song.id?.toString() || '') || []
+      };
+      // 将原始推荐歌曲数据附加到结果中，供前端使用
+      (result as any).recommendedSongsDetails = result.data.recommended_songs?.map((song: any) => ({
+        id: song.id?.toString() || '',
+        name: song.song_name || '未知歌曲',
+        singer: song.singer || '未知歌手',
+        performCount: song.perform_count || 0
+      })) || [];
+      return result;
+    }
     return result;
   }
 }
@@ -165,7 +188,7 @@ export class RealFanDIYService implements IFanDIYService {
     if (params?.limit) queryParams.set('limit', params.limit.toString());
 
     const result = await apiClient.get<PaginatedResult<any>>(
-      `/api/fansDIY/collections/?${queryParams.toString()}`
+      `/fansDIY/collections/?${queryParams.toString()}`
     );
 
     if (result.data) {
@@ -184,7 +207,9 @@ export class RealFanDIYService implements IFanDIYService {
   }
 
   async getCollection(id: number): Promise<ApiResult<FanCollection>> {
-    const result = await apiClient.get<any>(`/api/fansDIY/collections/${id}/`);
+    const result = await apiClient.get<any>(
+          `/fansDIY/collections/${id}/`
+        );
     
     if (result.data) {
       const transformed: FanCollection = {
@@ -205,7 +230,7 @@ export class RealFanDIYService implements IFanDIYService {
     if (params?.collection) queryParams.set('collection', params.collection.toString());
 
     const result = await apiClient.get<PaginatedResult<any>>(
-      `/api/fansDIY/works/?${queryParams.toString()}`
+      `/fansDIY/works/?${queryParams.toString()}`
     );
 
     if (result.data) {
@@ -228,7 +253,9 @@ export class RealFanDIYService implements IFanDIYService {
   }
 
   async getWork(id: number): Promise<ApiResult<FanWork>> {
-    const result = await apiClient.get<any>(`/api/fansDIY/works/${id}/`);
+    const result = await apiClient.get<any>(
+          `/fansDIY/works/${id}/`
+        );
     
     if (result.data) {
       const transformed: FanWork = {

@@ -10,6 +10,18 @@ export default defineConfig({
         target: 'http://172.27.171.134:8000',
         changeOrigin: true,
         secure: false,
+      },
+      // '/covers': {
+      //   target: 'http://172.27.171.134:8000',
+      //   changeOrigin: true,
+      //   secure: false,
+      // }
+    }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html'
       }
     }
   }

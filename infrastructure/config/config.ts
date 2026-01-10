@@ -1,8 +1,7 @@
 export const config = {
   api: {
-    baseURL: import.meta.env.VITE_API_BASE_URL || '',
-    timeout: 30000,
-    useMock: import.meta.env.VITE_USE_MOCK === 'true'
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+    timeout: 30000
   },
   ui: {
     modalZIndex: 100,

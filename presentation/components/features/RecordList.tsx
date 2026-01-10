@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { songService } from '../../../infrastructure/api/MockSongService';
+import { songService } from '../../../infrastructure/api';
 import { SongRecord } from '../../../domain/types';
 import { Play } from 'lucide-react';
 import { Loading } from '../common/Loading';
@@ -18,7 +18,11 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
     const load = async () => {
       setLoading(true);
       const result = await songService.getRecords(songId, { page_size: 20 });
-      if (result.data) setRecords(result.data.results);
+      if (result.data) {
+        setRecords(result.data.results);
+      } else if (result.error) {
+        console.error('获取演唱记录失败:', result.error);
+      }
       setLoading(false);
     };
     load();

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft } from 'lucide-react';
-import { songService } from '../../../infrastructure/api/MockSongService';
+import { songService } from '../../../infrastructure/api';
 import { Song, FilterState } from '../../../domain/types';
 import { GENRES, TAGS, LANGUAGES } from '../../../infrastructure/config/constants';
 import { Loading } from '../common/Loading';
@@ -40,6 +40,9 @@ const SongTable: React.FC = () => {
     if (result.data) {
       setSongs(result.data.results);
       setTotal(result.data.total);
+    } else if (result.error) {
+      console.error('获取歌曲失败:', result.error);
+      // 可以添加错误提示
     }
     setLoading(false);
   }, [search, filters, sortBy, sortDir]);
@@ -111,7 +114,12 @@ const SongTable: React.FC = () => {
           </button>
         </form>
         <div className="flex gap-2 w-full md:w-auto">
-          <button onClick={async () => setMysterySong(await mockApi.getRandomSong(filters))} className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white rounded-full hover:brightness-105 transition-all font-bold shadow-md shadow-[#f8b195]/10 text-xs">
+          <button onClick={async () => {
+            const result = await songService.getRandomSong();
+            if (result.data) {
+              setMysterySong(result.data);
+            }
+          }} className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white rounded-full hover:brightness-105 transition-all font-bold shadow-md shadow-[#f8b195]/10 text-xs">
             <Gift size={16} /> <span>盲盒</span>
           </button>
           <button onClick={() => setShowFilters(!showFilters)} className={`flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 rounded-full transition-all font-bold border-2 text-xs ${showFilters ? 'bg-[#4a3728] text-white border-[#4a3728]' : 'bg-white text-[#f8b195] border-[#f8b195]/20'}`}>
@@ -152,7 +160,7 @@ const SongTable: React.FC = () => {
             <col className="w-[10%]" />
             <col className="w-[11%]" />
             <col className="w-[11%]" />
-            <col className="w-[10%]" /> {/* 增加演唱次数列的宽度以容纳更长的标题 */}
+            <col className="w-[10%]" />
             <col className="w-[10%]" />
             <col className="w-[8%]" />
           </colgroup>

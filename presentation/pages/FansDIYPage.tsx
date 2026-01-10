@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
-import { fanDIYService } from '../../infrastructure/api/MockSongService';
+import { fanDIYService } from '../../infrastructure/api';
 import { FanWork, FanCollection } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
@@ -16,13 +16,21 @@ const FansDIYPage: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      const [colsResult, worksResult] = await Promise.all([
-        fanDIYService.getCollections({ limit: 20 }),
-        fanDIYService.getWorks({ limit: 100 })
-      ]);
-      if (colsResult.data) setCollections(colsResult.data.results);
-      if (worksResult.data) setWorks(worksResult.data.results);
-      setLoading(false);
+      try {
+        const [colsResult, worksResult] = await Promise.all([
+          fanDIYService.getCollections({ limit: 20 }),
+          fanDIYService.getWorks({ limit: 100 })
+        ]);
+        if (colsResult.data) setCollections(colsResult.data.results);
+        if (worksResult.data) setWorks(worksResult.data.results);
+        
+        if (colsResult.error) console.error('获取合集失败:', colsResult.error);
+        if (worksResult.error) console.error('获取作品失败:', worksResult.error);
+      } catch (error) {
+        console.error('数据加载失败:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     init();
   }, []);

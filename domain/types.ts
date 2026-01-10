@@ -25,6 +25,14 @@ export interface Recommendation {
   recommendedSongs: string[]; 
 }
 
+// 推荐歌曲的详细信息
+export interface RecommendedSong {
+  id: string;
+  name: string;
+  singer: string;
+  performCount?: number;
+}
+
 export interface FanWork {
   id: string;
   title: string;
