@@ -1,3 +1,4 @@
+// 优化后的RealSongService.ts
 import { ISongService, IFanDIYService } from '../api/ISongService';
 import {
   ApiResult,
@@ -57,7 +58,7 @@ export class RealSongService implements ISongService {
     if (params.tags) queryParams.set('tags', params.tags);
     if (params.language) queryParams.set('language', params.language);
 
-    const result = await apiClient.get<PaginatedResult<Song>>(
+    const result = await apiClient.get<PaginatedResult<any>>(
       `/api/songs/?${queryParams.toString()}`
     );
 
@@ -65,15 +66,15 @@ export class RealSongService implements ISongService {
       const transformed: PaginatedResult<Song> = {
         ...result.data,
         results: result.data.results.map(item => ({
-          id: item.id.toString(),
-          name: item.song_name,
-          originalArtist: item.singer,
-          genres: item.styles,
+          id: item.id?.toString() || '',
+          name: item.song_name || '未知歌曲',
+          originalArtist: item.singer || '未知歌手',
+          genres: Array.isArray(item.styles) ? item.styles : [],
           languages: item.language ? [item.language] : [],
-          firstPerformance: item.last_performed,
-          lastPerformance: item.last_performed,
-          performanceCount: item.perform_count,
-          tags: item.tags || []
+          firstPerformance: '', // 后端无此字段
+          lastPerformance: item.last_performed || '',
+          performanceCount: item.perform_count || 0,
+          tags: Array.isArray(item.tags) ? item.tags : []
         }))
       };
       return { data: transformed };
@@ -86,7 +87,7 @@ export class RealSongService implements ISongService {
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
 
-    const result = await apiClient.get<PaginatedResult<SongRecord>>(
+    const result = await apiClient.get<PaginatedResult<any>>(
       `/api/songs/${songId}/records/?${queryParams.toString()}`
     );
 
@@ -94,12 +95,12 @@ export class RealSongService implements ISongService {
       const transformed: PaginatedResult<SongRecord> = {
         ...result.data,
         results: result.data.results.map(item => ({
-          id: item.id.toString(),
+          id: item.id?.toString() || '',
           songId: songId,
-          date: item.performed_at,
-          cover: item.cover_url,
-          note: '',
-          videoUrl: ''
+          date: item.performed_at || '',
+          cover: item.cover_url || '',
+          note: item.notes || '',
+          videoUrl: item.url || ''
         }))
       };
       return { data: transformed };
@@ -112,17 +113,47 @@ export class RealSongService implements ISongService {
     if (params?.range) queryParams.set('range', params.range);
     if (params?.limit) queryParams.set('limit', params.limit.toString());
 
-    const result = await apiClient.get<Song[]>(`/api/top_songs/?${queryParams.toString()}`);
+    const result = await apiClient.get<any[]>(`/api/top_songs/?${queryParams.toString()}`);
+    
+    if (result.data) {
+      const transformed: Song[] = result.data.map(item => ({
+        id: item.id?.toString() || '',
+        name: item.song_name || '未知歌曲',
+        originalArtist: item.singer || '未知歌手',
+        genres: Array.isArray(item.styles) ? item.styles : [],
+        languages: item.language ? [item.language] : [],
+        firstPerformance: '', // 后端无此字段
+        lastPerformance: item.last_performed || '',
+        performanceCount: item.perform_count || 0,
+        tags: Array.isArray(item.tags) ? item.tags : []
+      }));
+      return { data: transformed };
+    }
     return result;
   }
 
   async getRandomSong(): Promise<ApiResult<Song>> {
-    const result = await apiClient.get<Song>('/api/random-song/');
+    const result = await apiClient.get<any>('/api/random-song/');
+    
+    if (result.data) {
+      const transformed: Song = {
+        id: result.data.id?.toString() || '',
+        name: result.data.song_name || '未知歌曲',
+        originalArtist: result.data.singer || '未知歌手',
+        genres: Array.isArray(result.data.styles) ? result.data.styles : [],
+        languages: result.data.language ? [result.data.language] : [],
+        firstPerformance: '', // 后端无此字段
+        lastPerformance: result.data.last_performed || '',
+        performanceCount: result.data.perform_count || 0,
+        tags: Array.isArray(result.data.tags) ? result.data.tags : []
+      };
+      return { data: transformed };
+    }
     return result;
   }
 
   async getRecommendation(): Promise<ApiResult<Recommendation>> {
-    const result = await apiClient.get<Recommendation>('/api/recommendation/');
+    const result = await apiClient.get<any>('/api/recommendation/');
     return result;
   }
 }
@@ -133,7 +164,7 @@ export class RealFanDIYService implements IFanDIYService {
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.limit) queryParams.set('limit', params.limit.toString());
 
-    const result = await apiClient.get<PaginatedResult<FanCollection>>(
+    const result = await apiClient.get<PaginatedResult<any>>(
       `/api/fansDIY/collections/?${queryParams.toString()}`
     );
 
@@ -141,10 +172,10 @@ export class RealFanDIYService implements IFanDIYService {
       const transformed: PaginatedResult<FanCollection> = {
         ...result.data,
         results: result.data.results.map(item => ({
-          id: item.id.toString(),
-          name: item.name,
-          description: '',
-          worksCount: item.works_count
+          id: item.id?.toString() || '',
+          name: item.name || '未知合集',
+          description: '', // 后端无此字段
+          worksCount: item.works_count || 0
         }))
       };
       return { data: transformed };
@@ -153,7 +184,17 @@ export class RealFanDIYService implements IFanDIYService {
   }
 
   async getCollection(id: number): Promise<ApiResult<FanCollection>> {
-    const result = await apiClient.get<FanCollection>(`/api/fansDIY/collections/${id}/`);
+    const result = await apiClient.get<any>(`/api/fansDIY/collections/${id}/`);
+    
+    if (result.data) {
+      const transformed: FanCollection = {
+        id: result.data.id?.toString() || '',
+        name: result.data.name || '未知合集',
+        description: '', // 后端无此字段
+        worksCount: result.data.works_count || 0
+      };
+      return { data: transformed };
+    }
     return result;
   }
 
@@ -163,7 +204,7 @@ export class RealFanDIYService implements IFanDIYService {
     if (params?.limit) queryParams.set('limit', params.limit.toString());
     if (params?.collection) queryParams.set('collection', params.collection.toString());
 
-    const result = await apiClient.get<PaginatedResult<FanWork>>(
+    const result = await apiClient.get<PaginatedResult<any>>(
       `/api/fansDIY/works/?${queryParams.toString()}`
     );
 
@@ -171,14 +212,14 @@ export class RealFanDIYService implements IFanDIYService {
       const transformed: PaginatedResult<FanWork> = {
         ...result.data,
         results: result.data.results.map(item => ({
-          id: item.id.toString(),
-          title: item.title,
-          author: item.author,
-          cover: item.cover_url,
-          videoUrl: item.view_url,
-          note: item.notes,
-          collectionId: item.collection?.id.toString() || '',
-          position: item.position
+          id: item.id?.toString() || '',
+          title: item.title || '未知作品',
+          author: item.author || '未知作者',
+          cover: item.cover_url || '',
+          videoUrl: item.view_url || '',
+          note: item.notes || '',
+          collectionId: item.collection?.id?.toString() || '',
+          position: item.position || 0
         }))
       };
       return { data: transformed };
@@ -187,7 +228,21 @@ export class RealFanDIYService implements IFanDIYService {
   }
 
   async getWork(id: number): Promise<ApiResult<FanWork>> {
-    const result = await apiClient.get<FanWork>(`/api/fansDIY/works/${id}/`);
+    const result = await apiClient.get<any>(`/api/fansDIY/works/${id}/`);
+    
+    if (result.data) {
+      const transformed: FanWork = {
+        id: result.data.id?.toString() || '',
+        title: result.data.title || '未知作品',
+        author: result.data.author || '未知作者',
+        cover: result.data.cover_url || '',
+        videoUrl: result.data.view_url || '',
+        note: result.data.notes || '',
+        collectionId: result.data.collection?.id?.toString() || '',
+        position: result.data.position || 0
+      };
+      return { data: transformed };
+    }
     return result;
   }
 }
