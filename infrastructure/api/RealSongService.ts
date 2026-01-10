@@ -110,7 +110,10 @@ export class RealSongService implements ISongService {
 
   async getTopSongs(params?: GetTopSongsParams): Promise<ApiResult<Song[]>> {
     const queryParams = new URLSearchParams();
-    if (params?.range) queryParams.set('range', params.range);
+    if (params?.range) {
+      queryParams.set('range', params.range);
+      console.log('📊 API request range:', params.range);
+    }
     if (params?.limit) queryParams.set('limit', params.limit.toString());
 
     const result = await apiClient.get<any[]>(

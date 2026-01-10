@@ -7,6 +7,12 @@ import { Loading } from '../common/Loading';
 import MysteryBoxModal from '../common/MysteryBoxModal';
 import VideoModal from '../common/VideoModal';
 
+const RANGE_OPTIONS = [
+  { value: TimeRange.ALL, label: '全部' },
+  { value: TimeRange.THREE_MONTHS, label: '近3月榜' },
+  { value: TimeRange.YEAR, label: '年榜' }
+];
+
 const RankingChart: React.FC = () => {
   const [topSongs, setTopSongs] = useState<Song[]>([]);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
@@ -19,15 +25,15 @@ const RankingChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      console.log('🔍 Fetching top songs with range:', range);
       try {
         const [songsResult, recResult] = await Promise.all([
-          songService.getTopSongs({ limit: 10 }),
+          songService.getTopSongs({ range, limit: 10 }),
           songService.getRecommendation()
         ]);
         if (songsResult.data) setTopSongs(songsResult.data);
         if (recResult.data) {
           setRecommendation(recResult.data);
-          // 保存推荐歌曲的详细信息
           if ((recResult as any).recommendedSongsDetails) {
             setRecommendedSongsDetails((recResult as any).recommendedSongsDetails);
           }
@@ -83,6 +89,27 @@ const RankingChart: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 排行榜切换按钮 */}
+      <div className="flex justify-center">
+        <div className="relative flex p-1 bg-white/40 rounded-full shadow-inner border-2 border-white overflow-hidden">
+          <div className={`absolute top-1 bottom-1 transition-all duration-300 ease-out z-0 bg-gradient-to-r from-[#f8b195] to-[#f67280] rounded-full`}
+               style={{ width: `${100 / RANGE_OPTIONS.length}%`, left: `${RANGE_OPTIONS.findIndex(r => r.value === range) * (100 / RANGE_OPTIONS.length) + 0.5}%` }}>
+          </div>
+          {RANGE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                console.log('🖱️ Clicked range option:', option.value);
+                setRange(option.value);
+              }}
+              className={`relative z-10 flex-1 py-2 px-4 text-xs font-black transition-all whitespace-nowrap ${range === option.value ? 'text-white' : 'text-[#8eb69b]'}`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* 排行榜主体 - 高密度布局 */}
       <div className="glass-card p-6 rounded-[2.5rem] border-2 border-white shadow-xl">

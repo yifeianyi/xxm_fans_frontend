@@ -52,10 +52,10 @@ export interface FanCollection {
 }
 
 export enum TimeRange {
-  ALL = 'ALL',
-  MONTH = 'MONTH',
-  THREE_MONTHS = 'THREE_MONTHS',
-  YEAR = 'YEAR'
+  ALL = 'all',
+  MONTH = '1m',
+  THREE_MONTHS = '3m',
+  YEAR = '1y'
 }
 
 export interface FilterState {
