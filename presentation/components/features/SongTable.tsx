@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft } from 'lucide-react';
+import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft, ChevronRight as ChevronRightIcon, MoreHorizontal } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { Song, FilterState } from '../../../domain/types';
 import { GENRES, TAGS, LANGUAGES } from '../../../infrastructure/config/constants';
@@ -96,6 +96,32 @@ const SongTable: React.FC = () => {
   };
 
   const totalPages = useMemo(() => Math.ceil(total / 50), [total]);
+
+  const getPageNumbers = useMemo(() => {
+    const maxVisible = 7;
+    const pages: (number | string)[] = [];
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (page <= 3) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (page >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = page - 1; i <= page + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  }, [totalPages, page]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -251,17 +277,23 @@ const SongTable: React.FC = () => {
             <div className="flex items-center gap-1 mx-auto sm:mx-0">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="p-1.5 rounded-lg bg-white/60 text-[#f8b195] disabled:opacity-20 hover:bg-white transition-all border border-white/40"><ChevronLeft size={14} /></button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button 
-                    key={p} 
-                    onClick={() => setPage(p)} 
-                    className={`min-w-[28px] h-7 rounded-lg text-[10px] font-black transition-all border ${page === p ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-sm' : 'bg-white/40 text-[#8eb69b] border-white/60 hover:border-[#f8b195]/40'}`}
-                  >
-                    {p}
-                  </button>
+                {getPageNumbers.map((p, i) => (
+                  p === '...' ? (
+                    <span key={`ellipsis-${i}`} className="min-w-[28px] h-7 flex items-center justify-center text-[#8eb69b] text-xs">
+                      <MoreHorizontal size={14} />
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p as number)}
+                      className={`min-w-[28px] h-7 rounded-lg text-[10px] font-black transition-all border ${page === p ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-sm' : 'bg-white/40 text-[#8eb69b] border-white/60 hover:border-[#f8b195]/40'}`}
+                    >
+                      {p}
+                    </button>
+                  )
                 ))}
               </div>
-              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="p-1.5 rounded-lg bg-white/60 text-[#f8b195] disabled:opacity-20 hover:bg-white transition-all border border-white/40"><ChevronRight size={14} /></button>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="p-1.5 rounded-lg bg-white/60 text-[#f8b195] disabled:opacity-20 hover:bg-white transition-all border border-white/40"><ChevronRightIcon size={14} /></button>
             </div>
           </div>
         )}
