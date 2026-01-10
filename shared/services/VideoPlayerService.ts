@@ -8,8 +8,12 @@ export class VideoPlayerService {
     if (url.includes('bilibili.com')) {
       const bvMatch = url.match(/BV[a-zA-Z0-9]+/);
       if (bvMatch) {
+        // 解析分P参数
+        const pageMatch = url.match(/[?&]p=(\d+)/);
+        const pageNumber = pageMatch ? pageMatch[1] : '1';
+        
         return {
-          url: `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=1&mute=0`,
+          url: `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=${pageNumber}&high_quality=1&danmaku=0&autoplay=1&mute=0`,
           platform: 'bilibili'
         };
       }
