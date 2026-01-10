@@ -8,7 +8,7 @@ export const config = {
     modalMaxWidth: 'max-w-5xl'
   },
   site: {
-    name: '满满来信',
-    icp: '蜀ICP备00000000号-1'
+    name: '小满虫之家',
+    icp: '鄂ICP备2025100707号-2'
   }
 } as const;
