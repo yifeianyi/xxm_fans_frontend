@@ -1,0 +1,21 @@
+{
+  "name": "api-testing-tools",
+  "version": "1.0.0",
+  "description": "API测试和数据格式分析工具",
+  "main": "test-all-apis.js",
+  "scripts": {
+    "test": "node test-all-apis.js",
+    "analyze": "node analyze-api-formats.js",
+    "full": "npm run test && npm run analyze",
+    "check": "node check-env.js",
+    "status": "node switch-api.js status",
+    "fix-url": "node switch-api.js fix-url"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {},
+  "keywords": ["api", "testing", "analysis"],
+  "author": "",
+  "license": "ISC"
+}

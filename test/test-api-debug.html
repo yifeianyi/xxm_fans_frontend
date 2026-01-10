@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API请求测试 - 调试版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        button:hover { background-color: #0056b3; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-group {
+            margin-bottom: 20px;
+        }
+        .test-group h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .error-details {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .debug-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API请求测试页面 - 调试版</h1>
+    
+    <div class="card">
+        <h2>当前配置</h2>
+        <p><strong>API地址:</strong> <span id="apiUrl">http://172.27.171.134:8000/api</span></p>
+        <p><strong>使用Mock:</strong> <span id="useMock">false</span></p>
+        <p><strong>浏览器:</strong> <span id="browserInfo"></span></p>
+    </div>
+    
+    <div id="status" class="status" style="display: none;"></div>
+    
+    <div class="card">
+        <h2>快速测试</h2>
+        <div class="test-group">
+            <h3>基础API测试</h3>
+            <button onclick="testGetSongs()">获取歌曲列表</button>
+            <button onclick="testGetTopSongs()">获取热歌榜</button>
+            <button onclick="testGetRandomSong()">获取随机歌曲</button>
+            <button onclick="testGetRecommendation()">获取推荐语</button>
+        </div>
+        
+        <div class="test-group">
+            <h3>元数据测试</h3>
+            <button onclick="testGetStyles()">获取曲风列表</button>
+            <button onclick="testGetTags()">获取标签列表</button>
+        </div>
+        
+        <div class="test-group">
+            <h3>粉丝DIY测试</h3>
+            <button onclick="testGetCollections()">获取合集列表</button>
+            <button onclick="testGetWorks()">获取作品列表</button>
+        </div>
+        
+        <div class="test-group">
+            <h3>调试测试</h3>
+            <button onclick="testCORS()">测试CORS</button>
+            <button onclick="testOptions()">测试OPTIONS请求</button>
+            <button onclick="testLargeData()">测试大数据量(1000条)</button>
+        </div>
+        
+        <div id="result" style="margin-top: 16px;"></div>
+    </div>
+    
+    <div class="card">
+        <h2>手动测试链接</h2>
+        <p>可以直接在浏览器中访问以下URL测试API是否可用：</p>
+        <ul>
+            <li><a href="http://172.27.171.134:8000/api/songs/?limit=10" target="_blank">歌曲列表 (10条)</a></li>
+            <li><a href="http://172.27.171.134:8000/api/songs/?limit=1000" target="_blank">歌曲列表 (1000条)</a></li>
+            <li><a href="http://172.27.171.134:8000/api/top_songs/?limit=10" target="_blank">热歌榜</a></li>
+            <li><a href="http://172.27.171.134:8000/api/random-song/" target="_blank">随机歌曲</a></li>
+            <li><a href="http://172.27.171.134:8000/api/styles/" target="_blank">曲风列表</a></li>
+            <li><a href="http://172.27.171.134:8000/api/tags/" target="_blank">标签列表</a></li>
+            <li><a href="http://172.27.171.134:8000/api/fansDIY/collections/" target="_blank">粉丝DIY合集</a></li>
+            <li><a href="http://172.27.171.134:8000/api/fansDIY/works/" target="_blank">粉丝DIY作品</a></li>
+        </ul>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://172.27.171.134:8000/api';
+        
+        // 显示浏览器信息
+        document.getElementById('browserInfo').textContent = navigator.userAgent;
+        
+        function showStatus(message, isSuccess, isWarning = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            if (isWarning) {
+                statusEl.className = 'status warning';
+            } else {
+                statusEl.className = `status ${isSuccess ? 'success' : 'error'}`;
+            }
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 8000);
+        }
+        
+        function showResult(title, data, url, error = null) {
+            const resultEl = document.getElementById('result');
+            
+            if (error) {
+                resultEl.innerHTML = `
+                    <h3>${title}</h3>
+                    <p><strong>URL:</strong> <a href="${url}" target="_blank">${url}</a></p>
+                    <div class="error-details">
+                        <h4>错误详情:</h4>
+                        <p><strong>错误类型:</strong> ${error.name}</p>
+                        <p><strong>错误消息:</strong> ${error.message}</p>
+                        ${error.stack ? `<p><strong>堆栈跟踪:</strong></p><pre>${error.stack}</pre>` : ''}
+                    </div>
+                    <div class="debug-info">
+                        <p>调试信息:</p>
+                        <ul>
+                            <li>当前时间: ${new Date().toLocaleString()}</li>
+                            <li>API地址: ${API_BASE_URL}</li>
+                            <li>请求URL: ${url}</li>
+                            <li>可能原因: CORS跨域问题、网络连接问题或API服务问题</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                const summary = typeof data === 'object' ? 
+                    (data.total !== undefined ? `总数: ${data.total}, 返回: ${data.results?.length || 0}` : 
+                     Array.isArray(data) ? `数量: ${data.length}` : 
+                     '对象数据') : '文本数据';
+                
+                resultEl.innerHTML = `
+                    <h3>${title}</h3>
+                    <p><strong>URL:</strong> <a href="${url}" target="_blank">${url}</a></p>
+                    <p><strong>数据概要:</strong> ${summary}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            }
+        }
+        
+        async function testGetSongs() {
+            const url = `${API_BASE_URL}/songs/?page=1&limit=5`;
+            await testApi('获取歌曲列表', url);
+        }
+        
+        async function testGetTopSongs() {
+            const url = `${API_BASE_URL}/top_songs/?limit=5`;
+            await testApi('获取热歌榜', url);
+        }
+        
+        async function testGetRandomSong() {
+            const url = `${API_BASE_URL}/random-song/`;
+            await testApi('获取随机歌曲', url);
+        }
+        
+        async function testGetRecommendation() {
+            const url = `${API_BASE_URL}/recommendation/`;
+            await testApi('获取推荐语', url);
+        }
+        
+        async function testGetStyles() {
+            const url = `${API_BASE_URL}/styles/`;
+            await testApi('获取曲风列表', url);
+        }
+        
+        async function testGetTags() {
+            const url = `${API_BASE_URL}/tags/`;
+            await testApi('获取标签列表', url);
+        }
+        
+        async function testGetCollections() {
+            const url = `${API_BASE_URL}/fansDIY/collections/?page=1&limit=5`;
+            await testApi('获取粉丝DIY合集', url);
+        }
+        
+        async function testGetWorks() {
+            const url = `${API_BASE_URL}/fansDIY/works/?page=1&limit=5`;
+            await testApi('获取粉丝DIY作品', url);
+        }
+        
+        async function testLargeData() {
+            const url = `${API_BASE_URL}/songs/?limit=1000`;
+            await testApi('大数据量测试(1000条)', url);
+        }
+        
+        async function testCORS() {
+            const url = `${API_BASE_URL}/songs/?limit=1`;
+            await testApi('CORS测试', url, {
+                headers: {
+                    'Origin': window.location.origin,
+                    'Access-Control-Request-Method': 'GET',
+                    'Access-Control-Request-Headers': 'Content-Type'
+                }
+            });
+        }
+        
+        async function testOptions() {
+            const url = `${API_BASE_URL}/songs/`;
+            try {
+                showStatus('正在发送OPTIONS请求...', true);
+                const startTime = Date.now();
+                
+                const response = await fetch(url, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                const responseTime = Date.now() - startTime;
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+                
+                showStatus(`✅ OPTIONS请求成功 (${responseTime}ms)`, true);
+                showResult('OPTIONS请求结果', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: corsHeaders
+                }, url);
+            } catch (error) {
+                showStatus(`❌ OPTIONS请求失败: ${error.message}`, false);
+                showResult('OPTIONS请求失败', null, url, error);
+            }
+        }
+        
+        async function testApi(testName, url, options = {}) {
+            try {
+                showStatus(`正在${testName}...`, true);
+                const startTime = Date.now();
+                
+                const response = await fetch(url, options);
+                const responseTime = Date.now() - startTime;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                showStatus(`✅ ${testName}成功 (${responseTime}ms)`, true);
+                showResult(testName, data, url);
+            } catch (error) {
+                // 检查是否是CORS错误
+                if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+                    showStatus(`❌ ${testName}失败: CORS跨域错误`, false);
+                    showResult(testName, null, url, error);
+                } else {
+                    showStatus(`❌ ${testName}失败: ${error.message}`, false);
+                    showResult(testName, null, url, error);
+                }
+            }
+        }
+        
+        // 页面加载时显示当前配置
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('apiUrl').textContent = API_BASE_URL;
+        });
+    </script>
+</body>
+</html>
