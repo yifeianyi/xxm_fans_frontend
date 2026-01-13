@@ -30,8 +30,19 @@ class ApiClient {
         throw new ApiError(response.status, `Request failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return { data };
+      const responseData = await response.json();
+
+      // 处理后端的统一响应格式: { code, message, data }
+      if (responseData && typeof responseData === 'object' && 'code' in responseData) {
+        if (responseData.code === 200) {
+          return { data: responseData.data as T };
+        } else {
+          throw new ApiError(responseData.code, responseData.message || 'Request failed');
+        }
+      }
+
+      // 如果不是统一格式，直接返回数据
+      return { data: responseData as T };
     } catch (error) {
       if (error instanceof ApiError) {
         return { error };
@@ -165,20 +176,29 @@ export class RealSongService implements ISongService {
     const result = await apiClient.get<any>(
           '/recommendation/'
         );
-    
+
     if (result.data) {
-      const transformed: Recommendation = {
-        content: result.data.content || '',
-        recommendedSongs: result.data.recommended_songs?.map((song: any) => song.id?.toString() || '') || []
-      };
-      // 将原始推荐歌曲数据附加到结果中，供前端使用
-      (result as any).recommendedSongsDetails = result.data.recommended_songs?.map((song: any) => ({
-        id: song.id?.toString() || '',
-        name: song.song_name || '未知歌曲',
-        singer: song.singer || '未知歌手',
-        performCount: song.perform_count || 0
-      })) || [];
-      return result;
+      // API 返回的是数组，取第一个激活的推荐
+      const recommendationData = Array.isArray(result.data) ? result.data.find((r: any) => r.is_active) || result.data[0] : result.data;
+
+      if (recommendationData) {
+        const recommendedSongsDetails = recommendationData.recommended_songs_details?.map((song: any) => ({
+          id: song.id?.toString() || '',
+          name: song.song_name || '未知歌曲',
+          singer: song.singer || '未知歌手',
+          language: song.language || '未知语种'
+        })) || [];
+
+        const transformed: Recommendation = {
+          content: recommendationData.content || '',
+          recommendedSongs: recommendationData.recommended_songs?.map((song: any) => song.id?.toString() || '') || []
+        };
+
+        // 将推荐歌曲详情附加到返回的数据对象中
+        (transformed as any).recommendedSongsDetails = recommendedSongsDetails;
+
+        return { data: transformed };
+      }
     }
     return result;
   }

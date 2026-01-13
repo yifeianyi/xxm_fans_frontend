@@ -31,18 +31,41 @@ const RankingChart: React.FC = () => {
           songService.getTopSongs({ range, limit: 10 }),
           songService.getRecommendation()
         ]);
-        if (songsResult.data) setTopSongs(songsResult.data);
-        if (recResult.data) {
-          setRecommendation(recResult.data);
-          if ((recResult as any).recommendedSongsDetails) {
-            setRecommendedSongsDetails((recResult as any).recommendedSongsDetails);
-          }
-        }
         
-        if (songsResult.error) console.error('获取热歌榜失败:', songsResult.error);
-        if (recResult.error) console.error('获取推荐语失败:', recResult.error);
+        console.log('📊 热歌榜结果:', songsResult);
+        if (songsResult.data) {
+          console.log('✅ 热歌榜数据:', songsResult.data);
+          setTopSongs(songsResult.data);
+        }
+        if (songsResult.error) console.error('❌ 获取热歌榜失败:', songsResult.error);
+        
+        console.log('💬 推荐语结果:', recResult);
+        if (recResult.data) {
+          console.log('✅ 推荐语数据:', recResult.data);
+          console.log('📝 推荐语内容:', recResult.data.content);
+          console.log('🎵 推荐歌曲ID:', recResult.data.recommendedSongs);
+
+          // 检查是否有推荐的歌曲详情
+          const details = (recResult.data as any).recommendedSongsDetails;
+          console.log('🔍 检查推荐歌曲详情:', details);
+          console.log('🔍 推荐歌曲详情类型:', typeof details);
+          console.log('🔍 推荐歌曲详情长度:', details?.length);
+
+          if (details && Array.isArray(details) && details.length > 0) {
+            console.log('🎵 推荐歌曲详情:', details);
+            setRecommendedSongsDetails(details);
+          } else {
+            console.warn('⚠️ 没有找到推荐歌曲详情或详情为空');
+            console.warn('⚠️ recResult.data 对象的所有属性:', Object.keys(recResult.data));
+          }
+
+          setRecommendation(recResult.data);
+        } else {
+          console.warn('⚠️ 推荐语数据为空');
+        }
+        if (recResult.error) console.error('❌ 获取推荐语失败:', recResult.error);
       } catch (error) {
-        console.error('数据加载失败:', error);
+        console.error('❌ 数据加载失败:', error);
       } finally {
         setLoading(false);
       }
@@ -63,8 +86,8 @@ const RankingChart: React.FC = () => {
           </div>
           <div className="flex gap-2">
             {recommendedSongsDetails.map(song => (
-              <button 
-                key={song.id} 
+              <button
+                key={song.id}
                 onClick={() => {
                   // 将推荐歌曲转换为Song对象格式
                   const songObject: Song = {
@@ -72,10 +95,10 @@ const RankingChart: React.FC = () => {
                     name: song.name,
                     originalArtist: song.singer,
                     genres: [], // 推荐歌曲API不返回这些信息
-                    languages: [],
+                    languages: song.language ? [song.language] : [],
                     firstPerformance: '',
                     lastPerformance: '',
-                    performanceCount: song.performCount || 0,
+                    performanceCount: 0, // 推荐歌曲API不返回演唱次数
                     tags: []
                   };
                   setSelectedSong(songObject);
