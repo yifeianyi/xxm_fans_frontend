@@ -21,7 +21,7 @@ const SongTable: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string | null>('last_performed');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [mysterySong, setMysterySong] = useState<Song | null>(null);
 
@@ -85,7 +85,7 @@ const SongTable: React.FC = () => {
     const mapField = (f: string) => {
       if (f === 'originalArtist') return 'singer';
       if (f === 'lastPerformance') return 'last_performed';
-      if (f === 'firstPerformance') return 'last_performed';
+      if (f === 'firstPerformance') return 'first_perform';
       if (f === 'performanceCount') return 'perform_count';
       return f;
     };
@@ -193,12 +193,20 @@ const SongTable: React.FC = () => {
           <thead>
             <tr className="bg-[#f2f9f1]/90 text-[#8eb69b] text-[11px] font-black border-b border-white/40 uppercase tracking-tighter">
               <th className="px-1 py-4">歌名</th>
-              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('originalArtist')}>原唱</th>
+              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('originalArtist')}>
+                原唱 {sortBy === 'singer' && (sortDir === 'asc' ? '↑' : '↓')}
+              </th>
               <th className="px-1 py-4">风格</th>
               <th className="px-1 py-4">语种</th>
-              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('firstPerformance')}>首次</th>
-              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('lastPerformance')}>最近</th>
-              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('performanceCount')}>演唱次数</th>
+              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('firstPerformance')}>
+                首次 {sortBy === 'first_perform' && (sortDir === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('lastPerformance')}>
+                最近 {sortBy === 'last_performed' && (sortDir === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('performanceCount')}>
+                演唱次数 {sortBy === 'perform_count' && (sortDir === 'asc' ? '↑' : '↓')}
+              </th>
               <th className="px-1 py-4">标签</th>
               <th className="px-1 py-4">记录</th>
             </tr>
@@ -236,8 +244,8 @@ const SongTable: React.FC = () => {
                       ))}
                     </div>
                   </td>
-                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.firstPerformance.slice(2)}</td>
-                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.lastPerformance.slice(2)}</td>
+                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.firstPerformance ? song.firstPerformance.slice(2) : '-'}</td>
+                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.lastPerformance ? song.lastPerformance.slice(2) : '-'}</td>
                   <td className="px-1 py-4">
                     <div className="flex justify-center">
                       <span className="inline-flex items-center justify-center w-8 h-8 bg-[#fef5f0] text-[#f8b195] rounded-full text-[13px] font-black">

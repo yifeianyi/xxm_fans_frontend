@@ -82,7 +82,7 @@ export class RealSongService implements ISongService {
           originalArtist: item.singer || '未知歌手',
           genres: Array.isArray(item.styles) ? item.styles : [],
           languages: item.language ? [item.language] : [],
-          firstPerformance: '', // 后端无此字段
+          firstPerformance: item.first_perform || '',
           lastPerformance: item.last_performed || '',
           performanceCount: item.perform_count || 0,
           tags: Array.isArray(item.tags) ? item.tags : []
@@ -140,7 +140,7 @@ export class RealSongService implements ISongService {
         originalArtist: item.singer || '未知歌手',
         genres: Array.isArray(item.styles) ? item.styles : [],
         languages: item.language ? [item.language] : [],
-        firstPerformance: '', // 后端无此字段
+        firstPerformance: item.first_perform || '',
         lastPerformance: item.last_performed || '',
         performanceCount: item.perform_count || 0,
         tags: Array.isArray(item.tags) ? item.tags : []
@@ -162,7 +162,7 @@ export class RealSongService implements ISongService {
         originalArtist: result.data.singer || '未知歌手',
         genres: Array.isArray(result.data.styles) ? result.data.styles : [],
         languages: result.data.language ? [result.data.language] : [],
-        firstPerformance: '', // 后端无此字段
+        firstPerformance: result.data.first_perform || '',
         lastPerformance: result.data.last_performed || '',
         performanceCount: result.data.perform_count || 0,
         tags: Array.isArray(result.data.tags) ? result.data.tags : []

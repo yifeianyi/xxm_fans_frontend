@@ -19,6 +19,12 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
   const pageRef = useRef(1);
   const loadingRef = useRef(false);
 
+  // 修正封面路径，确保以/开头
+  const normalizeCoverPath = (coverPath: string): string => {
+    if (!coverPath) return '';
+    return coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
+  };
+
   const loadRecords = useCallback(async (pageNum: number, isLoadMore: boolean = false) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -98,7 +104,10 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
         {records.map(rec => (
           <div key={rec.id} className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer" onClick={() => onPlay(rec.videoUrl)}>
             <div className="aspect-video relative overflow-hidden bg-gray-100">
-              <img src={rec.cover} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <img src={normalizeCoverPath(rec.cover)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" onError={(e) => {
+                console.error('封面加载失败:', rec.cover);
+                (e.target as HTMLImageElement).style.display = 'none';
+              }} />
               <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="p-2.5 bg-white/95 rounded-full text-[#f8b195] shadow-lg transform group-hover:scale-110 transition-all"><Play size={20} fill="currentColor" /></div>
               </div>
