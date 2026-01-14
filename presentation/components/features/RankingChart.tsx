@@ -25,43 +25,26 @@ const RankingChart: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      console.log('🔍 Fetching top songs with range:', range);
       try {
         const [songsResult, recResult] = await Promise.all([
           songService.getTopSongs({ range, limit: 10 }),
           songService.getRecommendation()
         ]);
-        
-        console.log('📊 热歌榜结果:', songsResult);
+
         if (songsResult.data) {
-          console.log('✅ 热歌榜数据:', songsResult.data);
           setTopSongs(songsResult.data);
         }
         if (songsResult.error) console.error('❌ 获取热歌榜失败:', songsResult.error);
-        
-        console.log('💬 推荐语结果:', recResult);
-        if (recResult.data) {
-          console.log('✅ 推荐语数据:', recResult.data);
-          console.log('📝 推荐语内容:', recResult.data.content);
-          console.log('🎵 推荐歌曲ID:', recResult.data.recommendedSongs);
 
+        if (recResult.data) {
           // 检查是否有推荐的歌曲详情
           const details = (recResult.data as any).recommendedSongsDetails;
-          console.log('🔍 检查推荐歌曲详情:', details);
-          console.log('🔍 推荐歌曲详情类型:', typeof details);
-          console.log('🔍 推荐歌曲详情长度:', details?.length);
 
           if (details && Array.isArray(details) && details.length > 0) {
-            console.log('🎵 推荐歌曲详情:', details);
             setRecommendedSongsDetails(details);
-          } else {
-            console.warn('⚠️ 没有找到推荐歌曲详情或详情为空');
-            console.warn('⚠️ recResult.data 对象的所有属性:', Object.keys(recResult.data));
           }
 
           setRecommendation(recResult.data);
-        } else {
-          console.warn('⚠️ 推荐语数据为空');
         }
         if (recResult.error) console.error('❌ 获取推荐语失败:', recResult.error);
       } catch (error) {
@@ -122,10 +105,7 @@ const RankingChart: React.FC = () => {
           {RANGE_OPTIONS.map((option) => (
             <button
               key={option.value}
-              onClick={() => {
-                console.log('🖱️ Clicked range option:', option.value);
-                setRange(option.value);
-              }}
+              onClick={() => setRange(option.value)}
               className={`relative z-10 flex-1 py-2 px-4 text-xs font-black transition-all whitespace-nowrap ${range === option.value ? 'text-white' : 'text-[#8eb69b]'}`}
             >
               {option.label}
