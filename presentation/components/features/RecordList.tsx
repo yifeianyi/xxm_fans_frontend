@@ -30,6 +30,7 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
   const loadRecords = useCallback(async (pageNum: number, isLoadMore: boolean = false) => {
     // 提前返回，避免竞态条件
     if (loadingRef.current) {
+      console.log('⏸️ 加载中，跳过重复请求');
       return;
     }
 
@@ -42,35 +43,46 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
       setLoading(true);
     }
 
-    const result = await songService.getRecords(songId, { page: pageNum, page_size: 20 });
+    try {
+      const result = await songService.getRecords(songId, { page: pageNum, page_size: 20 });
 
-    if (result.data) {
-      const { results, total } = result.data;
+      if (result.data) {
+        const { results, total } = result.data;
+        console.log(`✅ 获取演唱记录成功: 第 ${pageNum} 页, 返回 ${results.length} 条, 总计 ${total} 条`);
 
-      if (isLoadMore) {
-        setRecords(prev => {
-          const newRecords = [...prev, ...results];
+        if (isLoadMore) {
+          setRecords(prev => {
+            const newRecords = [...prev, ...results];
+            // 使用 total 准确判断是否还有更多数据
+            setHasMore(newRecords.length < total);
+            return newRecords;
+          });
+        } else {
+          setRecords(results);
           // 使用 total 准确判断是否还有更多数据
-          setHasMore(newRecords.length < total);
-          return newRecords;
-        });
+          setHasMore(results.length < total);
+        }
+        setTotalRecords(total); // 保存总数用于显示进度
+      } else if (result.error) {
+        console.error('❌ 获取演唱记录失败:', result.error);
+        setError(result.error.message);
       } else {
-        setRecords(results);
-        // 使用 total 准确判断是否还有更多数据
-        setHasMore(results.length < total);
+        console.warn('⚠️ API 返回无数据且无错误');
+        setRecords([]);
+        setHasMore(false);
       }
-      setTotalRecords(total); // 保存总数用于显示进度
-    } else if (result.error) {
-      console.error('❌ 获取演唱记录失败:', result.error);
-      setError(result.error.message);
+    } catch (error) {
+      console.error('❌ 获取演唱记录异常:', error);
+      setError('加载失败，请重试');
+    } finally {
+      // 确保在所有情况下都重置 loading 状态
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+      loadingRef.current = false;
     }
-
-    if (isLoadMore) {
-      setLoadingMore(false);
-    } else {
-      setLoading(false);
-    }
-    loadingRef.current = false;
   }, [songId]);
 
   useEffect(() => {
