@@ -98,21 +98,41 @@ export class RealSongService implements ISongService {
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
 
-    const result = await apiClient.get<PaginatedResult<any>>(
+    const result = await apiClient.get<any>(
       `/songs/${songId}/records/?${queryParams.toString()}`
     );
 
     if (result.data) {
+      // 兼容处理两种数据格式：
+      // 1. 分页格式: { results: [...], total: N }
+      // 2. 数组格式: [...] (后端实际返回的格式)
+      let recordsArray: any[];
+      let totalCount: number;
+
+      if (Array.isArray(result.data)) {
+        // 后端直接返回数组
+        recordsArray = result.data;
+        totalCount = result.data.length;
+      } else if (result.data.results && Array.isArray(result.data.results)) {
+        // 标准分页格式
+        recordsArray = result.data.results;
+        totalCount = result.data.total || result.data.results.length;
+      } else {
+        // 未知格式，返回空结果
+        console.warn('⚠️ getRecords 返回未知数据格式:', result.data);
+        return { data: { results: [], total: 0 } };
+      }
+
       const transformed: PaginatedResult<SongRecord> = {
-        ...result.data,
-        results: result.data.results.map(item => ({
+        results: recordsArray.map(item => ({
           id: item.id?.toString() || '',
           songId: songId,
           date: item.performed_at || '',
           cover: item.cover_url || '',
           note: item.notes || '',
           videoUrl: item.url || ''
-        }))
+        })),
+        total: totalCount
       };
       return { data: transformed };
     }
