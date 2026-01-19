@@ -63,3 +63,104 @@ export interface FilterState {
   tags: string[];
   languages: string[];
 }
+
+// ========== 新增类型定义 ==========
+
+// 数据分析相关
+export interface DataPoint {
+  time: string;
+  value: number;
+  delta: number;
+}
+
+export type TimeGranularity = 'HOUR' | 'DAY' | 'MONTH';
+
+export interface AccountData {
+  id: string;
+  name: string;
+  totalFollowers: number;
+  history: Record<TimeGranularity, DataPoint[]>;
+}
+
+export interface VideoStats {
+  id: string;
+  title: string;
+  cover: string;
+  publishTime: string;
+  duration: string;
+  views: number;
+  guestRatio: number;
+  fanWatchRate: number;
+  followerGrowth: number;
+  likes: number;
+  comments: number;
+  danmaku: number;
+  favs: number;
+  metrics: Record<TimeGranularity, {
+    views: DataPoint[];
+    likes: DataPoint[];
+    danmaku: DataPoint[];
+  }>;
+}
+
+export interface CorrelationData {
+  time: string;
+  videoViewDelta: number;
+  followerDelta: number;
+}
+
+// 图集相关
+export interface Gallery {
+  id: string;
+  title: string;
+  description: string;
+  coverUrl: string;
+  imageCount: number;
+  tags: string[];
+}
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  title: string;
+  date: string;
+  galleryIds: string[];
+}
+
+// 直播相关
+export interface LivestreamRecording {
+  title: string;
+  url: string;
+}
+
+export interface SongCut {
+  name: string;
+  videoUrl: string;
+}
+
+export interface Livestream {
+  id: string;
+  date: string;
+  title: string;
+  summary: string;
+  coverUrl: string;
+  viewCount: string;
+  danmakuCount: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  recordings: LivestreamRecording[];
+  songCuts: SongCut[];
+  screenshots: string[];
+  danmakuCloudUrl: string;
+}
+
+// 原创作品相关
+export interface OriginalWork {
+  title: string;
+  date: string;
+  desc: string;
+  cover: string;
+  songId: string;
+  featured: boolean;
+}
