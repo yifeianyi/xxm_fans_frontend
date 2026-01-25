@@ -154,6 +154,100 @@ XXM Fans Home 是一套**成熟可复用的歌手相关网站解决方案**，�
 - 粉丝二创作品播放
 - MV 播放
 
+### 6. 数据分析功能
+
+**功能描述**：数据可视化和统计分析功能
+
+**包含功能**：
+- 📊 **账号数据展示** - 展示账号粉丝数增长趋势
+- 📈 **视频统计分析** - 展示视频播放量、点赞、评论等数据
+- 🔄 **相关性分析** - 分析视频播放与粉丝增长的相关性
+- ⏱️ **时间线图表** - 按时间维度展示数据变化
+
+**所需数据结构**：
+```typescript
+{
+  id: string;
+  name: string;
+  totalFollowers: number;
+  history: Record<TimeGranularity, DataPoint[]>;
+}
+```
+
+### 7. 图集功能
+
+**功能描述**：图片合集管理和展示
+
+**包含功能**：
+- 🖼️ **图片合集** - 按主题分类的图片合集
+- 📋 **图片列表** - 展示合集内的所有图片
+- 🏷️ **标签分类** - 支持按标签筛选图片
+- 📅 **时间排序** - 按日期展示图片
+
+**所需数据结构**：
+```typescript
+{
+  id: string;
+  title: string;
+  description: string;
+  coverUrl: string;
+  imageCount: number;
+  tags: string[];
+}
+```
+
+### 8. 直播功能
+
+**功能描述**：直播记录和回放管理
+
+**包含功能**：
+- 📺 **直播记录** - 展示历史直播记录
+- 🎵 **歌曲剪辑** - 直播中的精彩片段
+- 📸 **截图展示** - 直播截图合集
+- 💬 **弹幕云** - 弹幕词云展示
+
+**所需数据结构**：
+```typescript
+{
+  id: string;
+  date: string;
+  title: string;
+  summary: string;
+  coverUrl: string;
+  viewCount: string;
+  danmakuCount: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  recordings: LivestreamRecording[];
+  songCuts: SongCut[];
+  screenshots: string[];
+  danmakuCloudUrl: string;
+}
+```
+
+### 9. 原创作品功能
+
+**功能描述**：展示原创作品
+
+**包含功能**：
+- 🎵 **原创歌曲** - 展示原创歌曲作品
+- ⭐ **特色标记** - 突出展示特色作品
+- 📅 **发布时间** - 按时间排序展示
+- 🎬 **关联视频** - 关联视频链接
+
+**所需数据结构**：
+```typescript
+{
+  title: string;
+  date: string;
+  desc: string;
+  cover: string;
+  songId: string;
+  featured: boolean;
+}
+```
+
 ## 🗄️ 数据需求
 
 ### 必需数据
@@ -168,7 +262,6 @@ XXM Fans Home 是一套**成熟可复用的歌手相关网站解决方案**，�
 | `/api/songs/{id}/records/` | GET | 获取演唱记录 | page(页码)、page_size(每页数) |
 | `/api/top_songs/` | GET | 获取热歌榜 | range(时间范围)、limit(数量) |
 | `/api/random-song/` | GET | 获取随机歌曲 | 无 |
-| `/api/recommendation/` | GET | 获取推荐语 | 无 |
 
 #### 粉丝二创接口
 
@@ -178,6 +271,20 @@ XXM Fans Home 是一套**成熟可复用的歌手相关网站解决方案**，�
 | `/api/fansDIY/collections/{id}/` | GET | 获取合集详情 | 无 |
 | `/api/fansDIY/works/` | GET | 获取作品列表 | page(页码)、limit(每页数)、collection(合集ID) |
 | `/api/fansDIY/works/{id}/` | GET | 获取作品详情 | 无 |
+
+#### 数据分析接口
+
+| 接口路径 | 方法 | 功能说明 | 所需参数 |
+|---------|------|---------|---------|
+| `/api/data-analytics/works/` | GET | 获取作品列表 | platform(平台)、is_valid(是否有效)、limit(数量)、offset(偏移量) |
+| `/api/data-analytics/works/{platform}/{work_id}/metrics/summary/` | GET | 获取作品指标汇总 | start_time(开始时间)、end_time(结束时间) |
+
+#### 网站设置接口
+
+| 接口路径 | 方法 | 功能说明 | 所需参数 |
+|---------|------|---------|---------|
+| `/api/recommendation/` | GET | 获取推荐内容 | all(是否返回所有)、is_active(是否只返回激活的) |
+| `/api/site-settings/settings/` | GET | 获取网站设置 | 无 |
 
 #### 静态资源
 
@@ -390,6 +497,9 @@ site: {
 根据需要启用或禁用功能：
 
 - **禁用粉丝二创**：在 `App.tsx` 中移除 `/fansDIY` 路由
+- **禁用数据分析**：在 `App.tsx` 中移除 `/data` 路由
+- **禁用图集**：在 `App.tsx` 中移除 `/gallery` 路由
+- **禁用直播**：在 `App.tsx` 中移除 `/live` 路由
 - **修改排序选项**：在 `infrastructure/config/constants.ts` 中修改常量
 - **添加新筛选条件**：在 `domain/types.ts` 中添加类型，在 `RealSongService.ts` 中实现
 
@@ -434,6 +544,9 @@ shared/          # 共享层 - 工具函数和共享服务
 - 使用演唱记录管理展示演出历史
 - 使用热歌榜展示热门歌曲
 - 使用推荐系统推荐新歌
+- 使用数据分析功能展示账号数据增长
+- 使用图集功能展示演唱会照片
+- 使用直播功能展示直播回放
 
 ### 场景二：乐队官网
 
@@ -443,6 +556,9 @@ shared/          # 共享层 - 工具函数和共享服务
 - 使用歌曲管理系统管理乐队作品
 - 使用演唱记录管理记录演出历史
 - 使用粉丝二创展示粉丝翻唱作品
+- 使用原创作品功能展示乐队原创
+- 使用图集功能展示乐队照片
+- 使用直播功能展示直播回放
 - 自定义主题色和品牌信息
 
 ### 场景三：音乐工作室
@@ -453,6 +569,9 @@ shared/          # 共享层 - 工具函数和共享服务
 - 使用歌曲管理系统展示所有艺人作品
 - 使用演唱记录管理记录演出信息
 - 使用热歌榜展示热门作品
+- 使用数据分析功能统计作品表现
+- 使用原创作品功能展示工作室原创
+- 使用图集功能展示艺人照片
 - 自定义筛选条件和排序方式
 
 ### 场景四：粉丝运营平台
@@ -463,6 +582,20 @@ shared/          # 共享层 - 工具函数和共享服务
 - 使用粉丝二创管理展示粉丝作品
 - 使用作品合集分类管理作品
 - 支持视频播放和互动
+- 使用图集功能展示粉丝投稿图片
+- 使用数据分析功能分析粉丝互动数据
+- 自定义主题和品牌信息
+
+### 场景五：音乐自媒体
+
+**需求**：搭建音乐内容平台，分享音乐资讯
+
+**解决方案**：
+- 使用歌曲管理系统分享推荐歌曲
+- 使用粉丝二创展示粉丝投稿
+- 使用图集功能展示音乐相关图片
+- 使用直播功能展示音乐直播
+- 使用推荐系统推荐优质内容
 - 自定义主题和品牌信息
 
 ## 🔧 常见问题
