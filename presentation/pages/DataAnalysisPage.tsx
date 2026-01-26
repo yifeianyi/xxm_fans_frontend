@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet';
 import { mockApi } from '../../infrastructure/api/mockApi';
 import { AccountData, VideoStats, TimeGranularity, DataPoint, CorrelationData } from '../../domain/types';
 import {
@@ -196,7 +197,12 @@ const DataAnalysisPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
+    <>
+        <Helmet>
+            <title>咻咻满数据分析 - 账号数据、视频统计 | 小满虫之家</title>
+            <meta name="description" content="查看咻咻满的账号数据和视频统计分析，包括粉丝增长、播放量、点赞数等关键指标。了解咻咻满在各平台的数据表现。" />
+        </Helmet>
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
 
       {/* 1. 顶部全站趋势 */}
       <section className="space-y-6">
@@ -479,6 +485,7 @@ const DataAnalysisPage: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #8eb69b66; }
       `}</style>
     </div>
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet';
 import { mockApi } from '../../infrastructure/api/mockApi';
 import { Livestream } from '../../domain/types';
 import {
@@ -72,7 +73,12 @@ const LivestreamPage: React.FC = () => {
   const currentRecording = selectedLive?.recordings[selectedRecordingIndex];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
+    <>
+        <Helmet>
+            <title>咻咻满直播记录 - 直播回放、歌曲剪辑 | 小满虫之家</title>
+            <meta name="description" content="查看咻咻满的直播记录，包括直播回放、歌曲剪辑和精彩截图。记录每一次直播的精彩瞬间，不错过任何一场精彩演出。" />
+        </Helmet>
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
 
       {/* 顶部控制栏 */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 p-6 rounded-[3rem] border-2 border-white shadow-xl backdrop-blur-md">
@@ -321,6 +327,7 @@ const LivestreamPage: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #8eb69b66; }
       `}</style>
     </div>
+    </>
   );
 };
 

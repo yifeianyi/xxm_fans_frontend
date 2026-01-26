@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet';
 import SongTable from '../components/features/SongTable';
 import RankingChart from '../components/features/RankingChart';
 
@@ -7,7 +8,33 @@ const SongsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'hot' | 'all'>('all');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+    <>
+        <Helmet>
+            <title>
+                {activeTab === 'hot' ? '咻咻满热歌榜 - 热门歌曲排行' : '咻咻满歌曲列表 - 翻唱作品、原唱歌曲、演出记录'} | 小满虫之家
+            </title>
+            <meta
+                name="description"
+                content={
+                    activeTab === 'hot'
+                        ? '浏览咻咻满的热门歌曲排行榜，发现最受欢迎的演唱作品。每首歌都记录着咻咻满的音乐历程和粉丝的喜爱。'
+                        : '浏览咻咻满的所有歌曲作品，包括翻唱、原唱和演出记录。每首歌曲都记录着咻咻满的音乐历程和情感表达。支持搜索、筛选和排序功能。'
+                }
+            />
+        </Helmet>
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+            <div className="text-center space-y-4">
+                <h1 className="text-4xl md:text-5xl font-black text-[#4a3728] tracking-tighter">
+                    {activeTab === 'hot' ? '咻咻满热歌榜' : '咻咻满歌曲列表'}
+                </h1>
+                <p className="text-[#8eb69b] font-bold">
+                    {activeTab === 'hot'
+                        ? '发现咻咻满最受欢迎的歌曲作品'
+                        : '浏览咻咻满的所有歌曲，包括翻唱、原唱和演出记录'
+                    }
+                </p>
+            </div>
+
       <div className="w-full max-w-xl mx-auto">
         <div className="relative flex p-1.5 bg-white/40 rounded-full shadow-inner border-2 border-white overflow-hidden">
           <div
@@ -25,6 +52,7 @@ const SongsPage: React.FC = () => {
         {activeTab === 'all' && <SongTable />}
       </div>
     </div>
+    </>
   );
 };
 

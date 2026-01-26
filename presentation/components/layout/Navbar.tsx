@@ -24,11 +24,11 @@ const Navbar: React.FC = () => {
                 {isGallery && <div className="absolute -bottom-1.5 h-1 w-6 bg-[#f8b195] rounded-full shadow-sm"></div>}
             </ReactRouterDOM.Link>
 
-            <div className="flex items-center gap-2 shrink-0 px-2">
+            <ReactRouterDOM.Link to="/" className="flex items-center gap-2 shrink-0 px-2">
                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
-                    <img src="/咻咻满.jpg" alt="Avatar" className="w-full h-full object-cover" />
+                    <img src="/咻咻满.jpg" alt="咻咻满头像" className="w-full h-full object-cover" />
                 </div>
-            </div>
+            </ReactRouterDOM.Link>
 
             <ReactRouterDOM.Link to="/fansDIY" className={`relative py-1 flex flex-col items-center transition-all ${isFans ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'}`}>
                 <span className="text-xs md:text-sm font-black whitespace-nowrap px-2">精选二创</span>

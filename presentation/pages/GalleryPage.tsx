@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 import { galleryService } from '../../infrastructure/api/RealGalleryService';
 import { Gallery, GalleryImage, Breadcrumb } from '../../domain/types';
 import { Camera, ArrowLeft, Maximize2, X, ChevronRight, Play, ChevronLeft, ChevronRight as ChevronRightIcon, Menu, Search, ChevronDown } from 'lucide-react';
@@ -266,7 +267,24 @@ const GalleryPage: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen bg-[#fef5f0]">
+        <>
+            <Helmet>
+                <title>
+                    {currentGallery
+                        ? `${currentGallery.title} - 咻咻满图集 | 小满虫之家`
+                        : '咻咻满图集 - 粉丝二创、活动照片、生活瞬间 | 小满虫之家'
+                    }
+                </title>
+                <meta
+                    name="description"
+                    content={
+                        currentGallery
+                            ? `浏览${currentGallery.title}，收录${currentGallery.imageCount}张精彩图片。${currentGallery.description || ''}`
+                            : '欢迎来到咻咻满的图集，这里汇集了粉丝二创作品、活动照片和生活瞬间。图集持续整理更新中，欢迎各位小满虫投稿和分享。'
+                    }
+                />
+            </Helmet>
+            <div className="flex h-screen bg-[#fef5f0]">
             {/* 左侧树形导航 */}
             <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 } md:relative md:translate-x-0`}>
@@ -708,11 +726,13 @@ const GalleryPage: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
-    );
-};
-
-// Gallery Tree Node Component
+                    </div>
+                    </>
+                );
+            
+            };
+            
+            // Gallery Tree Node Component
 const GalleryTreeNode: React.FC<{
     gallery: Gallery;
     currentGallery: Gallery | null;

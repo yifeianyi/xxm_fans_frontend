@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 import { Play } from 'lucide-react';
 import { fanDIYService } from '../../infrastructure/api';
 import { FanWork, FanCollection } from '../../domain/types';
@@ -40,7 +41,12 @@ const FansDIYPage: React.FC = () => {
     : works.filter(w => w.collectionId === selectedCol);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
+    <>
+        <Helmet>
+            <title>咻咻满精选二创 - 粉丝二创作品展示 | 小满虫之家</title>
+            <meta name="description" content="浏览咻咻满粉丝创作的二创作品，包括绘画、视频、剪辑等。每一份热爱都在这里闪闪发光，记录属于小满虫们的精彩时刻。" />
+        </Helmet>
+        <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
       <div className="text-center space-y-4">
         <div className="inline-block px-4 py-1 bg-[#fef5f0] text-[#f8b195] text-[10px] font-black uppercase tracking-[0.3em] rounded-full border border-[#f8b195]/10 mb-2">
           Community Creations
@@ -118,6 +124,7 @@ const FansDIYPage: React.FC = () => {
 
       <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
     </div>
+    </>
   );
 };
 
