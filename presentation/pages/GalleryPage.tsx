@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { galleryService } from '../../infrastructure/api/RealGalleryService';
 import { Gallery, GalleryImage, Breadcrumb } from '../../domain/types';
 import { Camera, ArrowLeft, Maximize2, X, ChevronRight, Play, ChevronLeft, ChevronRight as ChevronRightIcon, Menu, Search, ChevronDown } from 'lucide-react';
+import LazyImage from '../components/common/LazyImage';
 
 const GalleryPage: React.FC = () => {
     const [galleryTree, setGalleryTree] = useState<Gallery[]>([]);
@@ -445,11 +446,12 @@ const GalleryPage: React.FC = () => {
                                                 onMouseLeave={(e) => e.currentTarget.pause()}
                                             />
                                         ) : (
-                                            <img
-                                                src={img.url}
-                                                alt={img.title}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
+                                            <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
+                                                <LazyImage
+                                                    src={img.url}
+                                                    alt={img.title}
+                                                />
+                                            </div>
                                         )}
                                         {(img.isGif || img.isVideo) && (
                                             <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full flex items-center gap-1">
@@ -499,11 +501,12 @@ const GalleryPage: React.FC = () => {
                                                             onMouseLeave={(e) => e.currentTarget.pause()}
                                                         />
                                                     ) : (
-                                                        <img
-                                                            src={img.url}
-                                                            alt={img.title}
-                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                        />
+                                                        <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
+                                                            <LazyImage
+                                                                src={img.url}
+                                                                alt={img.title}
+                                                            />
+                                                        </div>
                                                     )}
                                                     {(img.isGif || img.isVideo) && (
                                                         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full flex items-center gap-1">
@@ -534,58 +537,52 @@ const GalleryPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Gallery List (Non-leaf Node) - 瀑布流布局 */}
+                    {/* Gallery List (Non-leaf Node) - 网格相册布局 */}
                     {!loading && currentGallery && !isLeafGallery(currentGallery) && childrenImagesGroups.length === 0 && (
-                        <div className="max-w-7xl mx-auto px-4">
-                            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                                 {currentGallery.children?.map((gallery) => (
                                     <div
                                         key={gallery.id}
-                                        className="group relative cursor-pointer break-inside-avoid"
+                                        className="group relative cursor-pointer bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
                                         onClick={() => handleGalleryClick(gallery)}
                                     >
-                                        {/* 瀑布流卡片 */}
-                                        <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                                            {/* 封面图 */}
-                                            <div className="relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
-                                                <img
+                                        {/* 封面图 */}
+                                        <div className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
+                                            <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+                                                <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
-                                                    className="w-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                                    style={{ minHeight: '200px' }}
                                                 />
-                                                {/* 遮罩层 */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
                                             </div>
+                                            {/* 遮罩层 */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                                        </div>
 
-                                            {/* 信息区 - 浮动在图片上 */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                                {/* 标签 */}
-                                                <div className="flex items-center gap-2 mb-3">
+                                        {/* 信息区 */}
+                                        <div className="p-4 space-y-3">
+                                            {/* 标签 */}
+                                            {gallery.tags.length > 0 && (
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     {gallery.tags.map(t => (
-                                                        <span key={t} className="px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-[9px] font-black uppercase tracking-widest">
+                                                        <span key={t} className="px-2 py-1 bg-[#f8b195]/10 text-[#f8b195] rounded-md text-[9px] font-black uppercase tracking-widest">
                                                             {t}
                                                         </span>
                                                     ))}
                                                 </div>
+                                            )}
 
-                                                {/* 标题 */}
-                                                <h2 className="text-2xl font-black tracking-tight mb-2">
-                                                    {gallery.title}
-                                                </h2>
+                                            {/* 标题 */}
+                                            <h2 className="text-lg font-black text-[#4a3728] line-clamp-1">
+                                                {gallery.title}
+                                            </h2>
 
-                                                {/* 描述 */}
-                                                <p className="text-sm font-bold opacity-90 line-clamp-2 mb-3">
-                                                    {gallery.description}
-                                                </p>
-
-                                                {/* 底部信息 */}
-                                                <div className="flex items-center justify-between pt-2 border-t border-white/20">
-                                                    <span className="text-xs font-bold opacity-80">
-                                                        {gallery.imageCount} 张瞬间
-                                                    </span>
-                                                    <ArrowLeft className="rotate-180 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0" size={16} />
-                                                </div>
+                                            {/* 底部信息 */}
+                                            <div className="flex items-center justify-between text-xs text-gray-500">
+                                                <span className="font-bold">
+                                                    {gallery.imageCount} 张
+                                                </span>
+                                                <ArrowLeft className="rotate-180 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 text-[#8eb69b]" size={16} />
                                             </div>
                                         </div>
                                     </div>
@@ -594,58 +591,52 @@ const GalleryPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Root Gallery List - 瀑布流布局 */}
+                    {/* Root Gallery List - 网格相册布局 */}
                     {!loading && !currentGallery && (
-                        <div className="max-w-7xl mx-auto px-4">
-                            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                                 {galleryTree.map((gallery) => (
                                     <div
                                         key={gallery.id}
-                                        className="group relative cursor-pointer break-inside-avoid"
+                                        className="group relative cursor-pointer bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
                                         onClick={() => handleGalleryClick(gallery)}
                                     >
-                                        {/* 瀑布流卡片 */}
-                                        <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                                            {/* 封面图 */}
-                                            <div className="relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
-                                                <img
+                                        {/* 封面图 */}
+                                        <div className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
+                                            <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+                                                <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
-                                                    className="w-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                                    style={{ minHeight: '200px' }}
                                                 />
-                                                {/* 遮罩层 */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
                                             </div>
+                                            {/* 遮罩层 */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                                        </div>
 
-                                            {/* 信息区 - 浮动在图片上 */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                                {/* 标签 */}
-                                                <div className="flex items-center gap-2 mb-3">
+                                        {/* 信息区 */}
+                                        <div className="p-4 space-y-3">
+                                            {/* 标签 */}
+                                            {gallery.tags.length > 0 && (
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     {gallery.tags.map(t => (
-                                                        <span key={t} className="px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-[9px] font-black uppercase tracking-widest">
+                                                        <span key={t} className="px-2 py-1 bg-[#f8b195]/10 text-[#f8b195] rounded-md text-[9px] font-black uppercase tracking-widest">
                                                             {t}
                                                         </span>
                                                     ))}
                                                 </div>
+                                            )}
 
-                                                {/* 标题 */}
-                                                <h2 className="text-2xl font-black tracking-tight mb-2">
-                                                    {gallery.title}
-                                                </h2>
+                                            {/* 标题 */}
+                                            <h2 className="text-lg font-black text-[#4a3728] line-clamp-1">
+                                                {gallery.title}
+                                            </h2>
 
-                                                {/* 描述 */}
-                                                <p className="text-sm font-bold opacity-90 line-clamp-2 mb-3">
-                                                    {gallery.description}
-                                                </p>
-
-                                                {/* 底部信息 */}
-                                                <div className="flex items-center justify-between pt-2 border-t border-white/20">
-                                                    <span className="text-xs font-bold opacity-80">
-                                                        {gallery.imageCount} 张瞬间
-                                                    </span>
-                                                    <ArrowLeft className="rotate-180 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0" size={16} />
-                                                </div>
+                                            {/* 底部信息 */}
+                                            <div className="flex items-center justify-between text-xs text-gray-500">
+                                                <span className="font-bold">
+                                                    {gallery.imageCount} 张
+                                                </span>
+                                                <ArrowLeft className="rotate-180 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 text-[#8eb69b]" size={16} />
                                             </div>
                                         </div>
                                     </div>
@@ -786,11 +777,12 @@ const GalleryCard: React.FC<{ gallery: Gallery, onClick: (gallery: Gallery) => v
         <div className="absolute inset-0 bg-white rounded-[3.5rem] -rotate-2 translate-y-1 shadow-sm opacity-80 transition-transform group-hover:-rotate-4"></div>
         <div className="relative bg-white rounded-[3.5rem] overflow-hidden shadow-lg border-4 border-white transition-all group-hover:-translate-y-4">
             <div className="aspect-[4/5] overflow-hidden">
-                <img
-                    src={gallery.coverUrl}
-                    alt={gallery.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                />
+                <div className="w-full h-full group-hover:scale-105 transition-transform duration-1000">
+                    <LazyImage
+                        src={gallery.coverUrl}
+                        alt={gallery.title}
+                    />
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white space-y-2">
