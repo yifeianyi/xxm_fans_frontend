@@ -70,6 +70,40 @@ export class RealGalleryService {
   }
 
   /**
+   * 获取父图集下所有子图集的图片，按子图集分组返回
+   */
+  async getGalleryChildrenImages(galleryId: string): Promise<{
+    gallery: Gallery;
+    images: GalleryImage[];
+  }[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/${galleryId}/children-images/`);
+      const result = await response.json();
+
+      if (result.code === 200 && result.data) {
+        // 如果是叶子节点，返回单个图集的图片
+        if (result.data.gallery) {
+          return [{
+            gallery: this.transformGalleryDetail(result.data.gallery),
+            images: this.transformImageData(result.data.images)
+          }];
+        }
+        // 如果是父节点，返回所有子图集的图片
+        if (result.data.children) {
+          return result.data.children.map((child: any) => ({
+            gallery: this.transformGalleryDetail(child.gallery),
+            images: this.transformImageData(child.images)
+          }));
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('获取子图集图片失败:', error);
+      return [];
+    }
+  }
+
+  /**
    * 转换图集数据（树结构）
    */
   private transformGalleryData(data: any[]): Gallery[] {

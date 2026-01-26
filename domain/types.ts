@@ -117,6 +117,7 @@ export interface Gallery {
   coverUrl: string;
   level: number;
   imageCount: number;
+  image_count?: number;  // 后端返回的字段名
   folderPath: string;
   tags: string[];
   isLeaf: boolean;
