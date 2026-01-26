@@ -548,11 +548,12 @@ const GalleryPage: React.FC = () => {
                                         onClick={() => handleGalleryClick(gallery)}
                                     >
                                         {/* 封面图 */}
-                                        <div className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
-                                            <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+                                        <div className="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
+                                            <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-700">
                                                 <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
+                                                    className="w-full h-full"
                                                 />
                                             </div>
                                             {/* 遮罩层 */}
@@ -602,11 +603,12 @@ const GalleryPage: React.FC = () => {
                                         onClick={() => handleGalleryClick(gallery)}
                                     >
                                         {/* 封面图 */}
-                                        <div className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
-                                            <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+                                        <div className="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-[#f8b195]/20 to-[#8eb69b]/20">
+                                            <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-700">
                                                 <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
+                                                    className="w-full h-full"
                                                 />
                                             </div>
                                             {/* 遮罩层 */}
@@ -776,11 +778,12 @@ const GalleryCard: React.FC<{ gallery: Gallery, onClick: (gallery: Gallery) => v
         <div className="absolute inset-0 bg-white rounded-[3.5rem] rotate-3 translate-y-2 translate-x-1 shadow-sm opacity-50 transition-transform group-hover:rotate-6"></div>
         <div className="absolute inset-0 bg-white rounded-[3.5rem] -rotate-2 translate-y-1 shadow-sm opacity-80 transition-transform group-hover:-rotate-4"></div>
         <div className="relative bg-white rounded-[3.5rem] overflow-hidden shadow-lg border-4 border-white transition-all group-hover:-translate-y-4">
-            <div className="aspect-[4/5] overflow-hidden">
+            <div className="aspect-[3/4] overflow-hidden">
                 <div className="w-full h-full group-hover:scale-105 transition-transform duration-1000">
                     <LazyImage
                         src={gallery.coverUrl}
                         alt={gallery.title}
+                        className="w-full h-full"
                     />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
