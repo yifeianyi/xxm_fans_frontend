@@ -10,12 +10,18 @@ const Navbar: React.FC = () => {
     const location = ReactRouterDOM.useLocation();
     const isSongs = location.pathname.startsWith('/songs');
     const isFans = location.pathname.startsWith('/fansDIY');
+    const isGallery = location.pathname.startsWith('/gallery');
 
     return (
         <nav className="sticky top-0 z-50 w-full glass-card border-b border-white/50 px-4 py-2.5 flex items-center justify-center gap-4 md:gap-8">
             <ReactRouterDOM.Link to="/songs" className={`relative py-1 flex flex-col items-center transition-all ${isSongs ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'}`}>
                 <span className="text-xs md:text-sm font-black whitespace-nowrap px-2">满の歌声</span>
                 {isSongs && <div className="absolute -bottom-1.5 h-1 w-6 bg-[#f8b195] rounded-full shadow-sm"></div>}
+            </ReactRouterDOM.Link>
+
+            <ReactRouterDOM.Link to="/gallery" className={`relative py-1 flex flex-col items-center transition-all ${isGallery ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'}`}>
+                <span className="text-xs md:text-sm font-black whitespace-nowrap px-2">森林图册</span>
+                {isGallery && <div className="absolute -bottom-1.5 h-1 w-6 bg-[#f8b195] rounded-full shadow-sm"></div>}
             </ReactRouterDOM.Link>
 
             <div className="flex items-center gap-2 shrink-0 px-2">

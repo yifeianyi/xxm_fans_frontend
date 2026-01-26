@@ -115,16 +115,28 @@ export interface Gallery {
   title: string;
   description: string;
   coverUrl: string;
+  level: number;
   imageCount: number;
+  folderPath: string;
   tags: string[];
+  isLeaf: boolean;
+  children?: Gallery[];
+  breadcrumbs?: Breadcrumb[];
+  createdAt?: string;
+}
+
+export interface Breadcrumb {
+  id: string;
+  title: string;
 }
 
 export interface GalleryImage {
   id: string;
   url: string;
   title: string;
-  date: string;
-  galleryIds: string[];
+  filename: string;
+  isGif?: boolean;  // 标记是否为 GIF 动图
+  isVideo?: boolean;  // 标记是否为 MP4 视频
 }
 
 // 直播相关
