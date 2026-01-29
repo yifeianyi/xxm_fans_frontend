@@ -37,7 +37,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
     const [imageSrc, setImageSrc] = useState<string>(placeholder);
     const [imageRef, isIntersecting] = useIntersectionObserver();
     const [isLoading, setIsLoading] = useState(false);
-    const imageRequestRef = useRef<HTMLImageElement | null>(null);
     const isMountedRef = useRef(true);
     const hasCheckedCacheRef = useRef(false);
 
@@ -95,47 +94,13 @@ const LazyImage: React.FC<LazyImageProps> = ({
 
             console.log('[LazyImage] 开始加载图片:', src);
             // 立即标记为正在加载，防止重复
-            globalLoadedUrls.set(src, true);
             globalLoadingUrls.add(src);
             setIsLoading(true);
 
-            // 清理之前的请求
-            if (imageRequestRef.current) {
-                imageRequestRef.current.onload = null;
-                imageRequestRef.current.onerror = null;
-            }
-
-            const img = new Image();
-            imageRequestRef.current = img;
-            img.src = src;
-
-            img.onload = () => {
-                if (!isMountedRef.current) return;
-                console.log('[LazyImage] 图片加载成功:', src);
-                globalLoadingUrls.delete(src);
-                setImageSrc(src);
-                setIsLoading(false);
-                onLoad?.();
-            };
-
-            img.onerror = () => {
-                if (!isMountedRef.current) return;
-                console.log('[LazyImage] 图片加载失败:', src);
-                // 加载失败，从缓存中移除
-                globalLoadedUrls.delete(src);
-                globalLoadingUrls.delete(src);
-                setImageSrc(placeholder);
-                setIsLoading(false);
-                onError?.();
-            };
+            // 直接设置 imageSrc，让 <img> 标签加载图片
+            // 只通过 <img> 标签的 onLoad/onError 事件来处理，避免使用 new Image() 导致重复请求
+            setImageSrc(src);
         }
-
-        return () => {
-            if (imageRequestRef.current) {
-                imageRequestRef.current.onload = null;
-                imageRequestRef.current.onerror = null;
-            }
-        };
     }, [isIntersecting, imageSrc, placeholder, src, onLoad, onError]);
 
     return (
@@ -155,6 +120,23 @@ const LazyImage: React.FC<LazyImageProps> = ({
                 src={imageSrc}
                 alt={alt}
                 className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => {
+                    if (!isMountedRef.current) return;
+                    console.log('[LazyImage] 图片加载成功:', src);
+                    globalLoadedUrls.set(src, true);
+                    globalLoadingUrls.delete(src);
+                    setIsLoading(false);
+                    onLoad?.();
+                }}
+                onError={() => {
+                    if (!isMountedRef.current) return;
+                    console.log('[LazyImage] 图片加载失败:', src);
+                    globalLoadedUrls.delete(src);
+                    globalLoadingUrls.delete(src);
+                    setImageSrc(placeholder);
+                    setIsLoading(false);
+                    onError?.();
+                }}
             />
         </div>
     );
