@@ -119,6 +119,7 @@ export class RealGalleryService {
       title: item.title,
       description: item.description || '',
       coverUrl: item.cover_url || '',
+      coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
       level: item.level || 0,
       imageCount: item.image_count || 0,
       folderPath: item.folder_path || '',
@@ -146,6 +147,7 @@ export class RealGalleryService {
       title: item.title,
       description: item.description || '',
       coverUrl: item.cover_url || '',
+      coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
       level: item.level || 0,
       imageCount: item.image_count || 0,
       folderPath: item.folder_path || '',
@@ -169,6 +171,7 @@ export class RealGalleryService {
         title: child.title,
         description: child.description || '',
         coverUrl: child.cover_url || '',
+        coverThumbnailUrl: child.cover_thumbnail_url || child.cover_url || '',
         level: child.level || 0,
         imageCount: child.image_count || 0,
         folderPath: child.folder_path || '',
@@ -184,9 +187,10 @@ export class RealGalleryService {
    * 转换图片数据
    */
   private transformImageData(images: any[]): GalleryImage[] {
-    return images.map((img, index) => ({
-      id: `${img.filename}-${index}`,
+    return images.map((img) => ({
+      id: img.url,
       url: img.url,
+      thumbnail_url: img.thumbnail_url,
       title: img.title,
       filename: img.filename,
       isGif: img.filename.toLowerCase().endsWith('.gif'),

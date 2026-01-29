@@ -85,7 +85,7 @@ const FansDIYPage: React.FC = () => {
               onClick={() => setVideoUrl(work.videoUrl)}
             >
               <div className="aspect-video relative overflow-hidden bg-[[fef5f0]">
-                <img src={work.cover} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                <img src={work.coverThumbnailUrl || work.cover} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-[#f8b195] shadow-xl transform scale-75 group-hover:scale-100 transition-transform duration-500">
                     <Play fill="currentColor" size={24} />

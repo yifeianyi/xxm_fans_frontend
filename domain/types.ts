@@ -4,6 +4,7 @@ export interface SongRecord {
   songId: string;
   date: string;
   cover: string;
+  coverThumbnailUrl?: string;  // 缩略图 URL
   note: string;
   videoUrl: string;
 }
@@ -38,6 +39,7 @@ export interface FanWork {
   title: string;
   author: string;
   cover: string;
+  coverThumbnailUrl?: string;  // 缩略图 URL
   videoUrl: string;
   note: string;
   collectionId: string;
@@ -115,6 +117,7 @@ export interface Gallery {
   title: string;
   description: string;
   coverUrl: string;
+  coverThumbnailUrl?: string;  // 缩略图 URL
   level: number;
   imageCount: number;
   image_count?: number;  // 后端返回的字段名
@@ -134,6 +137,8 @@ export interface Breadcrumb {
 export interface GalleryImage {
   id: string;
   url: string;
+  thumbnail_url?: string;  // 缩略图 URL（后端返回的字段名）
+  thumbnailUrl?: string;   // 前端使用的缩略图 URL 字段
   title: string;
   filename: string;
   isGif?: boolean;  // 标记是否为 GIF 动图

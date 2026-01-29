@@ -24,9 +24,15 @@ const GalleryPage: React.FC = () => {
     }[]>([]);
     const [allChildrenImages, setAllChildrenImages] = useState<GalleryImage[]>([]); // 扁平化的所有子集图片
 
+    // 使用 ref 跟踪是否已经加载过，避免 React StrictMode 导致的重复调用
+    const hasLoadedRef = React.useRef(false);
+
     // 加载图集树
     useEffect(() => {
-        loadGalleryTree();
+        if (!hasLoadedRef.current) {
+            hasLoadedRef.current = true;
+            loadGalleryTree();
+        }
     }, []);
 
     // 智能展开：当当前图集改变时，自动展开路径上的所有节点
@@ -132,24 +138,47 @@ const GalleryPage: React.FC = () => {
 
     // 加载图片
     const loadImages = async (galleryId: string) => {
+        // 防止重复加载
+        if (loadingRef.current === galleryId) {
+            return;
+        }
+
+        loadingRef.current = galleryId;
         setLoading(true);
-        const data = await galleryService.getGalleryImages(galleryId);
-        setImages(data);
-        setCurrentImageIndex(0);
-        setLoading(false);
+
+        try {
+            const data = await galleryService.getGalleryImages(galleryId);
+            setImages(data);
+            setCurrentImageIndex(0);
+        } finally {
+            setLoading(false);
+            loadingRef.current = null;
+        }
     };
 
     // 加载子图集图片（用于父图集显示所有子图集的图片）
+    const loadingRef = React.useRef<string | null>(null);
+
     const loadChildrenImages = async (galleryId: string) => {
+        // 防止重复加载
+        if (loadingRef.current === galleryId) {
+            return;
+        }
+
+        loadingRef.current = galleryId;
         setLoading(true);
-        const data = await galleryService.getGalleryChildrenImages(galleryId);
-        setChildrenImagesGroups(data);
 
-        // 创建扁平化的图片列表，用于灯箱连续切换
-        const allImages = data.flatMap(group => group.images);
-        setAllChildrenImages(allImages);
+        try {
+            const data = await galleryService.getGalleryChildrenImages(galleryId);
+            setChildrenImagesGroups(data);
 
-        setLoading(false);
+            // 创建扁平化的图片列表，用于灯箱连续切换
+            const allImages = data.flatMap(group => group.images);
+            setAllChildrenImages(allImages);
+        } finally {
+            setLoading(false);
+            loadingRef.current = null;
+        }
     };
 
     // 更新面包屑
@@ -466,7 +495,7 @@ const GalleryPage: React.FC = () => {
                                         ) : (
                                             <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
                                                 <LazyImage
-                                                    src={img.url}
+                                                    src={img.thumbnail_url || img.url}
                                                     alt={img.title}
                                                 />
                                             </div>
@@ -521,7 +550,7 @@ const GalleryPage: React.FC = () => {
                                                     ) : (
                                                         <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
                                                             <LazyImage
-                                                                src={img.url}
+                                                                src={img.thumbnail_url || img.url}
                                                                 alt={img.title}
                                                             />
                                                         </div>

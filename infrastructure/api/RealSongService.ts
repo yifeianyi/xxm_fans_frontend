@@ -129,6 +129,7 @@ export class RealSongService implements ISongService {
           songId: songId,
           date: item.performed_at || '',
           cover: item.cover_url || '',
+          coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
           note: item.notes || '',
           videoUrl: item.url || ''
         })),
@@ -284,6 +285,7 @@ export class RealFanDIYService implements IFanDIYService {
           title: item.title || '未知作品',
           author: item.author || '未知作者',
           cover: item.cover_url || '',
+          coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
           videoUrl: item.view_url || '',
           note: item.notes || '',
           collectionId: item.collection?.id?.toString() || '',
@@ -306,6 +308,7 @@ export class RealFanDIYService implements IFanDIYService {
         title: result.data.title || '未知作品',
         author: result.data.author || '未知作者',
         cover: result.data.cover_url || '',
+        coverThumbnailUrl: result.data.cover_thumbnail_url || result.data.cover_url || '',
         videoUrl: result.data.view_url || '',
         note: result.data.notes || '',
         collectionId: result.data.collection?.id?.toString() || '',

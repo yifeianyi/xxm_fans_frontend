@@ -146,7 +146,7 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
         {records.map(rec => (
           <div key={rec.id} className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer" onClick={() => onPlay(rec.videoUrl)}>
             <div className="aspect-video relative overflow-hidden bg-gray-100">
-              <img src={normalizeCoverPath(rec.cover)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" onError={(e) => {
+              <img src={rec.coverThumbnailUrl || normalizeCoverPath(rec.cover)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }} />
               <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
