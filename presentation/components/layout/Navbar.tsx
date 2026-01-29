@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
 
             <ReactRouterDOM.Link to="/" className="flex items-center gap-2 shrink-0 px-2">
                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
-                    <img src="/咻咻满.jpg" alt="咻咻满头像" className="w-full h-full object-cover" />
+                    <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
                 </div>
             </ReactRouterDOM.Link>
 

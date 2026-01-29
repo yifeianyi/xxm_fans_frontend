@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Tailwind CSS 4.x 使用 CSS-first 配置 */
+@theme {
+  --color-sage-bg: #f2f9f1;
+  --color-meadow-green: #8eb69b;
+  --color-peach-accent: #f8b195;
+  --color-butter-yellow: #fff4d1;
+  --color-earth-brown: #4a3728;
+
+  --font-family-quicksand: 'Quicksand', sans-serif;
+  --font-family-noto-sans: 'Noto Sans SC', sans-serif;
+}
+
+/* 自定义样式 */
+:root {
+  --sage-bg: #f2f9f1;
+  --meadow-green: #8eb69b;
+  --peach-accent: #f8b195;
+  --butter-yellow: #fff4d1;
+  --earthy-brown: #4a3728;
+}
+
+body {
+  font-family: 'Quicksand', 'Noto Sans SC', sans-serif;
+  background-color: var(--sage-bg);
+  color: var(--earthy-brown);
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: #d1e7d0;
+  color: #2d4a3e;
+}
+
+/* Custom background mimicking the provided image structure */
+.bg-pastoral {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(248, 177, 149, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(142, 182, 155, 0.1) 0%, transparent 30%),
+    var(--sage-bg);
+  background-attachment: fixed;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 40px -10px rgba(142, 182, 155, 0.15);
+}
+
+.bubble-button {
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bubble-button:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1d9c0;
+  border-radius: 10px;
+  border: 2px solid var(--sage-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--meadow-green);
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.float-anim {
+  animation: float 4s ease-in-out infinite;
+}
