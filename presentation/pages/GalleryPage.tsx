@@ -27,6 +27,9 @@ const GalleryPage: React.FC = () => {
     // 使用 ref 跟踪是否已经加载过，避免 React StrictMode 导致的重复调用
     const hasLoadedRef = React.useRef(false);
 
+    // 防止重复加载图片的 ref
+    const loadingRef = React.useRef<string | null>(null);
+
     // 加载图集树
     useEffect(() => {
         if (!hasLoadedRef.current) {
@@ -55,6 +58,10 @@ const GalleryPage: React.FC = () => {
     }, [searchTerm, galleryTree]);
 
     const loadGalleryTree = async () => {
+        // 防止重复请求
+        if (galleryTree.length > 0) {
+            return;
+        }
         setLoading(true);
         const data = await galleryService.getGalleryTree();
         setGalleryTree(data);
@@ -106,6 +113,11 @@ const GalleryPage: React.FC = () => {
 
     // 处理图集点击
     const handleGalleryClick = async (gallery: Gallery) => {
+        // 防止重复点击
+        if (currentGallery?.id === gallery.id) {
+            return;
+        }
+
         setSearchTerm('');
         setShowSearchResults(false);
 
@@ -140,14 +152,17 @@ const GalleryPage: React.FC = () => {
     const loadImages = async (galleryId: string) => {
         // 防止重复加载
         if (loadingRef.current === galleryId) {
+            console.log('[GalleryPage] 防止重复加载:', galleryId);
             return;
         }
 
+        console.log('[GalleryPage] 开始加载图片:', galleryId);
         loadingRef.current = galleryId;
         setLoading(true);
 
         try {
             const data = await galleryService.getGalleryImages(galleryId);
+            console.log('[GalleryPage] 图片加载完成，共', data.length, '张');
             setImages(data);
             setCurrentImageIndex(0);
         } finally {
@@ -157,19 +172,20 @@ const GalleryPage: React.FC = () => {
     };
 
     // 加载子图集图片（用于父图集显示所有子图集的图片）
-    const loadingRef = React.useRef<string | null>(null);
-
     const loadChildrenImages = async (galleryId: string) => {
         // 防止重复加载
         if (loadingRef.current === galleryId) {
+            console.log('[GalleryPage] 防止重复加载子图集:', galleryId);
             return;
         }
 
+        console.log('[GalleryPage] 开始加载子图集图片:', galleryId);
         loadingRef.current = galleryId;
         setLoading(true);
 
         try {
             const data = await galleryService.getGalleryChildrenImages(galleryId);
+            console.log('[GalleryPage] 子图集图片加载完成，共', data.length, '个组');
             setChildrenImagesGroups(data);
 
             // 创建扁平化的图片列表，用于灯箱连续切换
@@ -489,6 +505,7 @@ const GalleryPage: React.FC = () => {
                                                 muted
                                                 loop
                                                 playsInline
+                                                preload="none"
                                                 onMouseEnter={(e) => e.currentTarget.play()}
                                                 onMouseLeave={(e) => e.currentTarget.pause()}
                                             />
@@ -538,16 +555,16 @@ const GalleryPage: React.FC = () => {
                                             >
                                                 <div className="w-full h-full overflow-hidden bg-[#fef5f0]">
                                                     {img.isVideo ? (
-                                                        <video
-                                                            src={img.url}
-                                                            className="w-full h-full object-cover"
-                                                            muted
-                                                            loop
-                                                            playsInline
-                                                            onMouseEnter={(e) => e.currentTarget.play()}
-                                                            onMouseLeave={(e) => e.currentTarget.pause()}
-                                                        />
-                                                    ) : (
+                                                                                                    <video
+                                                                                                        src={img.url}
+                                                                                                        className="w-full h-full object-cover"
+                                                                                                        muted
+                                                                                                        loop
+                                                                                                        playsInline
+                                                                                                        preload="none"
+                                                                                                        onMouseEnter={(e) => e.currentTarget.play()}
+                                                                                                        onMouseLeave={(e) => e.currentTarget.pause()}
+                                                                                                    />                                                    ) : (
                                                         <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
                                                             <LazyImage
                                                                 src={img.thumbnail_url || img.url}
@@ -737,6 +754,7 @@ const GalleryPage: React.FC = () => {
                                 controls
                                 autoPlay
                                 loop
+                                preload="auto"
                             />
                         ) : (
                             <img

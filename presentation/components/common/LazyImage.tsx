@@ -9,6 +9,11 @@ const DEFAULT_PLACEHOLDER = `data:image/svg+xml;base64,${btoa(
     </svg>`
 )}`;
 
+// 全局缓存已加载的图片 URL，防止重复加载
+const globalLoadedUrls = new Map<string, boolean>();
+// 全局正在加载的图片集合，防止并发加载
+const globalLoadingUrls = new Set<string>();
+
 interface LazyImageProps {
     src: string;
     alt: string;
@@ -28,28 +33,109 @@ const LazyImage: React.FC<LazyImageProps> = ({
     onLoad,
     onError,
 }) => {
+    // 始终从占位符开始，避免直接渲染导致重复请求
     const [imageSrc, setImageSrc] = useState<string>(placeholder);
     const [imageRef, isIntersecting] = useIntersectionObserver();
     const [isLoading, setIsLoading] = useState(false);
+    const imageRequestRef = useRef<HTMLImageElement | null>(null);
+    const isMountedRef = useRef(true);
+    const hasCheckedCacheRef = useRef(false);
+
+    // 组件挂载时检查缓存
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
+        // 如果组件已卸载，不执行任何操作
+        if (!isMountedRef.current) {
+            return;
+        }
+
+        // 如果已经检查过缓存，跳过
+        if (hasCheckedCacheRef.current) {
+            return;
+        }
+
+        // 如果图片在视口中且还未加载
         if (isIntersecting && imageSrc === placeholder) {
+            // 标记已检查缓存
+            hasCheckedCacheRef.current = true;
+
+            // 检查是否已经在全局缓存中
+            if (globalLoadedUrls.has(src)) {
+                console.log('[LazyImage] 已缓存，直接设置图片:', src);
+                setImageSrc(src);
+                setIsLoading(false);
+                onLoad?.();
+                return;
+            }
+
+            // 检查是否正在加载
+            if (globalLoadingUrls.has(src)) {
+                console.log('[LazyImage] 正在加载中，等待结果:', src);
+                // 设置一个定时器，定期检查加载状态
+                const checkInterval = setInterval(() => {
+                    if (globalLoadedUrls.has(src)) {
+                        clearInterval(checkInterval);
+                        if (isMountedRef.current) {
+                            console.log('[LazyImage] 等待完成，设置图片:', src);
+                            setImageSrc(src);
+                            setIsLoading(false);
+                            onLoad?.();
+                        }
+                    }
+                }, 100);
+                return () => clearInterval(checkInterval);
+            }
+
+            console.log('[LazyImage] 开始加载图片:', src);
+            // 立即标记为正在加载，防止重复
+            globalLoadedUrls.set(src, true);
+            globalLoadingUrls.add(src);
             setIsLoading(true);
+
+            // 清理之前的请求
+            if (imageRequestRef.current) {
+                imageRequestRef.current.onload = null;
+                imageRequestRef.current.onerror = null;
+            }
+
             const img = new Image();
+            imageRequestRef.current = img;
             img.src = src;
 
             img.onload = () => {
+                if (!isMountedRef.current) return;
+                console.log('[LazyImage] 图片加载成功:', src);
+                globalLoadingUrls.delete(src);
                 setImageSrc(src);
                 setIsLoading(false);
                 onLoad?.();
             };
 
             img.onerror = () => {
+                if (!isMountedRef.current) return;
+                console.log('[LazyImage] 图片加载失败:', src);
+                // 加载失败，从缓存中移除
+                globalLoadedUrls.delete(src);
+                globalLoadingUrls.delete(src);
                 setImageSrc(placeholder);
                 setIsLoading(false);
                 onError?.();
             };
         }
+
+        return () => {
+            if (imageRequestRef.current) {
+                imageRequestRef.current.onload = null;
+                imageRequestRef.current.onerror = null;
+            }
+        };
     }, [isIntersecting, imageSrc, placeholder, src, onLoad, onError]);
 
     return (
@@ -69,7 +155,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
                 src={imageSrc}
                 alt={alt}
                 className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-                loading="lazy"
             />
         </div>
     );
@@ -81,11 +166,22 @@ function useIntersectionObserver(): [React.RefObject<HTMLDivElement>, boolean] {
     const [isIntersecting, setIsIntersecting] = useState(false);
 
     useEffect(() => {
+        // 如果已经相交，不需要再次观察
+        if (isIntersecting) {
+            return;
+        }
+
+        const currentRef = ref.current;
+        if (!currentRef) {
+            return;
+        }
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setIsIntersecting(true);
                     observer.disconnect();
+                    observer.unobserve(currentRef);
                 }
             },
             {
@@ -94,17 +190,15 @@ function useIntersectionObserver(): [React.RefObject<HTMLDivElement>, boolean] {
             }
         );
 
-        const currentRef = ref.current;
-        if (currentRef) {
-            observer.observe(currentRef);
-        }
+        observer.observe(currentRef);
 
         return () => {
+            observer.disconnect();
             if (currentRef) {
                 observer.unobserve(currentRef);
             }
         };
-    }, []);
+    }, [isIntersecting]);
 
     return [ref, isIntersecting];
 }
