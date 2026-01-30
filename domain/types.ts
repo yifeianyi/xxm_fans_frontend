@@ -184,3 +184,112 @@ export interface OriginalWork {
   bilibiliBvid?: string;   // B站视频 BV 号（可选）
   featured: boolean;
 }
+
+// ==================== 投稿时刻相关类型 ====================
+
+/** 月度投稿统计 */
+export interface MonthlyStats {
+  month: number;
+  total: number;
+  valid: number;
+  invalid: number;
+  first_submission: string;
+  last_submission: string;
+}
+
+/** 年度汇总统计 */
+export interface YearSummary {
+  total_submissions: number;
+  valid_submissions: number;
+  invalid_submissions: number;
+  active_months: number;
+}
+
+/** 月度投稿统计响应 */
+export interface MonthlySubmissionStatsResponse {
+  year: number;
+  platform: string | null;
+  monthly_stats: MonthlyStats[];
+  year_summary: YearSummary;
+}
+
+/** 投稿记录 */
+export interface SubmissionRecord {
+  id: number;
+  platform: string;
+  work_id: string;
+  title: string;
+  author: string;
+  publish_time: string;
+  cover_url: string;
+  cover_thumbnail_url: string | null;
+  is_valid: boolean;
+  video_url: string;
+  video_embed_url: string;
+}
+
+/** 分页信息 */
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+/** 月度投稿记录响应 */
+export interface MonthlySubmissionRecordsResponse {
+  year: number;
+  month: number;
+  platform: string | null;
+  records: SubmissionRecord[];
+  pagination: PaginationInfo;
+}
+
+/** 年度统计 */
+export interface YearStats {
+  year: number;
+  total_submissions: number;
+  valid_submissions: number;
+  invalid_submissions: number;
+  active_months: number;
+  first_submission: string;
+  last_submission: string;
+}
+
+/** 年度汇总 */
+export interface YearsSummary {
+  total_years: number;
+  total_submissions: number;
+  valid_submissions: number;
+  invalid_submissions: number;
+}
+
+/** 年度投稿概览响应 */
+export interface YearsSubmissionOverviewResponse {
+  platform: string | null;
+  years: YearStats[];
+  summary: YearsSummary;
+}
+
+/** 投稿统计查询参数 */
+export interface MonthlyStatsParams {
+  year: number;
+  platform?: string;
+}
+
+/** 投稿记录查询参数 */
+export interface MonthlyRecordsParams {
+  year: number;
+  month: number;
+  platform?: string;
+  is_valid?: boolean;
+  page?: number;
+  page_size?: number;
+}
+
+/** 年度概览查询参数 */
+export interface YearsOverviewParams {
+  platform?: string;
+  start_year?: number;
+  end_year?: number;
+}

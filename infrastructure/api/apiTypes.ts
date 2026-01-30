@@ -46,3 +46,24 @@ export interface GetWorksParams {
   limit?: number;
   collection?: number;
 }
+
+// ==================== API 响应类型 ====================
+
+/** API 统一响应格式 */
+export interface ApiResponse<T = any> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+/** API 错误响应 */
+export interface ApiErrorResponse {
+  code: number;
+  message: string;
+  data: null;
+}
+
+/** 投稿时刻 API 响应类型 */
+export type SubmissionStatsApiResponse = ApiResponse<import('../../domain/types').MonthlySubmissionStatsResponse>;
+export type SubmissionRecordsApiResponse = ApiResponse<import('../../domain/types').MonthlySubmissionRecordsResponse>;
+export type YearsOverviewApiResponse = ApiResponse<import('../../domain/types').YearsSubmissionOverviewResponse>;
