@@ -179,6 +179,8 @@ export interface OriginalWork {
   date: string;
   desc: string;
   cover: string;
-  songId: string;
+  songId?: string;         // 网易云音乐歌曲 ID（可选，向后兼容）
+  neteaseId?: string;      // 网易云音乐歌曲 ID（可选）
+  bilibiliBvid?: string;   // B站视频 BV 号（可选）
   featured: boolean;
 }

@@ -35,6 +35,7 @@ const Navbar: React.FC = () => {
                 <span className="text-xs md:text-sm font-black whitespace-nowrap px-2">精选二创</span>
                 {isFans && <div className="absolute -bottom-1.5 h-1 w-6 bg-[#f8b195] rounded-full shadow-sm"></div>}
             </ReactRouterDOM.Link>
+
             <ReactRouterDOM.Link to="/about" className={`relative py-1 flex flex-col items-center transition-all ${isAbout ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'}`}>
                 <span className="text-xs md:text-sm font-black whitespace-nowrap px-2">关于满满</span>
                 {isAbout && <div className="absolute -bottom-1.5 h-1 w-6 bg-[#f8b195] rounded-full shadow-sm"></div>}

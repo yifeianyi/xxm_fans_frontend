@@ -12,7 +12,6 @@ import AboutPage from './presentation/pages/AboutPage';
 import GalleryPage from './presentation/pages/GalleryPage';
 import LivestreamPage from './presentation/pages/LivestreamPage';
 import DataAnalysisPage from './presentation/pages/DataAnalysisPage';
-import XXMPage from './presentation/pages/XXMPage';
 
 const App: React.FC = () => {
     return (
@@ -28,7 +27,6 @@ const App: React.FC = () => {
                             <ReactRouterDOM.Route path="/" element={<HomePage />} />
                             <ReactRouterDOM.Route path="/songs" element={<SongsPage />} />
                             <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
-                            <ReactRouterDOM.Route path="/xxm" element={<XXMPage />} />
                             <ReactRouterDOM.Route path="/live" element={<LivestreamPage />} />
                             <ReactRouterDOM.Route path="/data" element={<DataAnalysisPage />} />
                             <ReactRouterDOM.Route path="/fansDIY" element={<FansDIYPage />} />

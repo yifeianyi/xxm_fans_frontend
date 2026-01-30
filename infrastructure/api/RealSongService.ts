@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork } from '../types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork } from '../types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -220,6 +220,24 @@ export class RealSongService implements ISongService {
 
         return { data: transformed };
       }
+    }
+    return result;
+  }
+
+  async getOriginalWorks(): Promise<ApiResult<OriginalWork[]>> {
+    const result = await apiClient.get<any>('/original-works/');
+
+    if (result.data && Array.isArray(result.data)) {
+      const transformed: OriginalWork[] = result.data.map((item: any) => ({
+        title: item.title || '',
+        date: item.date || '',
+        desc: item.desc || '',
+        cover: item.cover || '',
+        neteaseId: item.neteaseId || '',
+        bilibiliBvid: item.bilibiliBvid || '',
+        featured: item.featured || false
+      }));
+      return { data: transformed };
     }
     return result;
   }

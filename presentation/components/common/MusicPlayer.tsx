@@ -49,7 +49,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songId, onClose }) => {
         </button>
       </div>
       <style>{`
-        .animate-spin-slow { animation: spin 6s linear infinite; }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>

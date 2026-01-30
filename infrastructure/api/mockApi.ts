@@ -91,7 +91,7 @@ const MOCK_ORIGINAL_WORKS: OriginalWork[] = [
     date: '2024.01.15',
     desc: '第一首个人原创单曲，星光点缀梦境。',
     cover: 'https://picsum.photos/seed/o1/400/400',
-    songId: '1330348068',
+    neteaseId: '1330348068',
     featured: true
   },
   {
@@ -99,7 +99,7 @@ const MOCK_ORIGINAL_WORKS: OriginalWork[] = [
     date: '2023.11.20',
     desc: '在音符中寻找光亮，致敬不曾放弃的灵魂。',
     cover: 'https://picsum.photos/seed/o2/400/400',
-    songId: '1496089319',
+    bilibiliBvid: 'BV1xx411c7mD',
     featured: true
   },
   {
@@ -107,8 +107,23 @@ const MOCK_ORIGINAL_WORKS: OriginalWork[] = [
     date: '2023.05.10',
     desc: '写给所有小满虫的音乐家书，温暖坚定。',
     cover: 'https://picsum.photos/seed/o3/400/400',
-    songId: '1901371647',
+    neteaseId: '1901371647',
     featured: true
+  },
+  {
+    title: '月光小夜曲',
+    date: '2023.02.28',
+    desc: '温柔的夜晚，用音乐诉说心事。',
+    cover: 'https://picsum.photos/seed/o4/400/400',
+    neteaseId: '1496089319',
+    featured: false
+  },
+  {
+    title: '未发布作品',
+    date: '2025.03.01',
+    desc: '即将发布的全新原创作品，敬请期待！',
+    cover: 'https://picsum.photos/seed/o5/400/400',
+    featured: false
   }
 ];
 
