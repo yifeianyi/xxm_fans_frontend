@@ -10,8 +10,7 @@ import SongsPage from './presentation/pages/SongsPage';
 import FansDIYPage from './presentation/pages/FansDIYPage';
 import AboutPage from './presentation/pages/AboutPage';
 import GalleryPage from './presentation/pages/GalleryPage';
-import LivestreamPage from './presentation/pages/LivestreamPage';
-import DataAnalysisPage from './presentation/pages/DataAnalysisPage';
+import ComingSoonPage from './presentation/pages/ComingSoonPage';
 
 const App: React.FC = () => {
     return (
@@ -27,8 +26,8 @@ const App: React.FC = () => {
                             <ReactRouterDOM.Route path="/" element={<HomePage />} />
                             <ReactRouterDOM.Route path="/songs" element={<SongsPage />} />
                             <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
-                            <ReactRouterDOM.Route path="/live" element={<LivestreamPage />} />
-                            <ReactRouterDOM.Route path="/data" element={<DataAnalysisPage />} />
+                            <ReactRouterDOM.Route path="/live" element={<ComingSoonPage title="直播日历" description="直播记录与日程管理功能正在筹备中..." />} />
+                            <ReactRouterDOM.Route path="/data" element={<ComingSoonPage title="满の数据" description="数据分析功能正在筹备中..." />} />
                             <ReactRouterDOM.Route path="/fansDIY" element={<FansDIYPage />} />
                             <ReactRouterDOM.Route path="/about" element={<AboutPage />} />
                         </ReactRouterDOM.Routes>
