@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ArrowLeft, Play, Info, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Calendar, Play, ExternalLink, CheckCircle2, X, AlertCircle, Trash2, FileText } from 'lucide-react';
 import { mockApi } from '../../../infrastructure/api/mockApi';
 import { SongRecord } from '../../../domain/types';
 import VideoModal from '../common/VideoModal';
@@ -11,12 +11,13 @@ interface SelectedDate {
 
 const TimelineChart: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<SelectedDate | null>(null);
+  const [hoveredDate, setHoveredDate] = useState<SelectedDate | null>(null);
   const [monthlyRecords, setMonthlyRecords] = useState<SongRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const years = [2024, 2023, 2022, 2021];
-
+  
   // Simulated data: months with activities
   const activeMonths: Record<number, number[]> = {
     2024: [1, 2, 3, 4],
@@ -37,155 +38,92 @@ const TimelineChart: React.FC = () => {
     }
   }, [selectedDate]);
 
+  // Mock stats generator for the tooltip
+  const getMonthStats = (year: number, month: number) => {
+    const seed = year * 100 + month;
+    const total = (seed % 12) + 8; // Random count between 8 and 19
+    const invalid = (seed % 4); // Random invalid count between 0 and 3
+    const valid = total - invalid;
+    return { total, valid, invalid };
+  };
+
   const handleMonthClick = (year: number, month: number, isActive: boolean) => {
     if (isActive) {
       setSelectedDate({ year, month });
+      setHoveredDate(null);
     }
   };
 
-  const renderMonth = (year: number, month: number, isActive: boolean) => (
-    <div
-      key={`${year}-${month}`}
-      className={`flex flex-col items-center group relative z-20 w-16 md:w-24 ${isActive ? 'cursor-pointer' : 'cursor-default'}`}
-      onClick={() => handleMonthClick(year, month, isActive)}
-    >
-      <div
-        className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-black transition-all duration-500 border-4
-          ${isActive
-            ? 'bg-[#fef5f0] text-[#f8b195] border-[#f8b195] shadow-xl shadow-[#f8b195]/30 scale-110 group-hover:scale-125'
-            : 'bg-white text-[#8eb69b] border-white shadow-md'}`}
-      >
-        {month}月
-      </div>
-      {isActive && (
-        <div className="absolute -bottom-3 px-2 py-0.5 bg-[#f8b195] text-white text-[8px] font-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm">
-          查看瞬间
-        </div>
-      )}
-    </div>
-  );
+  const renderMonth = (year: number, month: number, isActive: boolean) => {
+    const isHovered = hoveredDate?.year === year && hoveredDate?.month === month;
+    const stats = isActive ? getMonthStats(year, month) : null;
 
-  if (selectedDate) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 animate-in fade-in slide-in-from-right-8 duration-700">
-        {/* Detail Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-          <button
-            onClick={() => setSelectedDate(null)}
-            className="group flex items-center gap-3 px-8 py-4 bg-white rounded-3xl text-[#8eb69b] font-black hover:text-[#f8b195] transition-all border-2 border-white shadow-sm hover:shadow-xl active:scale-95"
-          >
-            <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-lg tracking-tight">返回时间长河</span>
-          </button>
-
-          <div className="text-center md:text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#f8b195]/10 text-[#f8b195] rounded-full text-[10px] font-black uppercase tracking-widest mb-2 border border-[#f8b195]/20">
-              <Calendar size={12} />
-              <span>Archive Collection</span>
-            </div>
-            <h2 className="text-5xl font-black text-[#4a3728] tracking-tighter">
-              {selectedDate.year} <span className="text-[#f8b195]">/</span> {selectedDate.month}月
-            </h2>
-          </div>
+      <div 
+        key={`${year}-${month}`} 
+        className={`flex flex-col items-center group relative z-20 w-16 md:w-24 ${isActive ? 'cursor-pointer' : 'cursor-default'}`}
+        onClick={() => handleMonthClick(year, month, isActive)}
+        onMouseEnter={() => isActive && setHoveredDate({ year, month })}
+        onMouseLeave={() => setHoveredDate(null)}
+      >
+        <div 
+          className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-black transition-all duration-500 border-4 
+            ${isActive 
+              ? 'bg-[#fef5f0] text-[#f8b195] border-[#f8b195] shadow-xl shadow-[#f8b195]/30 scale-110 group-hover:scale-125' 
+              : 'bg-white text-[#8eb69b] border-white shadow-md'}`}
+        >
+          {month}月
         </div>
-
-        {loading ? (
-          <div className="py-48 flex flex-col items-center gap-6">
-            <div className="relative">
-               <div className="w-20 h-20 border-8 border-[#f8b195]/20 rounded-full"></div>
-               <div className="absolute inset-0 w-20 h-20 border-8 border-[#f8b195] border-t-transparent rounded-full animate-spin"></div>
+        
+        {/* Hover Tooltip */}
+        {isHovered && !selectedDate && stats && (
+          <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-56 bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-white z-50 animate-in zoom-in-95 slide-in-from-bottom-2 duration-200 pointer-events-none">
+            <div className="text-center mb-3 pb-2 border-b border-[#f8b195]/10">
+              <span className="text-lg font-black text-[#4a3728]">{month}月投稿统计</span>
             </div>
-            <span className="text-[#8eb69b] font-black tracking-[0.3em] uppercase text-sm animate-pulse">时光倒流中...</span>
-          </div>
-        ) : monthlyRecords.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {monthlyRecords.map((record, index) => (
-              <div
-                key={record.id}
-                className="group relative bg-white rounded-[3rem] overflow-hidden shadow-[0_15px_40px_rgba(74,55,40,0.05)] hover:shadow-[0_25px_60px_rgba(248,177,149,0.15)] transition-all duration-700 border-2 border-transparent hover:border-white hover:-translate-y-3 animate-in fade-in slide-in-from-bottom-8"
-                style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => setVideoUrl(record.videoUrl)}
-              >
-                {/* Image Container */}
-                <div className="aspect-[4/3] relative overflow-hidden bg-[#fef5f0] cursor-pointer">
-                  <img
-                    src={record.cover}
-                    alt={record.date}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                  />
-                  {/* Status Overlay */}
-                  <div className="absolute top-6 left-6 flex flex-col gap-2">
-                    <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-2xl flex items-center gap-2 shadow-sm border border-white/50">
-                      <CheckCircle2 size={12} className="text-[#8eb69b]" />
-                      <span className="text-[10px] font-black text-[#4a3728]">在线有效</span>
-                    </div>
-                  </div>
-
-                  {/* Hover Play Button */}
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-[#f8b195] shadow-2xl transform scale-50 group-hover:scale-100 transition-transform duration-500 border-4 border-white/20">
-                      <Play fill="currentColor" size={32} className="ml-1" />
-                    </div>
-                  </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2 text-[#8eb69b]">
+                  <FileText size={14} />
+                  <span className="text-xs font-bold">投稿总数</span>
                 </div>
-
-                {/* Content */}
-                <div className="p-8 space-y-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2 text-[#8eb69b] text-[10px] font-black uppercase tracking-widest">
-                      <Calendar size={12} />
-                      <span>{record.date}</span>
-                    </div>
-                    <ExternalLink size={14} className="text-[#8eb69b] opacity-40" />
-                  </div>
-
-                  <h3 className="text-xl font-black text-[#4a3728] group-hover:text-[#f8b195] transition-colors line-clamp-2 leading-tight min-h-[3rem]">
-                    {record.note || "精彩演唱瞬间"}
-                  </h3>
-
-                  <div className="pt-4 border-t border-[#f2f9f1] flex items-center justify-between">
-                    <div className="flex -space-x-2">
-                      {[1, 2].map(i => (
-                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-[#fef5f0] overflow-hidden">
-                          <img src={`https://picsum.photos/seed/fan${i}/50/50`} alt="viewer" />
-                        </div>
-                      ))}
-                      <div className="w-6 h-6 rounded-full border-2 border-white bg-[#8eb69b] flex items-center justify-center text-[8px] text-white font-bold">
-                        +1
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-black text-[#8eb69b]/60 uppercase tracking-tighter">Click to Play</span>
-                  </div>
-                </div>
+                <span className="text-sm font-black text-[#4a3728]">{stats.total}</span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-48 text-center glass-card rounded-[4rem] p-16 flex flex-col items-center gap-8 border-4 border-dashed border-[#8eb69b]/20">
-            <div className="text-8xl animate-bounce">📭</div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-black text-[#4a3728]">这封信似乎在途中丢失了</h3>
-              <p className="text-[#8eb69b] font-bold text-lg">没有找到该月份的投稿记录哦 ~</p>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2 text-[#f8b195]">
+                  <CheckCircle2 size={14} />
+                  <span className="text-xs font-bold">有效投稿</span>
+                </div>
+                <span className="text-sm font-black text-[#f8b195]">{stats.valid}</span>
+              </div>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Trash2 size={14} />
+                  <div className="flex flex-col text-left">
+                     <span className="text-xs font-bold">无效投稿</span>
+                  </div>
+                </div>
+                <span className="text-sm font-black text-gray-400">{stats.invalid}</span>
+              </div>
+              {stats.invalid > 0 && (
+                 <div className="pt-2 mt-1 border-t border-gray-50 text-[9px] text-gray-400 leading-tight text-center">
+                   * 因版权或个人原因已删除
+                 </div>
+              )}
             </div>
-            <button
-              onClick={() => setSelectedDate(null)}
-              className="px-10 py-4 bg-[#8eb69b] text-white rounded-full font-black shadow-lg hover:bg-[#2d4a3e] transition-all active:scale-95"
-            >
-              换个日子看看
-            </button>
+            {/* Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white/95"></div>
           </div>
         )}
-
-        <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
       </div>
     );
-  }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 animate-in fade-in duration-1000">
-      <div className="glass-card rounded-[4rem] border-4 border-white p-10 md:p-20 relative overflow-hidden bg-white/40">
+      <div className="glass-card rounded-[4rem] border-4 border-white p-10 md:p-20 relative bg-white/40">
         {/* Decorative Background grid points */}
-        <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4a3728 2px, transparent 2px)', backgroundSize: '60px 60px' }}></div>
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none rounded-[3.8rem]" style={{ backgroundImage: 'radial-gradient(#4a3728 2px, transparent 2px)', backgroundSize: '60px 60px' }}></div>
 
         <div className="relative space-y-0">
           {years.map((year, idx) => (
@@ -197,7 +135,7 @@ const TimelineChart: React.FC = () => {
 
               {/* Path System */}
               <div className="relative z-10">
-
+                 
                 {/* Row 1: Months 1-6 (Left to Right) */}
                 <div className="relative flex items-center justify-between px-2 h-32 md:h-40">
                   {/* Horizontal Line Row 1 */}
@@ -236,11 +174,11 @@ const TimelineChart: React.FC = () => {
             </div>
             <span>时光长河 • 记录满老师的投稿足迹</span>
           </div>
-
+          
           <div className="flex items-center gap-6 p-4 bg-white/40 rounded-3xl border border-white">
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-[#f8b195] border-2 border-white shadow-sm"></div>
-              <span className="text-xs font-black text-[#4a3728]">活跃投稿 (点击查看)</span>
+              <span className="text-xs font-black text-[#4a3728]">活跃 (悬停看数据 / 点击看详情)</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-white border-2 border-[#8eb69b]/20 shadow-sm"></div>
@@ -249,6 +187,108 @@ const TimelineChart: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Modal for Monthly Archives (Click triggered) */}
+      {selectedDate && (
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#4a3728]/30 backdrop-blur-md animate-in fade-in duration-300"
+          onClick={() => setSelectedDate(null)}
+        >
+          <div 
+            className="relative w-full max-w-6xl bg-[#f2f9f1] rounded-[3rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] border-4 border-white flex flex-col max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+           {/* Modal Header */}
+           <div className="px-8 py-6 bg-white/60 border-b border-white flex items-center justify-between shrink-0 backdrop-blur-sm z-10">
+              <div className="flex items-center gap-5">
+                 <div className="w-14 h-14 bg-[#f8b195] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#f8b195]/20">
+                   <Calendar size={28} />
+                 </div>
+                 <div>
+                   <h2 className="text-3xl font-black text-[#4a3728] tracking-tight flex items-baseline gap-2">
+                     {selectedDate.year} <span className="text-[#f8b195] text-xl">/</span> {selectedDate.month}月
+                   </h2>
+                   <p className="text-[10px] text-[#8eb69b] font-black uppercase tracking-[0.3em]">Monthly Archive Collection</p>
+                 </div>
+              </div>
+              <button 
+                onClick={() => setSelectedDate(null)}
+                className="p-3 bg-white hover:bg-[#fef5f0] text-[#8eb69b] hover:text-[#f8b195] rounded-full transition-all shadow-sm border-2 border-transparent hover:border-[#f8b195]/20 hover:rotate-90 duration-500"
+              >
+                <X size={24} />
+              </button>
+           </div>
+
+           {/* Modal Content */}
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 bg-white/30 relative">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4a3728 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+              {loading ? (
+                 <div className="h-full flex flex-col items-center justify-center gap-6 min-h-[400px]">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-[#f8b195]/20 rounded-full"></div>
+                      <div className="absolute inset-0 w-16 h-16 border-4 border-[#f8b195] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <span className="text-[#8eb69b] font-black tracking-[0.3em] uppercase text-xs animate-pulse">Retrieving Memories...</span>
+                 </div>
+              ) : monthlyRecords.length > 0 ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {monthlyRecords.map((record, index) => (
+                       <div 
+                         key={record.id}
+                         className="group relative bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border-2 border-transparent hover:border-white hover:-translate-y-2 cursor-pointer"
+                         style={{ animation: `fadeIn 0.5s ease-out ${index * 0.05}s backwards` }}
+                         onClick={() => setVideoUrl(record.videoUrl)}
+                       >
+                         <div className="aspect-[4/3] relative overflow-hidden bg-[#fef5f0]">
+                           <img 
+                             src={record.cover} 
+                             alt={record.date} 
+                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                           />
+                           <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full flex items-center gap-1.5 shadow-sm border border-white/50">
+                             <CheckCircle2 size={10} className="text-[#8eb69b]" />
+                             <span className="text-[9px] font-black text-[#4a3728]">{record.date}</span>
+                           </div>
+                           <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-[#f8b195] shadow-xl transform scale-50 group-hover:scale-100 transition-transform duration-300">
+                               <Play fill="currentColor" size={24} className="ml-1" />
+                             </div>
+                           </div>
+                         </div>
+                         <div className="p-6 space-y-3">
+                           <h3 className="text-lg font-black text-[#4a3728] group-hover:text-[#f8b195] transition-colors line-clamp-2 leading-tight">
+                             {record.note || "精彩演唱瞬间"}
+                           </h3>
+                           <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                             <div className="flex items-center gap-1 text-[9px] font-black text-[#8eb69b]/60 uppercase tracking-wider">
+                                <ExternalLink size={10} /> Watch Video
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                    ))}
+                 </div>
+              ) : (
+                 <div className="h-full flex flex-col items-center justify-center gap-6 min-h-[400px] opacity-60">
+                    <div className="text-6xl grayscale">📭</div>
+                    <div className="text-center">
+                      <h3 className="text-xl font-black text-[#4a3728]">暂无记录</h3>
+                      <p className="text-sm font-bold text-[#8eb69b]">该月份似乎是一段安静的时光</p>
+                    </div>
+                 </div>
+              )}
+           </div>
+          </div>
+        </div>
+      )}
+
+      <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
+      
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 };

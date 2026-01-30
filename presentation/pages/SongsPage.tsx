@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import SongTable from '../components/features/SongTable';
 import RankingChart from '../components/features/RankingChart';
 import OriginalsList from '../components/features/OriginalsList';
-import ComingSoonPage from './ComingSoonPage';
+import TimelineChart from '../components/features/TimelineChart';
 
 const SongsPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'hot' | 'all' | 'originals' | 'submit'>('all');
@@ -79,7 +79,7 @@ const SongsPage: React.FC = () => {
                     {activeTab === 'hot' && <RankingChart />}
                     {activeTab === 'all' && <SongTable />}
                     {activeTab === 'originals' && <OriginalsList />}
-                    {activeTab === 'submit' && <ComingSoonPage title="投稿时刻" description="投稿记录功能正在筹备中..." />}
+                    {activeTab === 'submit' && <TimelineChart />}
                 </div>
             </div>
         </>
