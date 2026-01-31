@@ -2,7 +2,7 @@
 import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { ErrorBoundary } from './presentation/components/common/ErrorBoundary';
+import ErrorBoundary from './presentation/components/common/ErrorBoundary';
 import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
 import HomePage from './presentation/pages/HomePage';

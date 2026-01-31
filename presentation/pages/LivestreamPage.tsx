@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { songService } from '../../infrastructure/api';
-import { Livestream, LivestreamRecording, SongRecord } from '../../domain/types';
-import { generateBilibiliEmbedUrl } from '../../shared/utils/videoUtils';
+import { Livestream, LivestreamRecording, SongRecord, Screenshot } from '../../domain/types';
+import { VideoPlayerService } from '../../shared/services/VideoPlayerService';
 import {
   Calendar as CalendarIcon, Clock, MessageSquare, Image as ImageIcon,
   ChevronLeft, ChevronRight, BarChart3, Cloud, Users, Heart,
   PlayCircle, Music, Monitor, Maximize2, Layers, X
 } from 'lucide-react';
 import VideoModal from '../components/common/VideoModal';
+import LazyImage from '../components/common/LazyImage';
 
 const LivestreamPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -22,8 +23,10 @@ const LivestreamPage: React.FC = () => {
   const [selectedRecordingIndex, setSelectedRecordingIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [recordsLoading, setRecordsLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [viewingCloud, setViewingCloud] = useState(false);
+  const [playerLoaded, setPlayerLoaded] = useState(false);
 
   // 获取今天的日期字符串
   const todayStr = useMemo(() => {
@@ -31,6 +34,7 @@ const LivestreamPage: React.FC = () => {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   }, []);
 
+  // 获取月度直播列表（只包含基本信息）
   useEffect(() => {
     const fetchLives = async () => {
       setLoading(true);
@@ -38,13 +42,9 @@ const LivestreamPage: React.FC = () => {
       if (result.data) {
         const data = result.data;
         setLives(data);
-        if (data.length > 0) {
-          setSelectedLive(data[0]);
-          setActiveScreenshot(data[0].screenshots[0] || null);
-          setSelectedRecordingIndex(0);
-          setViewingCloud(false);
-          // 获取当天的演唱记录
-          fetchSongRecords(data[0].date);
+        if (data.length > 0 && data[0]) {
+          // 获取第一条直播的详细信息
+          fetchLivestreamDetail(data[0].date);
         } else {
           setSelectedLive(null);
           setSongRecords([]);
@@ -59,22 +59,42 @@ const LivestreamPage: React.FC = () => {
     fetchLives();
   }, [currentDate]);
 
+  // 获取指定日期的直播详情（包含截图、歌切等）
+  const fetchLivestreamDetail = async (date: string) => {
+    setDetailLoading(true);
+    try {
+      const result = await songService.getLivestreamByDate(date);
+      if (result.data) {
+        const livestreamData = result.data;
+        setSelectedLive(livestreamData);
+        // 确保 screenshots 存在且不为空
+        const screenshots = livestreamData.screenshots || [];
+        setActiveScreenshot(screenshots.length > 0 ? screenshots[0] : null);
+        setSelectedRecordingIndex(0);
+        setViewingCloud(false);
+        setPlayerLoaded(false); // 重置播放器加载状态
+        // 获取当天的演唱记录
+        fetchSongRecords(date);
+      }
+    } catch (error) {
+      console.error('获取直播详情失败:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   // 获取指定日期的演唱记录
   const fetchSongRecords = async (date: string) => {
-    console.log('📅 开始获取演唱记录，日期:', date);
     setRecordsLoading(true);
     try {
       const result = await songService.getRecordsByDate(date);
-      console.log('📊 演唱记录 API 返回结果:', result);
       if (result.data) {
-        console.log('✅ 获取到演唱记录数据:', result.data);
         setSongRecords(result.data);
       } else {
-        console.log('⚠️ API 返回结果为空');
         setSongRecords([]);
       }
     } catch (error) {
-      console.error('❌ 获取演唱记录失败:', error);
+      console.error('获取演唱记录失败:', error);
       setSongRecords([]);
     } finally {
       setRecordsLoading(false);
@@ -100,38 +120,18 @@ const LivestreamPage: React.FC = () => {
     return cells;
   }, [daysInMonth, lives, currentDate]);
 
-  const getBilibiliEmbed = (url: string) => {
-    const bvMatch = url.match(/BV[a-zA-Z0-9]+/);
-    if (bvMatch) {
-        let baseUrl = `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&high_quality=1&danmaku=0&autoplay=0`;
-        // Check for 'p' or 'page' parameter in the url
-        const pMatch = url.match(/[?&](p|page)=(\d+)/);
-        if (pMatch) {
-            baseUrl += `&page=${pMatch[2]}`;
-        } else {
-            baseUrl += `&page=1`;
-        }
-        return baseUrl;
-    }
-    return url;
-  };
-
   const changeMonth = (offset: number) => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
   };
 
   const handleSelectLive = (live: Livestream) => {
-    setSelectedLive(live);
-    setSelectedRecordingIndex(0);
-    setActiveScreenshot(live.screenshots[0] || null);
-    setViewingCloud(false);
-    // 获取选中日期的演唱记录
-    fetchSongRecords(live.date);
+    // 获取选中日期的详细信息
+    fetchLivestreamDetail(live.date);
   };
 
   const handlePrevScreenshot = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!selectedLive || !activeScreenshot) return;
+    if (!selectedLive || !activeScreenshot || !selectedLive.screenshots) return;
     const currentIndex = selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl);
     if (currentIndex === -1) return;
     const prevIndex = currentIndex === 0 ? selectedLive.screenshots.length - 1 : currentIndex - 1;
@@ -140,25 +140,54 @@ const LivestreamPage: React.FC = () => {
 
   const handleNextScreenshot = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!selectedLive || !activeScreenshot) return;
+    if (!selectedLive || !activeScreenshot || !selectedLive.screenshots) return;
     const currentIndex = selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl);
     if (currentIndex === -1) return;
     const nextIndex = currentIndex === selectedLive.screenshots.length - 1 ? 0 : currentIndex + 1;
     setActiveScreenshot(selectedLive.screenshots[nextIndex]);
   };
 
-  const currentRecording = selectedLive?.recordings[selectedRecordingIndex];
+  const currentRecording = selectedLive?.recordings?.[selectedRecordingIndex];
 
   // 使用后端返回的完整录像列表（包含完整视频链接）
   const recordings = useMemo(() => {
-    if (!selectedLive || !selectedLive.recordings) return [];
-    return selectedLive.recordings;
+    if (!selectedLive) return [];
+    
+    // 优先使用后端返回的 recordings
+    if (selectedLive.recordings && selectedLive.recordings.length > 0) {
+      return selectedLive.recordings;
+    }
+    
+    // Fallback：从 bvid 生成
+    if (selectedLive.bvid) {
+      const parts = selectedLive.parts || 1;
+      const recordings = [];
+      for (let i = 1; i <= parts; i++) {
+        recordings.push({
+          title: selectedLive.title,
+          url: `https://www.bilibili.com/video/${selectedLive.bvid}${i > 1 ? `?p=${i}` : ''}`
+        });
+      }
+      return recordings;
+    }
+    
+    return [];
   }, [selectedLive]);
 
   // 获取当前播放的视频 URL（用于 iframe）
   const currentVideoUrl = useMemo(() => {
-    if (!selectedLive || !selectedLive.bvid) return '';
-    return generateBilibiliEmbedUrl(selectedLive.bvid, selectedRecordingIndex + 1);
+    // 优先使用 recordings 数组
+    if (selectedLive?.recordings && selectedLive.recordings.length > 0) {
+      const recording = selectedLive.recordings[selectedRecordingIndex];
+      if (recording?.url) {
+        return VideoPlayerService.getEmbedUrl(recording.url);
+      }
+    }
+    // Fallback：使用 bvid 生成
+    if (selectedLive?.bvid) {
+      return VideoPlayerService.getEmbedUrl(`https://www.bilibili.com/video/${selectedLive.bvid}`);
+    }
+    return '';
   }, [selectedLive, selectedRecordingIndex]);
 
   return (
@@ -291,7 +320,15 @@ const LivestreamPage: React.FC = () => {
                   {recordings.map((rec, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setSelectedRecordingIndex(idx)}
+                      onClick={() => {
+                    setSelectedRecordingIndex(idx);
+                    // 切换分段时保持播放器加载状态，但重新加载 iframe
+                    if (playerLoaded) {
+                      // 强制重新渲染 iframe
+                      setPlayerLoaded(false);
+                      setTimeout(() => setPlayerLoaded(true), 0);
+                    }
+                  }}
                       className={`px-4 py-2 rounded-2xl text-[11px] font-black transition-all ${selectedRecordingIndex === idx ? 'bg-[#f8b195] text-white shadow-md' : 'bg-white/60 text-[#8eb69b] hover:bg-white border border-white'}`}
                     >
                       {rec.title}
@@ -301,7 +338,28 @@ const LivestreamPage: React.FC = () => {
               )}
 
               <div className="aspect-video bg-black rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl relative group">
-                {currentVideoUrl ? (
+                {!playerLoaded && currentVideoUrl ? (
+                  // 未加载时显示封面和播放按钮
+                  <div
+                    className="w-full h-full flex flex-col items-center justify-center bg-gray-900 cursor-pointer"
+                    onClick={() => setPlayerLoaded(true)}
+                  >
+                    {selectedLive?.coverUrl && (
+                      <img
+                        src={selectedLive.coverUrl}
+                        alt="Cover"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="relative z-10 flex flex-col items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-20 h-20 bg-[#f8b195] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <PlayCircle size={40} className="text-white" />
+                      </div>
+                      <span className="text-[#8eb69b] font-black text-sm">点击播放</span>
+                    </div>
+                  </div>
+                ) : currentVideoUrl ? (
+                  // 已加载时显示播放器
                   <iframe
                     key={currentVideoUrl}
                     src={currentVideoUrl}
@@ -338,9 +396,16 @@ const LivestreamPage: React.FC = () => {
                         onClick={() => setVideoUrl(record.videoUrl)}
                         className="w-full flex items-center gap-4 p-4 bg-white/60 hover:bg-white rounded-3xl border border-white transition-all group hover:shadow-md text-left"
                       >
-                        <div className="w-10 h-10 bg-[#fef5f0] text-[#f8b195] rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform">
-                          <Music size={18} />
-                        </div>
+                        {/* 封面缩略图 */}
+                        {record.coverThumbnailUrl ? (
+                          <div className="w-10 h-10 rounded-2xl overflow-hidden shrink-0 group-hover:rotate-6 transition-transform">
+                            <LazyImage src={record.coverThumbnailUrl} className="w-full h-full object-cover" alt="" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 bg-[#fef5f0] text-[#f8b195] rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform">
+                            <Music size={18} />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-black text-[#4a3728] group-hover:text-[#f8b195] transition-colors truncate">{record.songName || '未命名歌曲'}</h4>
                           <span className="text-[9px] font-black text-[#8eb69b] uppercase tracking-widest opacity-60">{record.date}</span>
@@ -369,8 +434,8 @@ const LivestreamPage: React.FC = () => {
               </div>
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-8 space-y-6">
                 <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-white shadow-inner relative group">
-                   {selectedLive.screenshots.length > 0 ? (
-                                         <img src={activeScreenshot?.thumbnailUrl || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />                   ) : (
+                   {selectedLive.screenshots && selectedLive.screenshots.length > 0 ? (
+                                         <LazyImage src={activeScreenshot?.thumbnailUrl || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />                   ) : (
                      <div className="w-full h-full flex flex-col items-center justify-center text-[#8eb69b] bg-gray-900">
                        <ImageIcon size={48} className="mb-4 opacity-50" />
                        <p className="text-sm font-black tracking-wider">暂无图片</p>
@@ -379,7 +444,7 @@ const LivestreamPage: React.FC = () => {
                    )}
                    
                    {/* 左右切换按钮 */}
-                   {selectedLive.screenshots.length > 1 && (
+                   {selectedLive.screenshots && selectedLive.screenshots.length > 1 && (
                      <>
                        <button 
                          onClick={handlePrevScreenshot}
@@ -397,20 +462,20 @@ const LivestreamPage: React.FC = () => {
                    )}
 
                    {/* 图片索引指示器 */}
-                   {selectedLive.screenshots.length > 0 && (
+                   {selectedLive.screenshots && selectedLive.screenshots.length > 0 && (
                      <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-black tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                         {(selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl) + 1)} / {selectedLive.screenshots.length}
                      </div>
                    )}
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar px-2">
-                  {selectedLive.screenshots.map((s, idx) => (
+                  {selectedLive.screenshots && selectedLive.screenshots.map((s, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveScreenshot(s)}
                       className={`w-32 aspect-video rounded-2xl overflow-hidden shrink-0 border-4 transition-all ${activeScreenshot?.thumbnailUrl === s.thumbnailUrl ? 'border-[#f8b195] shadow-lg scale-105' : 'border-white opacity-60 hover:opacity-100'}`}
                     >
-                      <img src={s.thumbnailUrl} className="w-full h-full object-cover" alt="" />
+                      <LazyImage src={s.thumbnailUrl} className="w-full h-full object-cover" alt="" />
                     </button>
                   ))}
                 </div>

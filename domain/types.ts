@@ -158,9 +158,9 @@ export interface Screenshot {
 }
 
 export interface SongCut {
-    id: number;       // 演唱记录ID，可用于跳转到详情页
-    name: string;     // 歌曲名称
-    videoUrl: string; // 演唱记录链接（B站视频链接）
+    performed_at: string;  // 演唱日期
+    song_name: string;     // 歌曲名称
+    url: string;           // 演唱记录链接（B站视频链接）
 }
 
 export interface Livestream {
@@ -173,12 +173,13 @@ export interface Livestream {
     startTime: string;
     endTime: string;
     duration: string;
-    bvid: string;                        // B站视频BV号
-    parts: number;                       // 视频分段数
-    recordings: LivestreamRecording[];   // 后端生成的完整视频链接列表
-    songCuts: SongCut[];
-    screenshots: Screenshot[];           // 包含缩略图的截图数组
-    danmakuCloudUrl: string;
+    bvid: string;                              // B站视频BV号
+    parts: number;                             // 视频分段数
+    coverUrl?: string;                         // 封面图URL（基本信息）
+    recordings?: LivestreamRecording[];        // 后端生成的完整视频链接列表（详细信息）
+    songCuts?: SongCut[];                      // 歌曲剪辑列表（详细信息）
+    screenshots?: Screenshot[];                // 包含缩略图的截图数组（详细信息）
+    danmakuCloudUrl?: string;                  // 弹幕云图URL（详细信息）
 }
 
 // 原唱作品相关

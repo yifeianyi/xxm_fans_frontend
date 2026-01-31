@@ -13,7 +13,7 @@ export class VideoPlayerService {
         const pageNumber = pageMatch ? pageMatch[1] : '1';
         
         return {
-          url: `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=${pageNumber}&high_quality=1&danmaku=0&autoplay=1&mute=0`,
+          url: `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=${pageNumber}&high_quality=1&danmaku=0&autoplay=0&mute=0`,
           platform: 'bilibili'
         };
       }
@@ -23,7 +23,7 @@ export class VideoPlayerService {
       const videoIdMatch = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
       if (videoIdMatch) {
         return {
-          url: `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1`,
+          url: `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=0`,
           platform: 'youtube'
         };
       }
