@@ -109,10 +109,12 @@ const TimelineChart: React.FC = () => {
 
   // 处理月份点击
   const handleMonthClick = (year: number, month: number, isActive: boolean) => {
-    if (isActive) {
-      setSelectedDate({ year, month });
-      setHoveredDate(null);
-    }
+    console.log('月份点击:', { year, month, isActive, selectedDate });
+    if (!isActive) return;
+
+    // 点击打开详情弹窗
+    setSelectedDate({ year, month });
+    setHoveredDate(null);
   };
 
   const renderMonth = (year: number, month: number, isActive: boolean) => {
@@ -316,6 +318,39 @@ const TimelineChart: React.FC = () => {
            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 bg-white/30 relative">
               {/* Background Pattern */}
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4a3728 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+              {/* 统计信息卡片 */}
+              {(() => {
+                const stats = getMonthStats(selectedDate.year, selectedDate.month);
+                if (!stats) return null;
+                return (
+                  <div className="mb-8 p-6 bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-white">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <FileText size={16} className="text-[#8eb69b]" />
+                          <span className="text-xs font-bold text-[#8eb69b]">投稿总数</span>
+                        </div>
+                        <span className="text-2xl font-black text-[#4a3728]">{stats.total}</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <CheckCircle2 size={16} className="text-[#f8b195]" />
+                          <span className="text-xs font-bold text-[#f8b195]">有效投稿</span>
+                        </div>
+                        <span className="text-2xl font-black text-[#f8b195]">{stats.valid}</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Trash2 size={16} className="text-gray-400" />
+                          <span className="text-xs font-bold text-gray-400">无效投稿</span>
+                        </div>
+                        <span className="text-2xl font-black text-gray-400">{stats.invalid}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {loading ? (
                  <div className="h-full flex flex-col items-center justify-center gap-6 min-h-[400px]">

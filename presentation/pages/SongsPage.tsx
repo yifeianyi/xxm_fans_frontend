@@ -13,7 +13,7 @@ const SongsPage: React.FC = () => {
         switch (activeTab) {
             case 'hot': return '咻咻满热歌榜';
             case 'originals': return '咻咻满原唱作品';
-            case 'submit': return '投稿时刻';
+            case 'submit': return '咻咻满投稿时刻';
             default: return '咻咻满歌曲列表';
         }
     };
