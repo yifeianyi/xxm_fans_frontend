@@ -22,7 +22,6 @@ const LivestreamPage: React.FC = () => {
   const [activeScreenshot, setActiveScreenshot] = useState<Screenshot | null>(null);
   const [selectedRecordingIndex, setSelectedRecordingIndex] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [recordsLoading, setRecordsLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [viewingCloud, setViewingCloud] = useState(false);
@@ -43,13 +42,8 @@ const LivestreamPage: React.FC = () => {
       if (result.data) {
         const data = result.data;
         setLives(data);
-        if (data.length > 0 && data[0]) {
-          // 获取第一条直播的详细信息
-          fetchLivestreamDetail(data[0].date);
-        } else {
-          setSelectedLive(null);
-          setSongRecords([]);
-        }
+        setSelectedLive(null);
+        setSongRecords([]);
       } else {
         setLives([]);
         setSelectedLive(null);
@@ -78,31 +72,23 @@ const LivestreamPage: React.FC = () => {
         if (thumbnailListRef.current) {
           thumbnailListRef.current.scrollLeft = 0;
         }
-        // 获取当天的演唱记录
-        fetchSongRecords(date);
+        // 使用直播详情中的 songCuts
+        const songCuts = livestreamData.songCuts || [];
+        setSongRecords(songCuts.map(cut => ({
+          id: cut.performed_at,
+          songId: '',
+          songName: cut.song_name,
+          date: cut.performed_at,
+          cover: '',
+          coverThumbnailUrl: '',
+          note: '',
+          videoUrl: cut.url
+        })));
       }
     } catch (error) {
       console.error('获取直播详情失败:', error);
     } finally {
       setDetailLoading(false);
-    }
-  };
-
-  // 获取指定日期的演唱记录
-  const fetchSongRecords = async (date: string) => {
-    setRecordsLoading(true);
-    try {
-      const result = await songService.getRecordsByDate(date);
-      if (result.data) {
-        setSongRecords(result.data);
-      } else {
-        setSongRecords([]);
-      }
-    } catch (error) {
-      console.error('获取演唱记录失败:', error);
-      setSongRecords([]);
-    } finally {
-      setRecordsLoading(false);
     }
   };
 
@@ -404,7 +390,7 @@ const LivestreamPage: React.FC = () => {
                   <span className="text-[10px] font-black text-[#8eb69b] uppercase tracking-[0.3em]">Tracks from Today</span>
                 </div>
                 <div className="overflow-y-auto custom-scrollbar p-6 space-y-4 flex-1">
-                  {recordsLoading ? (
+                  {detailLoading ? (
                     <div className="flex items-center justify-center py-12 text-[#8eb69b] font-black text-sm">
                       加载中...
                     </div>
@@ -548,15 +534,7 @@ const LivestreamPage: React.FC = () => {
           </div>
 
         </div>
-      ) : (
-        <div className="glass-card rounded-[4rem] border-4 border-white shadow-xl p-32 text-center space-y-8 animate-in fade-in">
-          <div className="text-8xl animate-bounce">🌲</div>
-          <div className="space-y-2">
-            <h3 className="text-3xl font-black text-[#4a3728]">森林寂静中</h3>
-            <p className="text-[#8eb69b] font-bold text-lg">点击上方日历中的标记日期，唤醒那一天的美好记忆。</p>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       {/* 视频弹窗 */}
       <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />

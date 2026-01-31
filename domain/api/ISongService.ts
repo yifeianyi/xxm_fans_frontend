@@ -4,7 +4,7 @@ import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork 
 export interface ISongService {
   getSongs(params: GetSongsParams): Promise<ApiResult<PaginatedResult<Song>>>;
   getRecords(songId: string, params?: GetRecordsParams): Promise<ApiResult<PaginatedResult<SongRecord>>>;
-  getRecordsByDate(date: string): Promise<ApiResult<SongRecord[]>>;
+  
   getTopSongs(params?: GetTopSongsParams): Promise<ApiResult<Song[]>>;
   getRandomSong(): Promise<ApiResult<Song>>;
   getRecommendation(): Promise<ApiResult<Recommendation>>;
