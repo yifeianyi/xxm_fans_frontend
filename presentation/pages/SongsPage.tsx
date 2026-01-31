@@ -71,7 +71,7 @@ const SongsPage: React.FC = () => {
                         ></div>
                         <button onClick={() => setActiveTab('hot')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'hot' ? 'text-white' : 'text-[#8eb69b]'}`}>热歌榜</button>
                         <button onClick={() => setActiveTab('all')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'all' ? 'text-white' : 'text-[#8eb69b]'}`}>全部歌曲</button>
-                        <button onClick={() => setActiveTab('originals')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'originals' ? 'text-white' : 'text-[#8eb69b]'}`}>原创作品</button>
+                        <button onClick={() => setActiveTab('originals')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'originals' ? 'text-white' : 'text-[#8eb69b]'}`}>原唱作品</button>
                         <button onClick={() => setActiveTab('submit')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'submit' ? 'text-white' : 'text-[#8eb69b]'}`}>投稿时刻</button>
                     </div>
                 </div>

@@ -7,6 +7,7 @@ import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
 import HomePage from './presentation/pages/HomePage';
 import SongsPage from './presentation/pages/SongsPage';
+import OriginalsPage from './presentation/pages/OriginalsPage';
 import FansDIYPage from './presentation/pages/FansDIYPage';
 import AboutPage from './presentation/pages/AboutPage';
 import GalleryPage from './presentation/pages/GalleryPage';
@@ -25,6 +26,7 @@ const App: React.FC = () => {
                         <ReactRouterDOM.Routes>
                             <ReactRouterDOM.Route path="/" element={<HomePage />} />
                             <ReactRouterDOM.Route path="/songs" element={<SongsPage />} />
+                            <ReactRouterDOM.Route path="/originals" element={<OriginalsPage />} />
                             <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
                             <ReactRouterDOM.Route path="/live" element={<ComingSoonPage title="直播日历" description="直播记录与日程管理功能正在筹备中..." />} />
                             <ReactRouterDOM.Route path="/data" element={<ComingSoonPage title="满の数据" description="数据分析功能正在筹备中..." />} />

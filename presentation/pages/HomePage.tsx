@@ -63,7 +63,7 @@ const HomePage: React.FC = () => {
                             {/* CTA Buttons - 暖色渐变按钮 */}
                             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 animate-in slide-in-from-bottom-8 duration-700 delay-300">
                                 <button
-                                    onClick={() => navigate('/songs', { state: { initialTab: 'originals' } })}
+                                    onClick={() => navigate('/originals')}
                                     className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white rounded-[2rem] font-black shadow-xl hover:shadow-[#f67280]/30 hover:scale-105 transition-all flex items-center justify-center gap-3 group"
                                 >
                                     <Music size={20} className="group-hover:rotate-12 transition-transform" />
