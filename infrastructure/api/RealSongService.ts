@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork } from '../types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream } from '../types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -140,6 +140,35 @@ export class RealSongService implements ISongService {
     return result;
   }
 
+  async getRecordsByDate(date: string): Promise<ApiResult<SongRecord[]>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('date', date);
+
+    console.log('🔄 调用 getRecordsByDate API，参数:', queryParams.toString());
+    const result = await apiClient.get<any[]>(
+      `/records/by-date/?${queryParams.toString()}`
+    );
+    console.log('📥 getRecordsByDate API 原始返回:', result);
+
+    if (result.data) {
+      console.log('✅ 获取到数据，开始转换，数据长度:', result.data.length);
+      const transformed: SongRecord[] = result.data.map(item => ({
+        id: item.id?.toString() || '',
+        songId: item.song?.id?.toString() || '',
+        songName: item.song_name || item.song?.song_name || '未知歌曲',
+        date: item.performed_at || '',
+        cover: item.cover_url || '',
+        coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
+        note: item.notes || '',
+        videoUrl: item.url || ''
+      }));
+      console.log('🔄 转换后的数据:', transformed);
+      return { data: transformed };
+    }
+    console.log('⚠️ 没有获取到数据');
+    return result;
+  }
+
   async getTopSongs(params?: GetTopSongsParams): Promise<ApiResult<Song[]>> {
     const queryParams = new URLSearchParams();
     if (params?.range) {
@@ -240,6 +269,38 @@ export class RealSongService implements ISongService {
       return { data: transformed };
     }
     return result;
+  }
+
+  /**
+   * 获取指定月份的直播记录列表
+   */
+  async getLivestreams(year: number, month: number): Promise<ApiResult<Livestream[]>> {
+    const queryParams = new URLSearchParams();
+    queryParams.set('year', year.toString());
+    queryParams.set('month', month.toString());
+
+    const result = await apiClient.get<Livestream[]>(
+      `/livestreams/?${queryParams.toString()}`
+    );
+
+    if (result.data) {
+      return { data: result.data };
+    }
+    return result;
+  }
+
+  /**
+   * 获取指定日期的直播记录详情
+   */
+  async getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>> {
+    const result = await apiClient.get<Livestream | null>(
+      `/livestreams/${dateStr}/`
+    );
+
+    if (result.data) {
+      return { data: result.data };
+    }
+    return { data: null };
   }
 }
 

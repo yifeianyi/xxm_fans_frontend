@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
-import { mockApi } from '../../infrastructure/api/mockApi';
-import { Livestream, LivestreamRecording } from '../../domain/types';
+import { songService } from '../../infrastructure/api';
+import { Livestream, LivestreamRecording, SongRecord } from '../../domain/types';
+import { generateLivestreamRecordings, generateBilibiliEmbedUrl } from '../../shared/utils/videoUtils';
 import {
   Calendar as CalendarIcon, Clock, MessageSquare, Image as ImageIcon,
   ChevronLeft, ChevronRight, BarChart3, Cloud, Users, Heart,
@@ -16,9 +17,11 @@ const LivestreamPage: React.FC = () => {
   });
   const [lives, setLives] = useState<Livestream[]>([]);
   const [selectedLive, setSelectedLive] = useState<Livestream | null>(null);
+  const [songRecords, setSongRecords] = useState<SongRecord[]>([]);
   const [activeScreenshot, setActiveScreenshot] = useState<string | null>(null);
   const [selectedRecordingIndex, setSelectedRecordingIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [recordsLoading, setRecordsLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [viewingCloud, setViewingCloud] = useState(false);
 
@@ -31,20 +34,52 @@ const LivestreamPage: React.FC = () => {
   useEffect(() => {
     const fetchLives = async () => {
       setLoading(true);
-      const data = await mockApi.getLivestreams(currentDate.getFullYear(), currentDate.getMonth() + 1);
-      setLives(data);
-      if (data.length > 0) {
-        setSelectedLive(data[0]);
-        setActiveScreenshot(data[0].screenshots[0]);
-        setSelectedRecordingIndex(0);
-        setViewingCloud(false);
+      const result = await songService.getLivestreams(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      if (result.data) {
+        const data = result.data;
+        setLives(data);
+        if (data.length > 0) {
+          setSelectedLive(data[0]);
+          setActiveScreenshot(data[0].screenshots[0]);
+          setSelectedRecordingIndex(0);
+          setViewingCloud(false);
+          // 获取当天的演唱记录
+          fetchSongRecords(data[0].date);
+        } else {
+          setSelectedLive(null);
+          setSongRecords([]);
+        }
       } else {
+        setLives([]);
         setSelectedLive(null);
+        setSongRecords([]);
       }
       setLoading(false);
     };
     fetchLives();
   }, [currentDate]);
+
+  // 获取指定日期的演唱记录
+  const fetchSongRecords = async (date: string) => {
+    console.log('📅 开始获取演唱记录，日期:', date);
+    setRecordsLoading(true);
+    try {
+      const result = await songService.getRecordsByDate(date);
+      console.log('📊 演唱记录 API 返回结果:', result);
+      if (result.data) {
+        console.log('✅ 获取到演唱记录数据:', result.data);
+        setSongRecords(result.data);
+      } else {
+        console.log('⚠️ API 返回结果为空');
+        setSongRecords([]);
+      }
+    } catch (error) {
+      console.error('❌ 获取演唱记录失败:', error);
+      setSongRecords([]);
+    } finally {
+      setRecordsLoading(false);
+    }
+  };
 
   const daysInMonth = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -90,6 +125,8 @@ const LivestreamPage: React.FC = () => {
     setSelectedRecordingIndex(0);
     setActiveScreenshot(live.screenshots[0]);
     setViewingCloud(false);
+    // 获取选中日期的演唱记录
+    fetchSongRecords(live.date);
   };
 
   const handlePrevScreenshot = (e: React.MouseEvent) => {
@@ -111,6 +148,18 @@ const LivestreamPage: React.FC = () => {
   };
 
   const currentRecording = selectedLive?.recordings[selectedRecordingIndex];
+
+  // 生成当前直播的录像列表
+  const recordings = useMemo(() => {
+    if (!selectedLive) return [];
+    return generateLivestreamRecordings(selectedLive);
+  }, [selectedLive]);
+
+  // 获取当前播放的视频 URL（用于 iframe）
+  const currentVideoUrl = useMemo(() => {
+    if (!selectedLive || !selectedLive.bvid) return '';
+    return generateBilibiliEmbedUrl(selectedLive.bvid, selectedRecordingIndex + 1);
+  }, [selectedLive, selectedRecordingIndex]);
 
   return (
     <>
@@ -215,7 +264,7 @@ const LivestreamPage: React.FC = () => {
           </div>
 
           {/* 第二排：分段视频播放器与歌切列表 */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:items-start">
             {/* 完整录像看板 */}
             <div className="lg:col-span-8 space-y-6">
               <div className="flex items-center justify-between px-4">
@@ -223,9 +272,9 @@ const LivestreamPage: React.FC = () => {
                   <div className="w-2 h-6 bg-[#f8b195] rounded-full"></div>
                   <h3 className="text-2xl font-black text-[#4a3728] tracking-tight">完整回放档案</h3>
                 </div>
-                {currentRecording && (
+                {recordings.length > 0 && (
                   <button
-                    onClick={() => setVideoUrl(currentRecording.url)}
+                    onClick={() => setVideoUrl(currentVideoUrl)}
                     className="text-xs font-black text-[#8eb69b] hover:text-[#f8b195] transition-colors flex items-center gap-2"
                   >
                     <Maximize2 size={14} /> 全屏播放
@@ -234,12 +283,12 @@ const LivestreamPage: React.FC = () => {
               </div>
 
               {/* 多分段选择器 */}
-              {selectedLive.recordings.length > 1 && (
+              {recordings.length > 1 && (
                 <div className="flex flex-wrap gap-3 bg-white/40 p-3 rounded-3xl border-2 border-white shadow-sm">
                   <div className="flex items-center gap-2 px-3 text-[#f8b195] text-[10px] font-black uppercase tracking-widest border-r border-[#f8b195]/20 mr-1">
                     <Layers size={14} /> 视频分段
                   </div>
-                  {selectedLive.recordings.map((rec, idx) => (
+                  {recordings.map((rec, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedRecordingIndex(idx)}
@@ -252,10 +301,10 @@ const LivestreamPage: React.FC = () => {
               )}
 
               <div className="aspect-video bg-black rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl relative group">
-                {currentRecording ? (
+                {currentVideoUrl ? (
                   <iframe
-                    key={currentRecording.url}
-                    src={getBilibiliEmbed(currentRecording.url)}
+                    key={currentVideoUrl}
+                    src={currentVideoUrl}
                     className="w-full h-full border-0"
                     allowFullScreen
                   ></iframe>
@@ -268,36 +317,41 @@ const LivestreamPage: React.FC = () => {
             </div>
 
             {/* 当日歌切列表 */}
-            <div className="lg:col-span-4 space-y-6 flex flex-col">
+            <div className="lg:col-span-4 space-y-6">
               <div className="flex items-center gap-3 px-4">
                 <div className="w-2 h-6 bg-[#8eb69b] rounded-full"></div>
                 <h3 className="text-2xl font-black text-[#4a3728] tracking-tight">时光歌切</h3>
               </div>
-              <div className="flex-1 glass-card rounded-[3rem] border-4 border-white shadow-xl overflow-hidden flex flex-col">
+              <div className="glass-card rounded-[3rem] border-4 border-white shadow-xl overflow-hidden flex flex-col" style={{ height: '540px' }}>
                 <div className="p-6 bg-[#f2f9f1]/40 border-b border-white">
                   <span className="text-[10px] font-black text-[#8eb69b] uppercase tracking-[0.3em]">Tracks from Today</span>
                 </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
-                  {selectedLive.songCuts.map((cut, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setVideoUrl(cut.videoUrl)}
-                      className="w-full flex items-center gap-4 p-4 bg-white/60 hover:bg-white rounded-3xl border border-white transition-all group hover:shadow-md text-left"
-                    >
-                      <div className="w-10 h-10 bg-[#fef5f0] text-[#f8b195] rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform">
-                        <Music size={18} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-black text-[#4a3728] group-hover:text-[#f8b195] transition-colors truncate">{cut.name}</h4>
-                        <span className="text-[9px] font-black text-[#8eb69b] uppercase tracking-widest opacity-60">Song Cut #0{idx + 1}</span>
-                      </div>
-                      <PlayCircle size={20} className="text-[#f8b195] opacity-0 group-hover:opacity-100 transition-all" />
-                    </button>
-                  ))}
-                  {selectedLive.songCuts.length === 0 && (
+                <div className="overflow-y-auto custom-scrollbar p-6 space-y-4 flex-1">
+                  {recordsLoading ? (
+                    <div className="flex items-center justify-center py-12 text-[#8eb69b] font-black text-sm">
+                      加载中...
+                    </div>
+                  ) : songRecords.length > 0 ? (
+                    songRecords.map((record, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setVideoUrl(record.videoUrl)}
+                        className="w-full flex items-center gap-4 p-4 bg-white/60 hover:bg-white rounded-3xl border border-white transition-all group hover:shadow-md text-left"
+                      >
+                        <div className="w-10 h-10 bg-[#fef5f0] text-[#f8b195] rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform">
+                          <Music size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-black text-[#4a3728] group-hover:text-[#f8b195] transition-colors truncate">{record.songName || '未命名歌曲'}</h4>
+                          <span className="text-[9px] font-black text-[#8eb69b] uppercase tracking-widest opacity-60">{record.date}</span>
+                        </div>
+                        <PlayCircle size={20} className="text-[#f8b195] opacity-0 group-hover:opacity-100 transition-all" />
+                      </button>
+                    ))
+                  ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-40 py-12">
                       <Music size={40} className="mb-4 text-[#8eb69b]" />
-                      <p className="text-xs font-black text-[#8eb69b] uppercase tracking-widest">暂无歌切数据</p>
+                      <p className="text-xs font-black text-[#8eb69b] uppercase tracking-widest">暂无演唱记录</p>
                     </div>
                   )}
                 </div>
@@ -315,7 +369,15 @@ const LivestreamPage: React.FC = () => {
               </div>
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-8 space-y-6">
                 <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-white shadow-inner relative group">
-                   <img src={activeScreenshot || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />
+                   {selectedLive.screenshots.length > 0 ? (
+                     <img src={activeScreenshot || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />
+                   ) : (
+                     <div className="w-full h-full flex flex-col items-center justify-center text-[#8eb69b] bg-gray-900">
+                       <ImageIcon size={48} className="mb-4 opacity-50" />
+                       <p className="text-sm font-black tracking-wider">暂无图片</p>
+                       <p className="text-xs font-black opacity-60 mt-2">欢迎联系投稿</p>
+                     </div>
+                   )}
                    
                    {/* 左右切换按钮 */}
                    {selectedLive.screenshots.length > 1 && (
@@ -364,19 +426,27 @@ const LivestreamPage: React.FC = () => {
               </div>
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-10 flex flex-col h-full bg-gradient-to-br from-white to-[#f2f9f1]/50">
                 <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                  <div 
-                    className="relative group w-full cursor-pointer" 
-                    onClick={() => setViewingCloud(true)}
-                  >
-                    <div className="absolute inset-0 bg-[#8eb69b]/20 blur-[60px] opacity-40 group-hover:opacity-100 transition-opacity"></div>
-                    <img src={selectedLive.danmakuCloudUrl} className="w-full aspect-[4/3] object-cover rounded-[2.5rem] border-4 border-white shadow-2xl relative z-10 transition-transform group-hover:scale-[1.02]" alt="Cloud" />
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="w-16 h-16 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
-                        <Maximize2 size={24} />
+                  {selectedLive.danmakuCloudUrl ? (
+                    <div 
+                      className="relative group w-full cursor-pointer" 
+                      onClick={() => setViewingCloud(true)}
+                    >
+                      <div className="absolute inset-0 bg-[#8eb69b]/20 blur-[60px] opacity-40 group-hover:opacity-100 transition-opacity"></div>
+                      <img src={selectedLive.danmakuCloudUrl} className="w-full aspect-[4/3] object-cover rounded-[2.5rem] border-4 border-white shadow-2xl relative z-10 transition-transform group-hover:scale-[1.02]" alt="Cloud" />
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="w-16 h-16 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                          <Maximize2 size={24} />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="w-full aspect-[4/3] flex flex-col items-center justify-center text-[#8eb69b] bg-gray-900 rounded-[2.5rem] border-4 border-white shadow-2xl">
+                      <Cloud size={48} className="mb-4 opacity-50" />
+                      <p className="text-sm font-black tracking-wider">暂无弹幕云图</p>
+                      <p className="text-xs font-black opacity-60 mt-2">欢迎联系投稿</p>
+                    </div>
+                  )}
                   <div className="text-center space-y-2">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#fef5f0] rounded-full text-[#f8b195] text-[10px] font-black uppercase tracking-widest border border-[#f8b195]/10">
                       <Cloud size={14} /> Emotion Analysis

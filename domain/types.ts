@@ -2,6 +2,7 @@
 export interface SongRecord {
     id: string;
     songId: string;
+    songName: string;  // 歌曲名称
     date: string;
     cover: string;
     coverThumbnailUrl?: string;  // 缩略图 URL
@@ -152,8 +153,9 @@ export interface LivestreamRecording {
 }
 
 export interface SongCut {
-    name: string;
-    videoUrl: string;
+    id: number;       // 演唱记录ID，可用于跳转到详情页
+    name: string;     // 歌曲名称
+    videoUrl: string; // 演唱记录链接（B站视频链接）
 }
 
 export interface Livestream {
@@ -161,13 +163,14 @@ export interface Livestream {
     date: string;
     title: string;
     summary: string;
-    coverUrl: string;
     viewCount: string;
     danmakuCount: string;
     startTime: string;
     endTime: string;
     duration: string;
-    recordings: LivestreamRecording[];
+    bvid: string;                        // B站视频BV号
+    parts: number;                       // 视频分段数
+    recordings: LivestreamRecording[];   // 前端根据 bvid 和 parts 生成
     songCuts: SongCut[];
     screenshots: string[];
     danmakuCloudUrl: string;

@@ -17,6 +17,20 @@ const generatePoints = (count: number, base: number, step: number): DataPoint[] 
     });
 };
 
+// 生成演唱记录
+const generateSongRecords = (date: string, count: number): SongRecord[] => {
+    const songs = ['满天星', '溯光者', '森林来信', '月光小夜曲', '未命名', '你的名字', '陪伴', '晚安曲', '感谢有你', '未来可期'];
+    return Array.from({ length: count }, (_, i) => ({
+        id: `record-${date}-${i}`,
+        songId: `song-${songs[i % songs.length]}`,
+        date: date,
+        cover: `https://picsum.photos/seed/record-${date}-${i}/800/600`,
+        coverThumbnailUrl: `https://picsum.photos/seed/record-${date}-${i}/160/120`,
+        note: `精彩演唱 #${i + 1}`,
+        videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
+    }));
+};
+
 // Mock 图集数据
 const MOCK_GALLERIES: Gallery[] = [
     {
