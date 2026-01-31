@@ -132,7 +132,7 @@ const LivestreamPage: React.FC = () => {
   const handlePrevScreenshot = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!selectedLive || !activeScreenshot) return;
-    const currentIndex = selectedLive.screenshots.indexOf(activeScreenshot);
+    const currentIndex = selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl);
     if (currentIndex === -1) return;
     const prevIndex = currentIndex === 0 ? selectedLive.screenshots.length - 1 : currentIndex - 1;
     setActiveScreenshot(selectedLive.screenshots[prevIndex]);
@@ -399,7 +399,7 @@ const LivestreamPage: React.FC = () => {
                    {/* 图片索引指示器 */}
                    {selectedLive.screenshots.length > 0 && (
                      <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-black tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                        {(selectedLive.screenshots.indexOf(activeScreenshot || '') + 1)} / {selectedLive.screenshots.length}
+                        {(selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl) + 1)} / {selectedLive.screenshots.length}
                      </div>
                    )}
                 </div>
