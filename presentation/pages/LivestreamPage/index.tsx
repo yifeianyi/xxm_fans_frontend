@@ -24,7 +24,7 @@ import LivestreamHeader from './components/LivestreamHeader';
 import CalendarControl from './components/CalendarControl';
 import CalendarGrid from './components/CalendarGrid';
 import LiveDetail from './components/LiveDetail';
-import Loading from '../../components/common/Loading';
+import { Loading } from '../../components/common/Loading';
 
 const LivestreamPage: React.FC = () => {
   const { currentDate, lives, loading, changeMonth, loadLives, calendarCells, todayStr } = useLivestreamData();

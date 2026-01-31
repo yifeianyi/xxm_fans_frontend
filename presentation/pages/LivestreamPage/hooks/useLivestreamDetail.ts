@@ -17,7 +17,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { songService } from '../../../infrastructure/api';
+import { songService } from '../../../../infrastructure/api';
 import { Livestream } from '../../../domain/types';
 
 interface UseLivestreamDetailReturn {

@@ -20,7 +20,7 @@
 import React from 'react';
 import { GalleryImage } from '../../../domain/types';
 import { Maximize2, Play } from 'lucide-react';
-import LazyImage from '../../components/common/LazyImage';
+import LazyImage from '../../../components/common/LazyImage';
 
 interface ImageGridProps {
   images: GalleryImage[];

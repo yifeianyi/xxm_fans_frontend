@@ -53,7 +53,8 @@ const GalleryPage: React.FC = () => {
     handleNextImage,
     setLightboxImage,
     setSidebarOpen,
-    setSearchTerm
+    setSearchTerm,
+    setCurrentImageIndex
   } = useGalleryData();
 
   const isLeafGallery = (gallery: any): boolean => {

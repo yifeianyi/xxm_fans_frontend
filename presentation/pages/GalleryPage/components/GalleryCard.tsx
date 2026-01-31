@@ -20,7 +20,7 @@
 import React from 'react';
 import { Gallery } from '../../../domain/types';
 import { ArrowLeft } from 'lucide-react';
-import LazyImage from '../../components/common/LazyImage';
+import LazyImage from '../../../components/common/LazyImage';
 
 interface GalleryCardProps {
   gallery: Gallery;

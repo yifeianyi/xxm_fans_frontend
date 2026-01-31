@@ -42,7 +42,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { galleryService } from '../../../infrastructure/api/RealGalleryService';
+import { galleryService } from '../../../../infrastructure/api/RealGalleryService';
 import { Gallery, GalleryImage, Breadcrumb } from '../../../domain/types';
 
 interface UseGalleryDataReturn {
