@@ -27,6 +27,7 @@ const LivestreamPage: React.FC = () => {
   const [viewingCloud, setViewingCloud] = useState(false);
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const thumbnailListRef = React.useRef<HTMLDivElement>(null);
+  const liveDetailRef = React.useRef<HTMLDivElement>(null);
 
   // 获取今天的日期字符串
   const todayStr = useMemo(() => {
@@ -118,6 +119,10 @@ const LivestreamPage: React.FC = () => {
   const handleSelectLive = (live: Livestream) => {
     // 获取选中日期的详细信息
     fetchLivestreamDetail(live.date);
+    // 滚动到直播详情区域
+    setTimeout(() => {
+      liveDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const handlePrevScreenshot = (e: React.MouseEvent) => {
@@ -245,7 +250,7 @@ const LivestreamPage: React.FC = () => {
 
       {/* 沉浸式档案详情区 */}
       {selectedLive ? (
-        <div className="space-y-12 animate-in slide-in-from-bottom-8 duration-700">
+        <div ref={liveDetailRef} className="space-y-12 animate-in slide-in-from-bottom-8 duration-700">
 
           {/* 第一排：核心大标题与关键指标 */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
