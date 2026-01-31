@@ -28,7 +28,7 @@ const HomePage: React.FC = () => {
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-32 bg-[#fff4d1] blur-3xl -z-10 rounded-full opacity-60"></div>
                                 <div className="flex items-center gap-3 justify-center lg:justify-start mb-4">
                                     <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
-                                        Non-Official Fan Site
+                                        Non-Official Fans Site
                                     </span>
                                 </div>
                                 <h1 className="text-5xl md:text-7xl font-black text-[#5d4037] tracking-tighter leading-tight drop-shadow-sm">

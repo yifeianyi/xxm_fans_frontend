@@ -1,22 +1,32 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { mockApi } from '../../infrastructure/api/mockApi';
-import { Livestream } from '../../domain/types';
+import { Livestream, LivestreamRecording } from '../../domain/types';
 import {
   Calendar as CalendarIcon, Clock, MessageSquare, Image as ImageIcon,
   ChevronLeft, ChevronRight, BarChart3, Cloud, Users, Heart,
-  PlayCircle, Music, Monitor, Maximize2, Layers
+  PlayCircle, Music, Monitor, Maximize2, Layers, X
 } from 'lucide-react';
 import VideoModal from '../components/common/VideoModal';
 
 const LivestreamPage: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const [lives, setLives] = useState<Livestream[]>([]);
   const [selectedLive, setSelectedLive] = useState<Livestream | null>(null);
   const [activeScreenshot, setActiveScreenshot] = useState<string | null>(null);
   const [selectedRecordingIndex, setSelectedRecordingIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [viewingCloud, setViewingCloud] = useState(false);
+
+  // 获取今天的日期字符串
+  const todayStr = useMemo(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }, []);
 
   useEffect(() => {
     const fetchLives = async () => {
@@ -27,6 +37,7 @@ const LivestreamPage: React.FC = () => {
         setSelectedLive(data[0]);
         setActiveScreenshot(data[0].screenshots[0]);
         setSelectedRecordingIndex(0);
+        setViewingCloud(false);
       } else {
         setSelectedLive(null);
       }
@@ -56,7 +67,17 @@ const LivestreamPage: React.FC = () => {
 
   const getBilibiliEmbed = (url: string) => {
     const bvMatch = url.match(/BV[a-zA-Z0-9]+/);
-    if (bvMatch) return `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=0`;
+    if (bvMatch) {
+        let baseUrl = `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&high_quality=1&danmaku=0&autoplay=0`;
+        // Check for 'p' or 'page' parameter in the url
+        const pMatch = url.match(/[?&](p|page)=(\d+)/);
+        if (pMatch) {
+            baseUrl += `&page=${pMatch[2]}`;
+        } else {
+            baseUrl += `&page=1`;
+        }
+        return baseUrl;
+    }
     return url;
   };
 
@@ -68,6 +89,25 @@ const LivestreamPage: React.FC = () => {
     setSelectedLive(live);
     setSelectedRecordingIndex(0);
     setActiveScreenshot(live.screenshots[0]);
+    setViewingCloud(false);
+  };
+
+  const handlePrevScreenshot = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectedLive || !activeScreenshot) return;
+    const currentIndex = selectedLive.screenshots.indexOf(activeScreenshot);
+    if (currentIndex === -1) return;
+    const prevIndex = currentIndex === 0 ? selectedLive.screenshots.length - 1 : currentIndex - 1;
+    setActiveScreenshot(selectedLive.screenshots[prevIndex]);
+  };
+
+  const handleNextScreenshot = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectedLive || !activeScreenshot) return;
+    const currentIndex = selectedLive.screenshots.indexOf(activeScreenshot);
+    if (currentIndex === -1) return;
+    const nextIndex = currentIndex === selectedLive.screenshots.length - 1 ? 0 : currentIndex + 1;
+    setActiveScreenshot(selectedLive.screenshots[nextIndex]);
   };
 
   const currentRecording = selectedLive?.recordings[selectedRecordingIndex];
@@ -104,16 +144,20 @@ const LivestreamPage: React.FC = () => {
         {['一', '二', '三', '四', '五', '六', '日'].map(w => (
           <div key={w} className="py-2 text-center text-[10px] text-[#8eb69b] font-black uppercase tracking-widest">{w}</div>
         ))}
-        {calendarCells.map((cell, idx) => (
-          <div
-            key={idx}
-            onClick={() => cell.live && handleSelectLive(cell.live)}
-            className={`aspect-video flex items-center justify-center relative rounded-2xl transition-all ${cell.day ? 'bg-white/60' : 'bg-transparent'} ${cell.live ? 'cursor-pointer hover:bg-[#fef5f0] shadow-sm' : ''} ${selectedLive?.date === cell.date ? 'bg-[#fef5f0] ring-4 ring-[#f8b195]/20' : ''}`}
-          >
-            <span className={`text-sm font-black ${cell.live ? 'text-[#f8b195]' : 'text-[#4a3728]/10'}`}>{cell.day}</span>
-            {cell.live && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#f8b195]"></div>}
-          </div>
-        ))}
+        {calendarCells.map((cell, idx) => {
+            const isToday = cell.date === todayStr;
+            return (
+              <div
+                key={idx}
+                onClick={() => cell.live && handleSelectLive(cell.live)}
+                className={`aspect-video flex items-center justify-center relative rounded-2xl transition-all ${cell.day ? 'bg-white/60' : 'bg-transparent'} ${cell.live ? 'cursor-pointer hover:bg-[#fef5f0] shadow-sm' : ''} ${selectedLive?.date === cell.date ? 'bg-[#fef5f0] ring-4 ring-[#f8b195]/20' : ''} ${isToday ? 'ring-2 ring-[#8eb69b]/50' : ''}`}
+              >
+                <span className={`text-sm font-black ${cell.live ? 'text-[#f8b195]' : isToday ? 'text-[#8eb69b] font-bold' : 'text-[#4a3728]/40'}`}>{cell.day}</span>
+                {cell.live && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#f8b195]"></div>}
+                {isToday && <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#8eb69b]"></div>}
+              </div>
+            );
+          })}
       </div>
 
       {/* 沉浸式档案详情区 */}
@@ -124,23 +168,27 @@ const LivestreamPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             <div className="lg:col-span-8 glass-card rounded-[3.5rem] border-4 border-white shadow-2xl p-10 flex flex-col justify-center gap-6 relative overflow-hidden">
                <div className="absolute -right-10 -bottom-10 text-[180px] font-black text-[#f8b195]/5 pointer-events-none select-none">MEMORY</div>
-               <div className="space-y-2">
-                 <div className="flex items-center gap-3 text-[#f8b195]">
-                   <Monitor size={18} />
-                   <span className="text-xs font-black uppercase tracking-[0.3em]">{selectedLive.date} 直播档案</span>
+               <div className="space-y-8 relative z-10">
+                 {/* 小标签 */}
+                 <div className="inline-flex items-center gap-3 px-5 py-2 bg-[#fef5f0] rounded-full text-[#f8b195] w-fit border border-[#f8b195]/20 shadow-sm">
+                    <Monitor size={20} />
+                    <span className="text-xs font-black uppercase tracking-[0.3em]">Official Archive</span>
                  </div>
-                 <h2 className="text-5xl md:text-6xl font-black text-[#4a3728] tracking-tighter leading-none">{selectedLive.title}</h2>
+
+                 {/* 核心大标题：日期 + 直播档案 */}
+                 <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-[#4a3728] tracking-tighter leading-none">
+                   {selectedLive.date} <span className="text-[#f8b195] block md:inline mt-2 md:mt-0">直播档案</span>
+                 </h2>
+
+                 {/* 描述放大 */}
+                 <p className="text-2xl md:text-3xl text-[#8eb69b] font-bold leading-relaxed tracking-tight max-w-4xl">
+                   {selectedLive.summary}
+                 </p>
                </div>
-               <p className="text-lg text-[#8eb69b] font-bold max-w-2xl leading-relaxed">{selectedLive.summary}</p>
             </div>
 
             <div className="lg:col-span-4 grid grid-cols-2 gap-4">
-              <div className="glass-card rounded-[2.5rem] border-4 border-white p-6 flex flex-col items-center justify-center text-center space-y-2">
-                <Users size={24} className="text-[#f8b195]" />
-                <span className="text-[10px] font-black text-[#8eb69b] uppercase tracking-widest">最高人气</span>
-                <span className="text-2xl font-black text-[#4a3728]">{selectedLive.viewCount}</span>
-              </div>
-              <div className="glass-card rounded-[2.5rem] border-4 border-white p-6 flex flex-col items-center justify-center text-center space-y-2">
+              <div className="glass-card rounded-[2.5rem] border-4 border-white p-6 flex flex-col items-center justify-center text-center space-y-2 col-span-2">
                 <Heart size={24} className="text-[#f67280]" />
                 <span className="text-[10px] font-black text-[#8eb69b] uppercase tracking-widest">总弹幕数</span>
                 <span className="text-2xl font-black text-[#4a3728]">{selectedLive.danmakuCount}</span>
@@ -266,12 +314,37 @@ const LivestreamPage: React.FC = () => {
                 <h3 className="text-2xl font-black text-[#4a3728] tracking-tight">瞬间定格</h3>
               </div>
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-8 space-y-6">
-                <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-white shadow-inner">
+                <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-white shadow-inner relative group">
                    <img src={activeScreenshot || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />
+                   
+                   {/* 左右切换按钮 */}
+                   {selectedLive.screenshots.length > 1 && (
+                     <>
+                       <button 
+                         onClick={handlePrevScreenshot}
+                         className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/30 hover:bg-white text-white hover:text-[#f8b195] backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/40 transform active:scale-90"
+                       >
+                         <ChevronLeft size={24} strokeWidth={3} />
+                       </button>
+                       <button 
+                         onClick={handleNextScreenshot}
+                         className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/30 hover:bg-white text-white hover:text-[#f8b195] backdrop-blur-md rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/40 transform active:scale-90"
+                       >
+                         <ChevronRight size={24} strokeWidth={3} />
+                       </button>
+                     </>
+                   )}
+
+                   {/* 图片索引指示器 */}
+                   {selectedLive.screenshots.length > 0 && (
+                     <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-black tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                        {(selectedLive.screenshots.indexOf(activeScreenshot || '') + 1)} / {selectedLive.screenshots.length}
+                     </div>
+                   )}
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar px-2">
                   {selectedLive.screenshots.map((s, idx) => (
-                    <button
+                    <button 
                       key={idx}
                       onClick={() => setActiveScreenshot(s)}
                       className={`w-32 aspect-video rounded-2xl overflow-hidden shrink-0 border-4 transition-all ${activeScreenshot === s ? 'border-[#f8b195] shadow-lg scale-105' : 'border-white opacity-60 hover:opacity-100'}`}
@@ -291,9 +364,18 @@ const LivestreamPage: React.FC = () => {
               </div>
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-10 flex flex-col h-full bg-gradient-to-br from-white to-[#f2f9f1]/50">
                 <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                  <div className="relative group w-full">
+                  <div 
+                    className="relative group w-full cursor-pointer" 
+                    onClick={() => setViewingCloud(true)}
+                  >
                     <div className="absolute inset-0 bg-[#8eb69b]/20 blur-[60px] opacity-40 group-hover:opacity-100 transition-opacity"></div>
-                    <img src={selectedLive.danmakuCloudUrl} className="w-full aspect-[4/3] object-cover rounded-[2.5rem] border-4 border-white shadow-2xl relative z-10" alt="Cloud" />
+                    <img src={selectedLive.danmakuCloudUrl} className="w-full aspect-[4/3] object-cover rounded-[2.5rem] border-4 border-white shadow-2xl relative z-10 transition-transform group-hover:scale-[1.02]" alt="Cloud" />
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-16 h-16 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                        <Maximize2 size={24} />
+                      </div>
+                    </div>
                   </div>
                   <div className="text-center space-y-2">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#fef5f0] rounded-full text-[#f8b195] text-[10px] font-black uppercase tracking-widest border border-[#f8b195]/10">
@@ -319,6 +401,33 @@ const LivestreamPage: React.FC = () => {
 
       {/* 视频弹窗 */}
       <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
+
+      {/* 弹幕云图全屏查看模态框 */}
+      {viewingCloud && selectedLive && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300"
+          onClick={() => setViewingCloud(false)}
+        >
+          <button 
+            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-50 hover:rotate-90 duration-300"
+            onClick={() => setViewingCloud(false)}
+          >
+            <X size={28} />
+          </button>
+          
+          <img 
+            src={selectedLive.danmakuCloudUrl} 
+            className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300" 
+            alt="Cloud Detail" 
+            onClick={(e) => e.stopPropagation()} 
+          />
+          
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 pointer-events-none">
+            <span className="text-xs font-black uppercase tracking-[0.5em]">Danmaku Cloud Analysis</span>
+            <span className="text-[10px] font-bold">{selectedLive.date}</span>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }

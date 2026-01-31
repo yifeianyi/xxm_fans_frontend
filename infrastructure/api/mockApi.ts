@@ -54,35 +54,278 @@ const MOCK_GALLERY_IMAGES: GalleryImage[] = Array.from({ length: 24 }, (_, i) =>
     galleryIds: ['1']
 }));
 
-// Mock 直播数据
-const MOCK_LIVESTREAMS: Livestream[] = [
-    {
-        id: 'live-1',
-        date: '2025-01-15',
-        title: '新年首播：满老师的音乐分享会',
-        summary: '新年第一场直播，满满为大家带来了精彩的音乐分享和互动环节。',
-        coverUrl: 'https://picsum.photos/seed/live1/800/450',
-        viewCount: '12.5w',
-        danmakuCount: '3.2w',
-        startTime: '20:00',
-        endTime: '23:30',
-        duration: '3小时30分',
-        recordings: [
-            { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD' }
-        ],
-        songCuts: [
-            { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD&p=1' },
-            { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD&p=2' },
-            { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD&p=3' }
-        ],
-        screenshots: [
-            'https://picsum.photos/seed/ss1/800/450',
-            'https://picsum.photos/seed/ss2/800/450',
-            'https://picsum.photos/seed/ss3/800/450'
-        ],
-        danmakuCloudUrl: 'https://picsum.photos/seed/cloud/800/600'
-    }
-];
+// Mock 直播数据 - 生成多月份的数据
+const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
+    '2025-12': [
+        {
+            id: 'live-2025-12-05',
+            date: '2025-12-05',
+            title: '冬夜音乐专场',
+            summary: '寒冬腊月，暖暖用歌声温暖每一个夜晚。本场直播演唱了多首治愈系歌曲。',
+            coverUrl: 'https://picsum.photos/seed/live20251205/800/450',
+            viewCount: '8.9w',
+            danmakuCount: '2.1w',
+            startTime: '20:30',
+            endTime: '23:15',
+            duration: '2小时45分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD' },
+                { title: '上半场', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=1' },
+                { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=2' }
+            ],
+            songCuts: [
+                { name: '月光小夜曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=3' },
+                { name: '雪花飘飘', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=4' },
+                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=5' },
+                { name: '未命名', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=6' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251205ss1/800/450',
+                'https://picsum.photos/seed/20251205ss2/800/450',
+                'https://picsum.photos/seed/20251205ss3/800/450',
+                'https://picsum.photos/seed/20251205ss4/800/450',
+                'https://picsum.photos/seed/20251205ss5/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251205cloud/800/600'
+        },
+        {
+            id: 'live-2025-12-12',
+            date: '2025-12-12',
+            title: '双十二特别企划',
+            summary: '双十二之夜，满满为大家准备了特别歌单，包括多首粉丝点播歌曲。',
+            coverUrl: 'https://picsum.photos/seed/live20251212/800/450',
+            viewCount: '11.2w',
+            danmakuCount: '2.8w',
+            startTime: '20:00',
+            endTime: '00:30',
+            duration: '4小时30分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD' }
+            ],
+            songCuts: [
+                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=1' },
+                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=2' },
+                { name: '你的名字', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=3' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251212ss1/800/450',
+                'https://picsum.photos/seed/20251212ss2/800/450',
+                'https://picsum.photos/seed/20251212ss3/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251212cloud/800/600'
+        },
+        {
+            id: 'live-2025-12-20',
+            date: '2025-12-20',
+            title: '冬至温暖夜',
+            summary: '冬至夜，暖暖用温暖的音乐陪伴大家度过寒冷的长夜。',
+            coverUrl: 'https://picsum.photos/seed/live20251220/800/450',
+            viewCount: '9.6w',
+            danmakuCount: '2.3w',
+            startTime: '19:30',
+            endTime: '22:45',
+            duration: '3小时15分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD' }
+            ],
+            songCuts: [
+                { name: '冬至夜', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=1' },
+                { name: '暖冬', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=2' },
+                { name: '陪伴', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=3' },
+                { name: '晚安曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=4' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251220ss1/800/450',
+                'https://picsum.photos/seed/20251220ss2/800/450',
+                'https://picsum.photos/seed/20251220ss3/800/450',
+                'https://picsum.photos/seed/20251220ss4/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251220cloud/800/600'
+        },
+        {
+            id: 'live-2025-12-25',
+            date: '2025-12-25',
+            title: '圣诞音乐派对',
+            summary: '圣诞节特别直播，满满带来了满满的圣诞祝福和精彩演出！',
+            coverUrl: 'https://picsum.photos/seed/live20251225/800/450',
+            viewCount: '15.3w',
+            danmakuCount: '4.1w',
+            startTime: '20:00',
+            endTime: '01:00',
+            duration: '5小时00分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD' },
+                { title: '上半场', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=1' },
+                { title: '中场互动', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=2' },
+                { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=3' }
+            ],
+            songCuts: [
+                { name: '圣诞快乐', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=4' },
+                { name: '平安夜', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=5' },
+                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=6' },
+                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=7' },
+                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=8' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251225ss1/800/450',
+                'https://picsum.photos/seed/20251225ss2/800/450',
+                'https://picsum.photos/seed/20251225ss3/800/450',
+                'https://picsum.photos/seed/20251225ss4/800/450',
+                'https://picsum.photos/seed/20251225ss5/800/450',
+                'https://picsum.photos/seed/20251225ss6/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251225cloud/800/600'
+        },
+        {
+            id: 'live-2025-12-31',
+            date: '2025-12-31',
+            title: '跨年倒计时特别直播',
+            summary: '2025年最后一场直播，和满满一起跨入2026年！倒计时、回顾、展望！',
+            coverUrl: 'https://picsum.photos/seed/live20251231/800/450',
+            viewCount: '22.7w',
+            danmakuCount: '5.9w',
+            startTime: '20:00',
+            endTime: '00:30',
+            duration: '4小时30分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD' },
+                { title: '上半场回顾', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=1' },
+                { title: '倒计时环节', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=2' },
+                { title: '2026展望', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=3' }
+            ],
+            songCuts: [
+                { name: '这一年', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=4' },
+                { name: '新年快乐', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=5' },
+                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=6' },
+                { name: '未来可期', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=7' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251231ss1/800/450',
+                'https://picsum.photos/seed/20251231ss2/800/450',
+                'https://picsum.photos/seed/20251231ss3/800/450',
+                'https://picsum.photos/seed/20251231ss4/800/450',
+                'https://picsum.photos/seed/20251231ss5/800/450',
+                'https://picsum.photos/seed/20251231ss6/800/450',
+                'https://picsum.photos/seed/20251231ss7/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251231cloud/800/600'
+        }
+    ],
+    '2025-11': [
+        {
+            id: 'live-2025-11-08',
+            date: '2025-11-08',
+            title: '深秋音乐夜',
+            summary: '深秋时节，暖暖用音乐描绘秋天的色彩，带来多首怀旧与治愈歌曲。',
+            coverUrl: 'https://picsum.photos/seed/live20251108/800/450',
+            viewCount: '7.8w',
+            danmakuCount: '1.9w',
+            startTime: '20:00',
+            endTime: '22:30',
+            duration: '2小时30分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD' }
+            ],
+            songCuts: [
+                { name: '秋意浓', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=1' },
+                { name: '落叶', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=2' },
+                { name: '月光小夜曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=3' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251108ss1/800/450',
+                'https://picsum.photos/seed/20251108ss2/800/450',
+                'https://picsum.photos/seed/20251108ss3/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251108cloud/800/600'
+        },
+        {
+            id: 'live-2025-11-15',
+            date: '2025-11-15',
+            title: '粉丝点歌会',
+            summary: '本周粉丝点歌专场，满满演唱了多首粉丝投票选出的热门歌曲。',
+            coverUrl: 'https://picsum.photos/seed/live20251115/800/450',
+            viewCount: '10.1w',
+            danmakuCount: '2.6w',
+            startTime: '20:30',
+            endTime: '23:45',
+            duration: '3小时15分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD' }
+            ],
+            songCuts: [
+                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=1' },
+                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=2' },
+                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=3' },
+                { name: '你的名字', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=4' },
+                { name: '未命名', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=5' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251115ss1/800/450',
+                'https://picsum.photos/seed/20251115ss2/800/450',
+                'https://picsum.photos/seed/20251115ss3/800/450',
+                'https://picsum.photos/seed/20251115ss4/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251115cloud/800/600'
+        },
+        {
+            id: 'live-2025-11-22',
+            date: '2025-11-22',
+            title: '感恩节特别企划',
+            summary: '感恩节特别直播，暖暖用音乐表达感谢，分享创作心得。',
+            coverUrl: 'https://picsum.photos/seed/live20251122/800/450',
+            viewCount: '9.3w',
+            danmakuCount: '2.4w',
+            startTime: '19:30',
+            endTime: '23:00',
+            duration: '3小时30分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD' },
+                { title: '上半场', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=1' },
+                { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=2' }
+            ],
+            songCuts: [
+                { name: '感谢有你', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=3' },
+                { name: '陪伴', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=4' },
+                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=5' },
+                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=6' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251122ss1/800/450',
+                'https://picsum.photos/seed/20251122ss2/800/450',
+                'https://picsum.photos/seed/20251122ss3/800/450',
+                'https://picsum.photos/seed/20251122ss4/800/450',
+                'https://picsum.photos/seed/20251122ss5/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251122cloud/800/600'
+        },
+        {
+            id: 'live-2025-11-29',
+            date: '2025-11-29',
+            title: '月末音乐总结',
+            summary: '11月最后一场直播，总结本月音乐历程，分享新歌创作进展。',
+            coverUrl: 'https://picsum.photos/seed/live20251129/800/450',
+            viewCount: '8.5w',
+            danmakuCount: '2.1w',
+            startTime: '20:00',
+            endTime: '22:15',
+            duration: '2小时15分',
+            recordings: [
+                { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD' }
+            ],
+            songCuts: [
+                { name: '11月总结', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=1' },
+                { name: '新歌预告', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=2' },
+                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=3' }
+            ],
+            screenshots: [
+                'https://picsum.photos/seed/20251129ss1/800/450',
+                'https://picsum.photos/seed/20251129ss2/800/450',
+                'https://picsum.photos/seed/20251129ss3/800/450'
+            ],
+            danmakuCloudUrl: 'https://picsum.photos/seed/20251129cloud/800/600'
+        }
+    ]
+};
 
 // Mock 原唱作品数据
 const MOCK_ORIGINAL_WORKS: OriginalWork[] = [
@@ -211,11 +454,9 @@ export const mockApi = {
     // 直播相关
     getLivestreams: async (year: number, month: number): Promise<Livestream[]> => {
         await new Promise(r => setTimeout(r, 300));
-        // 只返回特定月份的数据
-        if (year === 2025 && month === 1) {
-            return MOCK_LIVESTREAMS;
-        }
-        return [];
+        // 根据年月返回对应的数据
+        const key = `${year}-${month.toString().padStart(2, '0')}`;
+        return MOCK_LIVESTREAMS_BY_MONTH[key] || [];
     },
 
     // 原唱作品相关
