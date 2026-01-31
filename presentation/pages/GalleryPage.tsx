@@ -514,6 +514,7 @@ const GalleryPage: React.FC = () => {
                                                 <LazyImage
                                                     src={img.thumbnail_url || img.url}
                                                     alt={img.title}
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
                                         )}
@@ -569,6 +570,7 @@ const GalleryPage: React.FC = () => {
                                                             <LazyImage
                                                                 src={img.thumbnail_url || img.url}
                                                                 alt={img.title}
+                                                                className="w-full h-full object-cover"
                                                             />
                                                         </div>
                                                     )}
@@ -617,7 +619,7 @@ const GalleryPage: React.FC = () => {
                                                 <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
-                                                    className="w-full h-full"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
                                             {/* 遮罩层 */}
@@ -672,7 +674,7 @@ const GalleryPage: React.FC = () => {
                                                 <LazyImage
                                                     src={gallery.coverUrl || '/placeholder.jpg'}
                                                     alt={gallery.title}
-                                                    className="w-full h-full"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
                                             {/* 遮罩层 */}
@@ -850,7 +852,7 @@ const GalleryCard: React.FC<{ gallery: Gallery, onClick: (gallery: Gallery) => v
                     <LazyImage
                         src={gallery.coverUrl}
                         alt={gallery.title}
-                        className="w-full h-full"
+                        className="w-full h-full object-cover"
                     />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
