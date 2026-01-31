@@ -27,6 +27,9 @@ const GalleryPage: React.FC = () => {
     // 使用 ref 跟踪是否已经加载过，避免 React StrictMode 导致的重复调用
     const hasLoadedRef = React.useRef(false);
 
+    // 缩略图容器 ref，用于滚动定位
+    const thumbnailsContainerRef = React.useRef<HTMLDivElement>(null);
+
     // 防止重复加载图片的 ref
     const loadingRef = React.useRef<string | null>(null);
 
@@ -284,6 +287,25 @@ const GalleryPage: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [lightboxImage, currentImageIndex, images]);
+
+    // 自动滚动缩略图列表到当前图片位置
+    useEffect(() => {
+        if (lightboxImage && thumbnailsContainerRef.current && images.length > 0) {
+            const thumbnailElements = thumbnailsContainerRef.current.querySelectorAll('[data-thumbnail-index]');
+            const currentThumbnail = thumbnailElements[currentImageIndex] as HTMLElement;
+
+            if (currentThumbnail) {
+                // 使用 setTimeout 确保 DOM 完全渲染
+                setTimeout(() => {
+                    currentThumbnail.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                }, 100);
+            }
+        }
+    }, [currentImageIndex, lightboxImage, images]);
 
     // 返回列表
     const handleBack = () => {
@@ -718,17 +740,17 @@ const GalleryPage: React.FC = () => {
             {/* Lightbox */}
             {lightboxImage && (
                 <div
-                    className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-12"
+                    className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col"
                     onClick={() => setLightboxImage(null)}
                 >
-                    <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors">
+                    <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors z-10">
                         <X size={40} />
                     </button>
 
                     {images.length > 0 && (
                         <>
                             <button
-                                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3"
+                                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handlePreviousImage();
@@ -737,7 +759,7 @@ const GalleryPage: React.FC = () => {
                                 <ChevronLeft size={32} />
                             </button>
                             <button
-                                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3"
+                                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleNextImage();
@@ -748,31 +770,76 @@ const GalleryPage: React.FC = () => {
                         </>
                     )}
 
-                    <div className="relative max-w-full max-h-full flex flex-col items-center gap-8" onClick={e => e.stopPropagation()}>
-                        {lightboxImage.isVideo ? (
-                            <video
-                                src={lightboxImage.url}
-                                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
-                                controls
-                                autoPlay
-                                loop
-                                preload="auto"
-                            />
-                        ) : (
-                            <img
-                                src={lightboxImage.url}
-                                alt={lightboxImage.title}
-                                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
-                            />
-                        )}
-                        <div className="text-center text-white space-y-2">
-                            <h3 className="text-3xl font-black tracking-tight">{lightboxImage.title}</h3>
-                            <p className="text-white/40 font-bold tracking-widest uppercase text-sm">
-                                {lightboxImage.filename}
-                                {images.length > 0 && ` (${currentImageIndex + 1} / ${images.length})`}
-                            </p>
+                    {/* 大图显示区 */}
+                    <div className="flex-1 flex items-center justify-center p-4 md:p-12" onClick={e => e.stopPropagation()}>
+                        <div className="relative max-w-full max-h-full flex flex-col items-center gap-8">
+                            {lightboxImage.isVideo ? (
+                                <video
+                                    src={lightboxImage.url}
+                                    className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
+                                    controls
+                                    autoPlay
+                                    loop
+                                    preload="auto"
+                                />
+                            ) : (
+                                <img
+                                    src={lightboxImage.url}
+                                    alt={lightboxImage.title}
+                                    className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
+                                />
+                            )}
+                            <div className="text-center text-white space-y-2">
+                                <h3 className="text-3xl font-black tracking-tight">{lightboxImage.title}</h3>
+                                <p className="text-white/40 font-bold tracking-widest uppercase text-sm">
+                                    {lightboxImage.filename}
+                                    {images.length > 0 && ` (${currentImageIndex + 1} / ${images.length})`}
+                                </p>
+                            </div>
                         </div>
                     </div>
+
+                    {/* 缩略图导航栏 */}
+                    {images.length > 0 && (
+                        <div
+                            className="h-32 bg-black/50 border-t border-white/10 flex items-center overflow-x-auto"
+                            ref={thumbnailsContainerRef}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex gap-2 px-4">
+                                {images.map((img, idx) => (
+                                    <button
+                                        key={img.id}
+                                        data-thumbnail-index={idx}
+                                        className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 ${
+                                            idx === currentImageIndex
+                                                ? 'ring-2 ring-[#f8b195] scale-110'
+                                                : 'opacity-60 hover:opacity-100 hover:scale-105'
+                                        }`}
+                                        onClick={() => {
+                                            setCurrentImageIndex(idx);
+                                            setLightboxImage(images[idx]);
+                                        }}
+                                    >
+                                        {img.isVideo ? (
+                                            <div className="w-full h-full bg-black/30 flex items-center justify-center">
+                                                <Play size={20} fill="white" className="text-white" />
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={img.thumbnail_url || img.url}
+                                                alt={img.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        )}
+                                        {idx === currentImageIndex && (
+                                            <div className="absolute inset-0 bg-[#f8b195]/20"></div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
                     </div>

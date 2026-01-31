@@ -27,6 +27,7 @@ const LivestreamPage: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [viewingCloud, setViewingCloud] = useState(false);
   const [playerLoaded, setPlayerLoaded] = useState(false);
+  const thumbnailListRef = React.useRef<HTMLDivElement>(null);
 
   // 获取今天的日期字符串
   const todayStr = useMemo(() => {
@@ -73,6 +74,10 @@ const LivestreamPage: React.FC = () => {
         setSelectedRecordingIndex(0);
         setViewingCloud(false);
         setPlayerLoaded(false); // 重置播放器加载状态
+        // 重置缩略图列表滚动位置
+        if (thumbnailListRef.current) {
+          thumbnailListRef.current.scrollLeft = 0;
+        }
         // 获取当天的演唱记录
         fetchSongRecords(date);
       }
@@ -136,6 +141,13 @@ const LivestreamPage: React.FC = () => {
     if (currentIndex === -1) return;
     const prevIndex = currentIndex === 0 ? selectedLive.screenshots.length - 1 : currentIndex - 1;
     setActiveScreenshot(selectedLive.screenshots[prevIndex]);
+    // 滚动到可视范围
+    setTimeout(() => {
+      const thumbnailButtons = thumbnailListRef.current?.querySelectorAll('button');
+      if (thumbnailButtons && thumbnailButtons[prevIndex]) {
+        thumbnailButtons[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }, 50);
   };
 
   const handleNextScreenshot = (e: React.MouseEvent) => {
@@ -145,6 +157,13 @@ const LivestreamPage: React.FC = () => {
     if (currentIndex === -1) return;
     const nextIndex = currentIndex === selectedLive.screenshots.length - 1 ? 0 : currentIndex + 1;
     setActiveScreenshot(selectedLive.screenshots[nextIndex]);
+    // 滚动到可视范围
+    setTimeout(() => {
+      const thumbnailButtons = thumbnailListRef.current?.querySelectorAll('button');
+      if (thumbnailButtons && thumbnailButtons[nextIndex]) {
+        thumbnailButtons[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }, 50);
   };
 
   const currentRecording = selectedLive?.recordings?.[selectedRecordingIndex];
@@ -468,11 +487,17 @@ const LivestreamPage: React.FC = () => {
                      </div>
                    )}
                 </div>
-                <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar px-2">
+                <div ref={thumbnailListRef} className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar px-2">
                   {selectedLive.screenshots && selectedLive.screenshots.map((s, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setActiveScreenshot(s)}
+                      onClick={(e) => {
+                        setActiveScreenshot(s);
+                        // 滚动到可视范围
+                        setTimeout(() => {
+                          e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        }, 50);
+                      }}
                       className={`w-32 aspect-video rounded-2xl overflow-hidden shrink-0 border-4 transition-all ${activeScreenshot?.thumbnailUrl === s.thumbnailUrl ? 'border-[#f8b195] shadow-lg scale-105' : 'border-white opacity-60 hover:opacity-100'}`}
                     >
                       <LazyImage src={s.thumbnailUrl} className="w-full h-full object-cover" alt="" />
