@@ -17,35 +17,6 @@ export function generateBilibiliUrl(bvid: string, page: number = 1): string {
 }
 
 /**
- * 根据直播记录生成分段视频列表
- * @param livestream 直播记录
- * @returns 分段视频列表
- */
-export function generateLivestreamRecordings(livestream: Livestream): LivestreamRecording[] {
-  const { bvid, title, parts } = livestream;
-
-  if (!bvid) return [];
-
-  const recordings: LivestreamRecording[] = [];
-
-  if (parts === 1) {
-    recordings.push({
-      title: title,
-      url: generateBilibiliUrl(bvid, 1)
-    });
-  } else {
-    for (let i = 1; i <= parts; i++) {
-      recordings.push({
-        title: `${title} - P${i}`,
-        url: generateBilibiliUrl(bvid, i)
-      });
-    }
-  }
-
-  return recordings;
-}
-
-/**
  * 生成 B站播放器嵌入链接
  * @param bvid B站视频BV号
  * @param page 分段号（从1开始）

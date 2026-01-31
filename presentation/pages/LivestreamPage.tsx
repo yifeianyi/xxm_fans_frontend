@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { songService } from '../../infrastructure/api';
 import { Livestream, LivestreamRecording, SongRecord } from '../../domain/types';
-import { generateLivestreamRecordings, generateBilibiliEmbedUrl } from '../../shared/utils/videoUtils';
+import { generateBilibiliEmbedUrl } from '../../shared/utils/videoUtils';
 import {
   Calendar as CalendarIcon, Clock, MessageSquare, Image as ImageIcon,
   ChevronLeft, ChevronRight, BarChart3, Cloud, Users, Heart,
@@ -18,7 +18,7 @@ const LivestreamPage: React.FC = () => {
   const [lives, setLives] = useState<Livestream[]>([]);
   const [selectedLive, setSelectedLive] = useState<Livestream | null>(null);
   const [songRecords, setSongRecords] = useState<SongRecord[]>([]);
-  const [activeScreenshot, setActiveScreenshot] = useState<string | null>(null);
+  const [activeScreenshot, setActiveScreenshot] = useState<Screenshot | null>(null);
   const [selectedRecordingIndex, setSelectedRecordingIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [recordsLoading, setRecordsLoading] = useState(false);
@@ -40,7 +40,7 @@ const LivestreamPage: React.FC = () => {
         setLives(data);
         if (data.length > 0) {
           setSelectedLive(data[0]);
-          setActiveScreenshot(data[0].screenshots[0]);
+          setActiveScreenshot(data[0].screenshots[0] || null);
           setSelectedRecordingIndex(0);
           setViewingCloud(false);
           // 获取当天的演唱记录
@@ -123,7 +123,7 @@ const LivestreamPage: React.FC = () => {
   const handleSelectLive = (live: Livestream) => {
     setSelectedLive(live);
     setSelectedRecordingIndex(0);
-    setActiveScreenshot(live.screenshots[0]);
+    setActiveScreenshot(live.screenshots[0] || null);
     setViewingCloud(false);
     // 获取选中日期的演唱记录
     fetchSongRecords(live.date);
@@ -141,7 +141,7 @@ const LivestreamPage: React.FC = () => {
   const handleNextScreenshot = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!selectedLive || !activeScreenshot) return;
-    const currentIndex = selectedLive.screenshots.indexOf(activeScreenshot);
+    const currentIndex = selectedLive.screenshots.findIndex(s => s.thumbnailUrl === activeScreenshot?.thumbnailUrl);
     if (currentIndex === -1) return;
     const nextIndex = currentIndex === selectedLive.screenshots.length - 1 ? 0 : currentIndex + 1;
     setActiveScreenshot(selectedLive.screenshots[nextIndex]);
@@ -149,10 +149,10 @@ const LivestreamPage: React.FC = () => {
 
   const currentRecording = selectedLive?.recordings[selectedRecordingIndex];
 
-  // 生成当前直播的录像列表
+  // 使用后端返回的完整录像列表（包含完整视频链接）
   const recordings = useMemo(() => {
-    if (!selectedLive) return [];
-    return generateLivestreamRecordings(selectedLive);
+    if (!selectedLive || !selectedLive.recordings) return [];
+    return selectedLive.recordings;
   }, [selectedLive]);
 
   // 获取当前播放的视频 URL（用于 iframe）
@@ -370,8 +370,7 @@ const LivestreamPage: React.FC = () => {
               <div className="glass-card rounded-[3.5rem] border-4 border-white shadow-xl p-8 space-y-6">
                 <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-white shadow-inner relative group">
                    {selectedLive.screenshots.length > 0 ? (
-                     <img src={activeScreenshot || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />
-                   ) : (
+                                         <img src={activeScreenshot?.thumbnailUrl || selectedLive.coverUrl} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500" alt="Archive" />                   ) : (
                      <div className="w-full h-full flex flex-col items-center justify-center text-[#8eb69b] bg-gray-900">
                        <ImageIcon size={48} className="mb-4 opacity-50" />
                        <p className="text-sm font-black tracking-wider">暂无图片</p>
@@ -406,12 +405,12 @@ const LivestreamPage: React.FC = () => {
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar px-2">
                   {selectedLive.screenshots.map((s, idx) => (
-                    <button 
+                    <button
                       key={idx}
                       onClick={() => setActiveScreenshot(s)}
-                      className={`w-32 aspect-video rounded-2xl overflow-hidden shrink-0 border-4 transition-all ${activeScreenshot === s ? 'border-[#f8b195] shadow-lg scale-105' : 'border-white opacity-60 hover:opacity-100'}`}
+                      className={`w-32 aspect-video rounded-2xl overflow-hidden shrink-0 border-4 transition-all ${activeScreenshot?.thumbnailUrl === s.thumbnailUrl ? 'border-[#f8b195] shadow-lg scale-105' : 'border-white opacity-60 hover:opacity-100'}`}
                     >
-                      <img src={s} className="w-full h-full object-cover" alt="" />
+                      <img src={s.thumbnailUrl} className="w-full h-full object-cover" alt="" />
                     </button>
                   ))}
                 </div>

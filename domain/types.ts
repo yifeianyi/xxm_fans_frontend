@@ -152,6 +152,11 @@ export interface LivestreamRecording {
     url: string;
 }
 
+export interface Screenshot {
+    url: string;           // 原图URL
+    thumbnailUrl: string;  // 缩略图URL
+}
+
 export interface SongCut {
     id: number;       // 演唱记录ID，可用于跳转到详情页
     name: string;     // 歌曲名称
@@ -170,9 +175,9 @@ export interface Livestream {
     duration: string;
     bvid: string;                        // B站视频BV号
     parts: number;                       // 视频分段数
-    recordings: LivestreamRecording[];   // 前端根据 bvid 和 parts 生成
+    recordings: LivestreamRecording[];   // 后端生成的完整视频链接列表
     songCuts: SongCut[];
-    screenshots: string[];
+    screenshots: Screenshot[];           // 包含缩略图的截图数组
     danmakuCloudUrl: string;
 }
 
