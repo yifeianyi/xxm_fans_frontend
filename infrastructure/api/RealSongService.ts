@@ -1,5 +1,5 @@
 // 优化后的RealSongService.ts
-import { ISongService, IFanDIYService } from '../api/ISongService';
+import { ISongService, IFanDIYService, LivestreamConfig } from '../api/ISongService';
 import {
   ApiResult,
   PaginatedResult,
@@ -274,6 +274,20 @@ export class RealSongService implements ISongService {
       return { data: result.data };
     }
     return { data: null };
+  }
+
+  /**
+   * 获取直播配置信息（年份范围等）
+   */
+  async getLivestreamConfig(): Promise<ApiResult<LivestreamConfig>> {
+    const result = await apiClient.get<LivestreamConfig>(
+      `/livestreams/config/`
+    );
+
+    if (result.data) {
+      return { data: result.data };
+    }
+    return result;
   }
 }
 

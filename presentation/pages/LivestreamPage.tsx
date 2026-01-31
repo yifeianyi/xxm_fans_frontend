@@ -16,6 +16,11 @@ const LivestreamPage: React.FC = () => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
+  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [minYear, setMinYear] = useState(2019);
+  const selectorRef = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [selectorPosition, setSelectorPosition] = useState({ top: 0, left: 0 });
   const [lives, setLives] = useState<Livestream[]>([]);
   const [selectedLive, setSelectedLive] = useState<Livestream | null>(null);
   const [songRecords, setSongRecords] = useState<SongRecord[]>([]);
@@ -29,10 +34,71 @@ const LivestreamPage: React.FC = () => {
   const thumbnailListRef = React.useRef<HTMLDivElement>(null);
   const liveDetailRef = React.useRef<HTMLDivElement>(null);
 
+  // 临时选中的年份和月份（用于选择器内部状态）
+  const [tempYear, setTempYear] = useState(() => new Date().getFullYear());
+  const [tempMonth, setTempMonth] = useState(() => new Date().getMonth());
+
+  // 当选择器打开时，同步当前日期到临时状态
+  React.useEffect(() => {
+    if (showYearSelector) {
+      setTempYear(currentDate.getFullYear());
+      setTempMonth(currentDate.getMonth());
+    }
+  }, [showYearSelector, currentDate]);
+
   // 获取今天的日期字符串
   const todayStr = useMemo(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  // 计算最大年份（当前年份）
+  const maxYear = useMemo(() => {
+    return new Date().getFullYear();
+  }, []);
+
+  // 计算可用的年份范围
+  const yearRange = useMemo(() => {
+    return Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+  }, [minYear, maxYear]);
+
+  // 点击外部关闭选择器
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+        setShowYearSelector(false);
+      }
+    };
+
+    if (showYearSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showYearSelector]);
+
+  // 计算选择器位置
+  React.useEffect(() => {
+    if (showYearSelector && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setSelectorPosition({
+        top: rect.bottom + 8,
+        left: rect.left
+      });
+    }
+  }, [showYearSelector]);
+
+  // 获取直播配置（最小年份）
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const result = await songService.getLivestreamConfig();
+      if (result.data) {
+        setMinYear(result.data.minYear);
+      }
+    };
+    fetchConfig();
   }, []);
 
   // 获取月度直播列表（只包含基本信息）
@@ -220,17 +286,35 @@ const LivestreamPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/60 p-2 rounded-3xl border border-white">
+        <div className="flex items-center gap-3 bg-white/60 p-2 rounded-3xl border border-white">
           <button onClick={() => changeMonth(-1)} className="p-3 hover:bg-white rounded-2xl text-[#8eb69b] transition-all"><ChevronLeft size={20} /></button>
-          <span className="px-4 font-black text-[#4a3728] tabular-nums">{currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月</span>
+          <button
+            ref={buttonRef}
+            onClick={() => setShowYearSelector(!showYearSelector)}
+            className="px-4 py-2 hover:bg-white rounded-2xl text-[#4a3728] font-black tabular-nums transition-all flex items-center gap-2"
+          >
+            {currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月
+            <ChevronRight size={14} className={`transform transition-transform ${showYearSelector ? 'rotate-90' : ''}`} />
+          </button>
           <button onClick={() => changeMonth(1)} className="p-3 hover:bg-white rounded-2xl text-[#8eb69b] transition-all"><ChevronRight size={20} /></button>
+          {/* 今天按钮 */}
+          <button
+            onClick={() => {
+              const today = new Date();
+              setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+              setShowYearSelector(false);
+            }}
+            className="px-4 py-2 bg-gray-50 hover:bg-[#d97706] hover:text-white rounded-2xl text-gray-600 font-black transition-all flex items-center gap-2 border border-gray-200"
+          >
+            今天
+          </button>
         </div>
       </div>
 
       {/* 日历网格 */}
       <div className="grid grid-cols-7 gap-1 bg-white/30 p-2 rounded-[2.5rem] border border-white/50 shadow-inner">
-        {['一', '二', '三', '四', '五', '六', '日'].map(w => (
-          <div key={w} className="py-2 text-center text-[10px] text-[#8eb69b] font-black uppercase tracking-widest">{w}</div>
+        {['一', '二', '三', '四', '五', '六', '日'].map((w, idx) => (
+          <div key={w} className={`py-2 text-center text-[10px] font-black uppercase tracking-widest ${idx >= 5 ? 'text-[#f67280]' : 'text-[#8eb69b]'}`}>{w}</div>
         ))}
         {calendarCells.map((cell, idx) => {
             const isToday = cell.date === todayStr;
@@ -247,6 +331,74 @@ const LivestreamPage: React.FC = () => {
             );
           })}
       </div>
+
+      {/* 选择器使用fixed定位渲染到body层级，避免被日历网格遮挡 */}
+      {showYearSelector && (
+        <>
+          {/* 背景蒙层 */}
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" onClick={() => setShowYearSelector(false)} />
+          {/* 选择器容器 - 使用fixed定位并计算位置 */}
+          <div
+            className="fixed z-[60] bg-white/98 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-[#f2f9f1] p-5 min-w-[320px]"
+            style={{
+              top: `${selectorPosition.top}px`,
+              left: `${selectorPosition.left}px`
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+                  {/* 年份选择 */}
+                  <div className="mb-4">
+                    <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Year</div>
+                    {/* 使用自适应网格：大屏幕4列，小屏幕3列 */}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                      {yearRange.map(year => (
+                        <button
+                          key={year}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTempYear(year);
+                            setCurrentDate(prevDate => new Date(year, prevDate.getMonth(), 1));
+                          }}
+                          className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                            tempYear === year
+                              ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
+                              : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                          }`}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* 月份选择 */}
+                  <div>
+                    <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Month</div>
+                    {/* 使用3列网格，12个月份将显示为4行3列，布局更合理 */}
+                    <div className="grid grid-cols-3 gap-3">
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                        <button
+                          key={month}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTempMonth(month - 1);
+                            // 选择月份后关闭选择器并更新日期
+                            setCurrentDate(prevDate => new Date(prevDate.getFullYear(), month - 1, 1));
+                            setShowYearSelector(false);
+                          }}
+                          className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                            tempMonth === month - 1
+                              ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
+                              : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                          }`}
+                        >
+                          {month}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+          </div>
+        </>
+      )}
 
       {/* 沉浸式档案详情区 */}
       {selectedLive ? (

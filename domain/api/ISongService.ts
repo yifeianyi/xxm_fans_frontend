@@ -1,5 +1,9 @@
 import { ApiResult, PaginatedResult, GetSongsParams, GetRecordsParams, GetTopSongsParams, GetWorksParams } from '../../infrastructure/api/apiTypes';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork } from '../types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream } from '../types';
+
+export interface LivestreamConfig {
+  minYear: number;
+}
 
 export interface ISongService {
   getSongs(params: GetSongsParams): Promise<ApiResult<PaginatedResult<Song>>>;
@@ -9,6 +13,11 @@ export interface ISongService {
   getRandomSong(): Promise<ApiResult<Song>>;
   getRecommendation(): Promise<ApiResult<Recommendation>>;
   getOriginalWorks(): Promise<ApiResult<OriginalWork[]>>;
+  
+  // 直播相关接口
+  getLivestreams(year: number, month: number): Promise<ApiResult<Livestream[]>>;
+  getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>>;
+  getLivestreamConfig(): Promise<ApiResult<LivestreamConfig>>;
 }
 
 export interface IFanDIYService {
