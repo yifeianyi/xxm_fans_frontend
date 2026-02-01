@@ -197,7 +197,7 @@ export class RealSongService implements ISongService {
 
   async getRecommendation(): Promise<ApiResult<Recommendation>> {
     const result = await apiClient.get<any>(
-          '/recommendation/'
+          '/site-settings/'
         );
 
     if (result.data) {

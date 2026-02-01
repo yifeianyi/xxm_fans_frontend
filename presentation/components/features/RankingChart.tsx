@@ -60,14 +60,14 @@ const RankingChart: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* 极简推荐位 - 改为单行设计以节省空间 */}
+      {/* 极简推荐位 - 改为居中布局 */}
       {recommendation && (
-        <div className="px-6 py-3 bg-gradient-to-r from-[#f8b195] to-[#f67280] rounded-2xl text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 border-2 border-white/50">
-          <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-yellow-200 fill-yellow-200" />
-            <span className="text-[11px] font-black tracking-wider whitespace-nowrap">{recommendation.content}</span>
+        <div className="px-8 py-6 bg-gradient-to-r from-[#f8b195] to-[#f67280] rounded-3xl text-white shadow-xl flex flex-col items-center justify-center gap-4 border-2 border-white/50">
+          <div className="flex items-center gap-3">
+            <Sparkles size={20} className="text-yellow-200 fill-yellow-200" />
+            <span className="text-base font-black tracking-wider text-center">{recommendation.content}</span>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-3">
             {recommendedSongsDetails.map(song => (
               <button
                 key={song.id}
@@ -86,7 +86,7 @@ const RankingChart: React.FC = () => {
                   };
                   setSelectedSong(songObject);
                 }}
-                className="px-3 py-1 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black transition-all"
+                className="px-4 py-2 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/20 rounded-full text-sm font-black transition-all"
                 title={`${song.name} - ${song.singer}`}
               >
                 {song.name}
