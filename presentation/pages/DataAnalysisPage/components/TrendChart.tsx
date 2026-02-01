@@ -78,8 +78,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, heigh
       // 过去7天：显示7个刻度（每天一个）
       return Math.min(7, data.length);
     } else if (granularity === 'MONTH') {
-      // 过去30天：显示7个刻度
-      return Math.min(7, data.length);
+      // 过去30天：显示8个刻度（每4天一个）
+      return Math.min(8, data.length);
     }
     return Math.min(5, data.length);
   })();
