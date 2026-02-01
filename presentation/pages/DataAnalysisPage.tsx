@@ -18,6 +18,11 @@ const formatNumber = (num: number) => {
   return num.toString();
 };
 
+// 精确数值格式化（用于提示框，带千位分隔符）
+const formatExactNumber = (num: number) => {
+  return num.toLocaleString('zh-CN');
+};
+
 // 高/低标志组件
 const RankBadge: React.FC<{ type: 'high' | 'low' }> = ({ type }) => (
   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black ml-1 border ${type === 'high' ? 'bg-[#fef2f2] text-[#ef4444] border-[#fee2e2]' : 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]'}`}>
@@ -32,6 +37,9 @@ const TrendChart: React.FC<{
   type: 'line' | 'bar',
   height?: number
 }> = ({ data, color, type, height = 180 }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+
   if (!data || data.length === 0) return null;
 
   const values = data.map(d => type === 'line' ? d.value : d.delta);
@@ -46,6 +54,33 @@ const TrendChart: React.FC<{
     return `${x},${y}`;
   }).join(' ');
 
+  const chartRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartRef.current) return;
+    
+    const rect = chartRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const paddingLeft = 4; // px-0.5 的实际像素值
+    const chartWidth = rect.width - paddingLeft * 2;
+    const relativeX = Math.max(0, Math.min(x - paddingLeft, chartWidth));
+    const index = Math.round((relativeX / chartWidth) * (data.length - 1));
+    setHoveredIndex(index);
+    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    setMousePosition(null);
+  };
+
+  const getHoveredData = () => {
+    if (hoveredIndex === null || hoveredIndex < 0 || hoveredIndex >= data.length) return null;
+    return data[hoveredIndex];
+  };
+
+  const hoveredData = getHoveredData();
+
   return (
     <div className="flex flex-col w-full select-none" style={{ height: `${height}px` }}>
       <div className="flex flex-1 min-h-0">
@@ -54,18 +89,42 @@ const TrendChart: React.FC<{
           <span>{formatNumber(Math.round((max + min) / 2))}</span>
           <span>{formatNumber(min)}</span>
         </div>
-        <div className="flex-1 relative border-l border-[#8eb69b]/10">
+        <div 
+          ref={chartRef}
+          className="flex-1 relative border-l border-[#8eb69b]/10"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
            <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none z-0">
              <div className="w-full h-px border-t border-dashed border-[#8eb69b]/20"></div>
              <div className="w-full h-px border-t border-dashed border-[#8eb69b]/20"></div>
              <div className="w-full h-px border-t border-dashed border-[#8eb69b]/20"></div>
            </div>
+           {/* 悬停指示线 */}
+           {hoveredIndex !== null && chartRef.current && (
+             <div 
+               className="absolute top-0 bottom-0 w-px bg-[#8eb69b]/40 pointer-events-none z-20"
+               style={{ 
+                 left: `${4 + (hoveredIndex / (data.length - 1)) * (chartRef.current.offsetWidth - 8)}px`
+               }}
+             />
+           )}
            <div className="relative z-10 w-full h-full px-0.5 py-1">
               <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
                 {type === 'line' ? (
                   <>
                     <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} className="animate-draw" />
                     <polygon fill={color} fillOpacity="0.1" points={`0,100 ${points} 100,100`} />
+                    {/* 悬停点 */}
+                    {hoveredIndex !== null && (
+                      <circle
+                        cx={(hoveredIndex / (data.length - 1)) * 100}
+                        cy={100 - ((type === 'line' ? data[hoveredIndex].value : data[hoveredIndex].delta - min) / range) * 100}
+                        r="1.5"
+                        fill={color}
+                        className="animate-pulse"
+                      />
+                    )}
                   </>
                 ) : (
                   <g>
@@ -73,13 +132,38 @@ const TrendChart: React.FC<{
                       const x = (i / (data.length - 1)) * 100;
                       const h = Math.max(2, ((d.delta - min) / range) * 100);
                       return (
-                        <rect key={i} x={x - 1} y={100 - h} width="2" height={h} fill={color} className="opacity-60 hover:opacity-100 transition-opacity" rx="0.5" />
+                        <rect 
+                          key={i} 
+                          x={x - 1} 
+                          y={100 - h} 
+                          width="2" 
+                          height={h} 
+                          fill={color} 
+                          className={`transition-opacity ${hoveredIndex === i ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`} 
+                          rx="0.5" 
+                        />
                       );
                     })}
                   </g>
                 )}
               </svg>
            </div>
+           {/* 悬停提示框 */}
+           {hoveredData && mousePosition && (
+             <div 
+               className="absolute z-30 bg-[#4a3728] text-white px-3 py-2 rounded-xl shadow-2xl pointer-events-none text-[10px] font-black whitespace-nowrap"
+               style={{
+                 left: `${Math.min(Math.max(mousePosition.x, 40), mousePosition.x + 120)}px`,
+                 top: `${Math.max(mousePosition.y - 60, 0)}px`,
+                 transform: 'translate(-50%, -100%)'
+               }}
+             >
+               <div className="text-[#8eb69b] mb-0.5">{hoveredData.time}</div>
+               <div className="text-lg">
+                 {type === 'line' ? formatExactNumber(hoveredData.value) : (hoveredData.delta >= 0 ? '+' : '') + formatExactNumber(hoveredData.delta)}
+               </div>
+             </div>
+           )}
         </div>
       </div>
       <div className="flex h-5 items-end mt-1">
@@ -96,9 +180,39 @@ const TrendChart: React.FC<{
 
 // 关联归因图
 const CorrelationChart: React.FC<{ data: CorrelationData[], height?: number }> = ({ data, height = 240 }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+
   if (data.length === 0) return null;
   const viewMax = Math.max(...data.map(d => d.videoViewDelta));
   const folMax = Math.max(...data.map(d => d.followerDelta));
+
+  const chartRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartRef.current) return;
+    
+    const rect = chartRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const paddingLeft = 4; // px-0.5 的实际像素值
+    const chartWidth = rect.width - paddingLeft * 2;
+    const relativeX = Math.max(0, Math.min(x - paddingLeft, chartWidth));
+    const index = Math.round((relativeX / chartWidth) * (data.length - 1));
+    setHoveredIndex(index);
+    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    setMousePosition(null);
+  };
+
+  const getHoveredData = () => {
+    if (hoveredIndex === null || hoveredIndex < 0 || hoveredIndex >= data.length) return null;
+    return data[hoveredIndex];
+  };
+
+  const hoveredData = getHoveredData();
 
   return (
     <div className="flex flex-col w-full select-none" style={{ height: `${height}px` }}>
@@ -108,19 +222,77 @@ const CorrelationChart: React.FC<{ data: CorrelationData[], height?: number }> =
           <span>{formatNumber(viewMax / 2)}</span>
           <span>0</span>
         </div>
-        <div className="flex-1 relative border-l border-r border-[#8eb69b]/10">
+        <div 
+          ref={chartRef}
+          className="flex-1 relative border-l border-r border-[#8eb69b]/10"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none z-0">
              <div className="w-full h-px border-t border-dashed border-gray-200"></div>
              <div className="w-full h-px border-t border-dashed border-gray-200"></div>
              <div className="w-full h-px border-t border-dashed border-gray-200"></div>
           </div>
+          {/* 悬停指示线 */}
+          {hoveredIndex !== null && chartRef.current && (
+             <div 
+               className="absolute top-0 bottom-0 w-px bg-[#8eb69b]/40 pointer-events-none z-20"
+               style={{ 
+                 left: `${4 + (hoveredIndex / (data.length - 1)) * (chartRef.current.offsetWidth - 8)}px`
+               }}
+             />
+          )}
           <div className="relative z-10 w-full h-full px-0.5 py-1">
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
               <polyline fill="none" stroke="#8eb69b" strokeWidth="1" points={data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.videoViewDelta / viewMax) * 100}`).join(' ')} />
               <polygon fill="#8eb69b" fillOpacity="0.1" points={`0,100 ${data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.videoViewDelta / viewMax) * 100}`).join(' ')} 100,100`} />
               <polyline fill="none" stroke="#f8b195" strokeWidth="2.5" strokeLinecap="round" points={data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.followerDelta / folMax) * 100}`).join(' ')} />
+              {/* 悬停点 */}
+              {hoveredIndex !== null && (
+                <>
+                  <circle
+                    cx={(hoveredIndex / (data.length - 1)) * 100}
+                    cy={100 - (data[hoveredIndex].videoViewDelta / viewMax) * 100}
+                    r="1.5"
+                    fill="#8eb69b"
+                    className="animate-pulse"
+                  />
+                  <circle
+                    cx={(hoveredIndex / (data.length - 1)) * 100}
+                    cy={100 - (data[hoveredIndex].followerDelta / folMax) * 100}
+                    r="1.5"
+                    fill="#f8b195"
+                    className="animate-pulse"
+                  />
+                </>
+              )}
             </svg>
           </div>
+          {/* 悬停提示框 */}
+          {hoveredData && mousePosition && (
+            <div 
+              className="absolute z-30 bg-[#4a3728] text-white px-4 py-3 rounded-xl shadow-2xl pointer-events-none text-[10px] font-black whitespace-nowrap"
+              style={{
+                left: `${Math.min(Math.max(mousePosition.x, 40), mousePosition.x + 120)}px`,
+                top: `${Math.max(mousePosition.y - 80, 0)}px`,
+                transform: 'translate(-50%, -100%)'
+              }}
+            >
+              <div className="text-[#8eb69b] mb-1">{hoveredData.time}</div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-[#8eb69b]"></div>
+                  <span>播放增量: {formatExactNumber(hoveredData.videoViewDelta)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-[#f8b195]"></div>
+                  <span>粉丝净增: {(hoveredData.followerDelta >= 0 ? '+' : '') + formatExactNumber(hoveredData.followerDelta)}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex flex-col justify-between text-[9px] font-black text-[#f8b195] text-left pl-2 w-[40px] shrink-0 leading-none py-1">
           <span>{formatNumber(folMax)}</span>

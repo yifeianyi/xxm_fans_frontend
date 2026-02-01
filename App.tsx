@@ -12,13 +12,13 @@ import FansDIYPage from './presentation/pages/FansDIYPage';
 import AboutPage from './presentation/pages/AboutPage';
 import GalleryPage from './presentation/pages/GalleryPage';
 import LivestreamPage from './presentation/pages/LivestreamPage';
-import ComingSoonPage from './presentation/pages/ComingSoonPage';
+import DataAnalysisPage from './presentation/pages/DataAnalysisPage';
 
 const App: React.FC = () => {
     return (
         <ReactRouterDOM.BrowserRouter>
             <Helmet>
-                <meta name="keywords" content="咻咻满, XXM, 小满虫, 唱见, 音乐主播, 独立音乐人, 戏腔, 治愈系" />
+                <meta name="keywords" content="咻咻满, XXM, 小满虫, 唱见, 音乐主播, 独立音乐人, B站up主 , 戏腔, 治愈系" />
             </Helmet>
             <ErrorBoundary>
                 <div className="min-h-screen flex flex-col transition-all duration-500">
@@ -30,7 +30,7 @@ const App: React.FC = () => {
                             <ReactRouterDOM.Route path="/originals" element={<OriginalsPage />} />
                             <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
                             <ReactRouterDOM.Route path="/live" element={<LivestreamPage />} />
-                            <ReactRouterDOM.Route path="/data" element={<ComingSoonPage title="满の数据" description="数据分析功能正在筹备中..." />} />
+                            <ReactRouterDOM.Route path="/data" element={<DataAnalysisPage />} />
                             <ReactRouterDOM.Route path="/fansDIY" element={<FansDIYPage />} />
                             <ReactRouterDOM.Route path="/about" element={<AboutPage />} />
                         </ReactRouterDOM.Routes>
