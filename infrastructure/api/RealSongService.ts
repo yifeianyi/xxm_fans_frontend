@@ -1,5 +1,5 @@
 // 优化后的RealSongService.ts
-import { ISongService, IFanDIYService, LivestreamConfig } from '../api/ISongService';
+import { ISongService, IFanDIYService, LivestreamConfig } from '../../domain/api/ISongService';
 import {
   ApiResult,
   PaginatedResult,
@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream } from '../types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity } from '../../domain/types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -288,6 +288,63 @@ export class RealSongService implements ISongService {
       return { data: result.data };
     }
     return result;
+  }
+
+  // ==================== 粉丝数数据分析相关 API ====================
+
+  async getAccounts(): Promise<AccountData[]> {
+    const endpoint = '/data-analytics/followers/accounts/data/';
+    const params = new URLSearchParams({
+      granularity: 'DAY',
+      days: '30'
+    });
+
+    const result = await apiClient.get<AccountData[]>(`${endpoint}?${params}`);
+
+    if (result.error) {
+      throw new Error(`获取账号数据失败: ${result.error.message}`);
+    }
+
+    return result.data || [];
+  }
+
+  async getAccountsWithGranularity(
+    granularity: TimeGranularity,
+    days: number = 30
+  ): Promise<AccountData[]> {
+    const endpoint = '/data-analytics/followers/accounts/data/';
+    const params = new URLSearchParams({
+      granularity: granularity,
+      days: days.toString()
+    });
+
+    const result = await apiClient.get<AccountData[]>(`${endpoint}?${params}`);
+
+    if (result.error) {
+      throw new Error(`获取账号数据失败: ${result.error.message}`);
+    }
+
+    return result.data || [];
+  }
+
+  async getAccountDetail(
+    accountId: string,
+    granularity: TimeGranularity,
+    days: number = 30
+  ): Promise<AccountData> {
+    const endpoint = `/data-analytics/followers/accounts/${accountId}/`;
+    const params = new URLSearchParams({
+      granularity: granularity,
+      days: days.toString()
+    });
+
+    const result = await apiClient.get<AccountData>(`${endpoint}?${params}`);
+
+    if (result.error) {
+      throw new Error(`获取账号详情失败: ${result.error.message}`);
+    }
+
+    return result.data!;
   }
 }
 

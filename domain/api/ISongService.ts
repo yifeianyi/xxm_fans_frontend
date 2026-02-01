@@ -1,5 +1,5 @@
 import { ApiResult, PaginatedResult, GetSongsParams, GetRecordsParams, GetTopSongsParams, GetWorksParams } from '../../infrastructure/api/apiTypes';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream } from '../types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity } from '../types';
 
 export interface LivestreamConfig {
   minYear: number;
@@ -18,6 +18,11 @@ export interface ISongService {
   getLivestreams(year: number, month: number): Promise<ApiResult<Livestream[]>>;
   getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>>;
   getLivestreamConfig(): Promise<ApiResult<LivestreamConfig>>;
+  
+  // 粉丝数数据分析相关接口
+  getAccounts(): Promise<AccountData[]>;
+  getAccountsWithGranularity(granularity: TimeGranularity, days?: number): Promise<AccountData[]>;
+  getAccountDetail(accountId: string, granularity: TimeGranularity, days?: number): Promise<AccountData>;
 }
 
 export interface IFanDIYService {

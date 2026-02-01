@@ -76,7 +76,7 @@ export interface DataPoint {
     delta: number;
 }
 
-export type TimeGranularity = 'HOUR' | 'DAY' | 'MONTH';
+export type TimeGranularity = 'DAY' | 'WEEK' | 'MONTH';
 
 export interface AccountData {
     id: string;
