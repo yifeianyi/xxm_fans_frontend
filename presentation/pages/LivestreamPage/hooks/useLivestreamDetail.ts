@@ -18,7 +18,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { songService } from '../../../../infrastructure/api';
-import { Livestream } from '../../../domain/types';
+import { Livestream } from '../../domain/types';
 
 interface UseLivestreamDetailReturn {
   /** 选中的直播记录 */

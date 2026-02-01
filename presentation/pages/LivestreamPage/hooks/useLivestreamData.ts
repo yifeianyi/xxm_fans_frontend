@@ -18,7 +18,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { songService } from '../../../../infrastructure/api';
-import { Livestream } from '../../../domain/types';
+import { Livestream } from '../../domain/types';
 import { CalendarCellData } from '../components/CalendarCell';
 
 interface UseLivestreamDataReturn {

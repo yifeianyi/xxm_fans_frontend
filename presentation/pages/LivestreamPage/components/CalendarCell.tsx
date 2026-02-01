@@ -23,7 +23,7 @@
  */
 
 import React from 'react';
-import { Livestream } from '../../../domain/types';
+import { Livestream } from '../../domain/types';
 
 /**
  * 日历单元格类型

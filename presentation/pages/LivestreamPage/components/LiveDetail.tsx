@@ -18,7 +18,7 @@
  */
 
 import React from 'react';
-import { Livestream } from '../../../domain/types';
+import { Livestream } from '../../domain/types';
 
 interface LiveDetailProps {
   /** 直播记录 */
