@@ -1,13 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SongTable from '../components/features/SongTable';
 import RankingChart from '../components/features/RankingChart';
 import OriginalsList from '../components/features/OriginalsList';
 import TimelineChart from '../components/features/TimelineChart';
 
+type TabType = 'hot' | 'all' | 'originals' | 'submit';
+
 const SongsPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'hot' | 'all' | 'originals' | 'submit'>('all');
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // 从URL路径中提取tab参数
+    const pathSegments = location.pathname.split('/');
+    const tabFromUrl = pathSegments.length > 2 ? pathSegments[2] as TabType : undefined;
+    
+    const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl || 'all');
+
+    // 根据URL参数设置初始标签
+    useEffect(() => {
+        if (tabFromUrl && ['hot', 'all', 'originals', 'submit'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [tabFromUrl]);
+
+    // 标签切换时更新URL
+    const handleTabChange = (newTab: TabType) => {
+        setActiveTab(newTab);
+        if (newTab !== 'all') {
+            navigate(`/songs/${newTab}`, { replace: true });
+        } else {
+            navigate('/songs', { replace: true });
+        }
+    };
 
     const getTitle = () => {
         switch (activeTab) {
@@ -69,10 +96,10 @@ const SongsPage: React.FC = () => {
                                 left: activeTab === 'hot' ? '6px' : activeTab === 'all' ? 'calc(25% - 2px)' : activeTab === 'originals' ? 'calc(50% - 2px)' : 'calc(75% - 2px)'
                             }}
                         ></div>
-                        <button onClick={() => setActiveTab('hot')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'hot' ? 'text-white' : 'text-[#8eb69b]'}`}>热歌榜</button>
-                        <button onClick={() => setActiveTab('all')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'all' ? 'text-white' : 'text-[#8eb69b]'}`}>全部歌曲</button>
-                        <button onClick={() => setActiveTab('originals')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'originals' ? 'text-white' : 'text-[#8eb69b]'}`}>原唱作品</button>
-                        <button onClick={() => setActiveTab('submit')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'submit' ? 'text-white' : 'text-[#8eb69b]'}`}>投稿时刻</button>
+                        <button onClick={() => handleTabChange('hot')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'hot' ? 'text-white' : 'text-[#8eb69b]'}`}>热歌榜</button>
+                        <button onClick={() => handleTabChange('all')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'all' ? 'text-white' : 'text-[#8eb69b]'}`}>全部歌曲</button>
+                        <button onClick={() => handleTabChange('originals')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'originals' ? 'text-white' : 'text-[#8eb69b]'}`}>原唱作品</button>
+                        <button onClick={() => handleTabChange('submit')} className={`relative z-10 flex-1 py-3 text-sm font-black transition-colors ${activeTab === 'submit' ? 'text-white' : 'text-[#8eb69b]'}`}>投稿时刻</button>
                     </div>
                 </div>
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -27,11 +27,15 @@ const App: React.FC = () => {
                         <ReactRouterDOM.Routes>
                             <ReactRouterDOM.Route path="/" element={<HomePage />} />
                             <ReactRouterDOM.Route path="/songs" element={<SongsPage />} />
+                            <ReactRouterDOM.Route path="/songs/hot" element={<SongsPage />} />
+                            <ReactRouterDOM.Route path="/songs/originals" element={<SongsPage />} />
+                            <ReactRouterDOM.Route path="/songs/submit" element={<SongsPage />} />
                             <ReactRouterDOM.Route path="/originals" element={<OriginalsPage />} />
                             <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
                             <ReactRouterDOM.Route path="/live" element={<LivestreamPage />} />
                             <ReactRouterDOM.Route path="/data" element={<DataAnalysisPage />} />
                             <ReactRouterDOM.Route path="/fansDIY" element={<FansDIYPage />} />
+                            <ReactRouterDOM.Route path="/fansDIY/:collectionId" element={<FansDIYPage />} />
                             <ReactRouterDOM.Route path="/about" element={<AboutPage />} />
                         </ReactRouterDOM.Routes>
                     </main>

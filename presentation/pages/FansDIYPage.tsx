@@ -2,17 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Play } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { fanDIYService } from '../../infrastructure/api';
 import { FanWork, FanCollection } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
 
 const FansDIYPage: React.FC = () => {
+  const { collectionId } = useParams<{ collectionId?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [collections, setCollections] = useState<FanCollection[]>([]);
   const [works, setWorks] = useState<FanWork[]>([]);
-  const [selectedCol, setSelectedCol] = useState<string>('all');
+  const [selectedCol, setSelectedCol] = useState<string>(collectionId || 'all');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // 根据URL参数设置初始分类
+  useEffect(() => {
+    if (collectionId) {
+      setSelectedCol(collectionId);
+    } else {
+      setSelectedCol('all');
+    }
+  }, [collectionId]);
 
   useEffect(() => {
     const init = async () => {
@@ -36,15 +50,119 @@ const FansDIYPage: React.FC = () => {
     init();
   }, []);
 
+  // 分类切换时更新URL
+  const handleCollectionChange = (newCol: string) => {
+    setSelectedCol(newCol);
+    if (newCol !== 'all') {
+      navigate(`/fansDIY/${newCol}`, { replace: true });
+    } else {
+      navigate('/fansDIY', { replace: true });
+    }
+  };
+
   const filteredWorks = selectedCol === 'all' 
     ? works 
     : works.filter(w => w.collectionId === selectedCol);
 
+  // 获取当前选中的合集名称用于SEO
+  const currentCollection = collections.find(c => c.id === selectedCol);
+  const getPageTitle = () => {
+    if (currentCollection) {
+      return `${currentCollection.name} - 咻咻满二创作品 | 小满虫之家`;
+    }
+    return '咻咻满精选二创 - 粉丝二创作品展示 | 小满虫之家';
+  };
+
+  const getPageDescription = () => {
+    if (currentCollection) {
+      return `浏览咻咻满${currentCollection.name}相关的二创作品。${currentCollection.description || '每一份热爱都在这里闪闪发光，记录属于小满虫们的精彩时刻。'}`;
+    }
+    return '浏览咻咻满粉丝创作的二创作品，包括绘画、视频、剪辑等。每一份热爱都在这里闪闪发光，记录属于小满虫们的精彩时刻。';
+  };
+
+  // 生成结构化数据
+  const getStructuredData = () => {
+    const baseUrl = 'https://www.xxm8777.cn';
+    
+    if (currentCollection) {
+      // CollectionPage 结构化数据
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        'name': `${currentCollection.name} - 咻咻满二创作品`,
+        'description': getPageDescription(),
+        'url': `${baseUrl}/fansDIY/${currentCollection.id}`,
+        'isPartOf': {
+          '@type': 'WebSite',
+          'name': '小满虫之家',
+          'url': baseUrl
+        },
+        'about': {
+          '@type': 'Person',
+          'name': '咻咻满',
+          'alternateName': 'XXM'
+        },
+        'mainEntity': {
+          '@type': 'ItemList',
+          'itemListElement': filteredWorks.map((work, index) => ({
+            '@type': 'VideoObject',
+            'position': index + 1,
+            'name': work.title,
+            'description': work.note || '',
+            'thumbnailUrl': work.coverThumbnailUrl || work.cover,
+            'uploadDate': work.createdAt || new Date().toISOString(),
+            'author': {
+              '@type': 'Person',
+              'name': work.author
+            }
+          }))
+        }
+      };
+    } else {
+      // 普通页面结构化数据
+      return {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        'name': '咻咻满精选二创 - 粉丝二创作品展示',
+        'description': getPageDescription(),
+        'url': `${baseUrl}/fansDIY`,
+        'isPartOf': {
+          '@type': 'WebSite',
+          'name': '小满虫之家',
+          'url': baseUrl
+        },
+        'about': {
+          '@type': 'Person',
+          'name': '咻咻满',
+          'alternateName': 'XXM'
+        },
+        'mainEntity': {
+          '@type': 'ItemList',
+          'itemListElement': filteredWorks.slice(0, 10).map((work, index) => ({
+            '@type': 'VideoObject',
+            'position': index + 1,
+            'name': work.title,
+            'description': work.note || '',
+            'thumbnailUrl': work.coverThumbnailUrl || work.cover,
+            'uploadDate': work.createdAt || new Date().toISOString(),
+            'author': {
+              '@type': 'Person',
+              'name': work.author
+            }
+          }))
+        }
+      };
+    }
+  };
+
   return (
     <>
         <Helmet>
-            <title>咻咻满精选二创 - 粉丝二创作品展示 | 小满虫之家</title>
-            <meta name="description" content="浏览咻咻满粉丝创作的二创作品，包括绘画、视频、剪辑等。每一份热爱都在这里闪闪发光，记录属于小满虫们的精彩时刻。" />
+            <title>{getPageTitle()}</title>
+            <meta name="description" content={getPageDescription()} />
+            <script type="application/ld+json">
+                {JSON.stringify(getStructuredData())}
+            </script>
         </Helmet>
         <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
       <div className="text-center space-y-4">
@@ -58,7 +176,7 @@ const FansDIYPage: React.FC = () => {
       {/* 筛选分类 */}
       <div className="flex flex-wrap justify-center gap-3">
         <button
-          onClick={() => setSelectedCol('all')}
+          onClick={() => handleCollectionChange('all')}
           className={`px-8 py-3.5 rounded-[1.5rem] font-black transition-all duration-300 border-2 ${selectedCol === 'all' ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-lg shadow-[#f8b195]/20 scale-105' : 'bg-white text-[#8eb69b] border-white hover:border-[#f8b195]/20'}`}
         >
           全部作品
@@ -66,7 +184,7 @@ const FansDIYPage: React.FC = () => {
         {collections.map(col => (
           <button
             key={col.id}
-            onClick={() => setSelectedCol(col.id)}
+            onClick={() => handleCollectionChange(col.id)}
             className={`px-8 py-3.5 rounded-[1.5rem] font-black transition-all duration-300 border-2 ${selectedCol === col.id ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-lg shadow-[#f8b195]/20 scale-105' : 'bg-white text-[#8eb69b] border-white hover:border-[#f8b195]/20'}`}
           >
             {col.name}
