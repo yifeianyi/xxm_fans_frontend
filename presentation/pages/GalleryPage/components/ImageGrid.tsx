@@ -37,20 +37,20 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onImageClick, allImages }
           className="group relative aspect-square bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
           onClick={() => onImageClick(img, idx, allImages)}
         >
-          <div className="w-full h-full overflow-hidden bg-[#fef5f0]">
-            {img.isVideo ? (
-              <video
-                src={img.url}
-                className="w-full h-full object-cover"
-                muted
-                loop
-                playsInline
-                preload="none"
-                onMouseEnter={(e) => e.currentTarget.play()}
-                onMouseLeave={(e) => e.currentTarget.pause()}
-              />
-            ) : (
-              <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
+                      <div className="w-full h-full overflow-hidden bg-[#fef5f0]">
+                      {img.isVideo ? (
+                        <video
+                          src={img.url}
+                          poster={img.thumbnailUrl || img.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          playsInline
+                          preload="none"
+                          onMouseEnter={(e) => e.currentTarget.play()}
+                          onMouseLeave={(e) => e.currentTarget.pause()}
+                        />
+                      ) : (              <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
                 <LazyImage
                   src={img.thumbnailUrl || img.url}
                   alt={img.title}

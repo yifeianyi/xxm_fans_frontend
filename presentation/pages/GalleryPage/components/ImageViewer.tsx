@@ -95,31 +95,31 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         <X size={40} />
       </button>
 
-      {images.length > 1 && (
-        <>
-          <button
-            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrevious();
-            }}
-          >
-            <ChevronLeft size={32} />
-          </button>
-          <button
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onNext();
-            }}
-          >
-            <ChevronRight size={32} />
-          </button>
-        </>
-      )}
-
       <div className="flex-1 flex items-center justify-center p-4 md:p-12" onClick={(e) => e.stopPropagation()}>
         <div className="relative max-w-full max-h-full flex flex-col items-center gap-8">
+          {images.length > 1 && (
+            <>
+              <button
+                className="absolute -left-16 md:-left-20 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPrevious();
+                }}
+              >
+                <ChevronLeft size={32} />
+              </button>
+              <button
+                className="absolute -right-16 md:-right-20 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full p-3 z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNext();
+                }}
+              >
+                <ChevronRight size={32} />
+              </button>
+            </>
+          )}
+          
           {currentImage.isVideo ? (
             <video
               src={currentImage.url}
@@ -168,9 +168,16 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                 }}
               >
                 {img.isVideo ? (
-                  <div className="w-full h-full bg-black/30 flex items-center justify-center">
-                    <Play size={20} fill="white" className="text-white" />
-                  </div>
+                  <>
+                    <img
+                      src={img.thumbnailUrl || img.url}
+                      alt={img.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <Play size={20} fill="white" className="text-white" />
+                    </div>
+                  </>
                 ) : (
                   <img
                     src={img.thumbnailUrl || img.url}

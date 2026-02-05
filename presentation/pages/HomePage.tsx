@@ -30,7 +30,7 @@ const HomePage: React.FC = () => {
                                                                                                         <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
                                                                                                             Non-Official Fans Site
                                                                                                         </span>                                </div>
-                                <h1 className="text-7xl md:text-9xl font-black bg-gradient-to-r from-[#f67280] to-[#5d4037] bg-clip-text text-transparent tracking-tighter leading-tight drop-shadow-sm">
+                                <h1 className="text-5xl md:text-8xl font-black bg-gradient-to-r from-[#f67280] to-[#5d4037] bg-clip-text text-transparent tracking-tighter leading-tight drop-shadow-sm">
                                     小满虫之家
                                     <span className="block text-2xl md:text-3xl text-[#f67280] font-serif italic mt-2 tracking-normal">The fans home of Xiuxiuman</span>
                                 </h1>
