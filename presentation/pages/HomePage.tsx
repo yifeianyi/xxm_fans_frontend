@@ -1,7 +1,51 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Sparkles, Music, Heart, ArrowRight, Star, Calendar, Mic2 } from 'lucide-react';
+import { Sparkles, Music, Heart, ArrowRight, Star, Calendar, Mic2, Zap, Crown, Gem, Flower2, Cloud, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// 浮动装饰组件
+const FloatingDecorations: React.FC = () => {
+    return (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-5">
+            {/* 左上角装饰 */}
+            <div className="absolute top-20 left-10 animate-bounce" style={{ animationDuration: '3s' }}>
+                <Sparkles className="w-6 h-6 text-[#f8b195]/40" />
+            </div>
+            <div className="absolute top-32 left-20 animate-pulse" style={{ animationDelay: '0.5s' }}>
+                <Star className="w-4 h-4 text-yellow-400/50" />
+            </div>
+            
+            {/* 右上角装饰 */}
+            <div className="absolute top-24 right-16 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+                <Cloud className="w-8 h-8 text-[#f6d365]/30" />
+            </div>
+            <div className="absolute top-40 right-10 animate-pulse" style={{ animationDelay: '0.3s' }}>
+                <Moon className="w-5 h-5 text-purple-300/40" />
+            </div>
+            
+            {/* 中间漂浮 */}
+            <div className="absolute top-1/3 left-1/4 animate-bounce" style={{ animationDuration: '5s' }}>
+                <Heart className="w-4 h-4 text-[#f67280]/30 fill-[#f67280]/30" />
+            </div>
+            <div className="absolute top-1/2 right-1/4 animate-pulse" style={{ animationDelay: '0.8s' }}>
+                <Gem className="w-5 h-5 text-pink-300/40" />
+            </div>
+            
+            {/* 左下角 */}
+            <div className="absolute bottom-40 left-12 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                <Flower2 className="w-6 h-6 text-[#8eb69b]/40" />
+            </div>
+            
+            {/* 右下角 */}
+            <div className="absolute bottom-32 right-20 animate-pulse" style={{ animationDelay: '1.2s' }}>
+                <Sun className="w-6 h-6 text-orange-300/40" />
+            </div>
+            <div className="absolute bottom-48 right-32 animate-bounce" style={{ animationDuration: '4.5s' }}>
+                <Zap className="w-4 h-4 text-yellow-400/40" />
+            </div>
+        </div>
+    );
+};
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
@@ -10,8 +54,11 @@ const HomePage: React.FC = () => {
         <>
             <Helmet>
                 <title>咻咻满粉丝网站 - 小满虫之家 | 独立音乐人、音乐主播</title>
-                <meta name="description" content="欢迎来到咻咻满非官方粉丝站！这里汇集了咻咻满的所有歌曲作品、演出记录、粉丝二创和精彩图集。关注咻咻满，感受治愈系的歌声和戏韵魅力。" />
+                <meta name="description" content="欢迎来到咻咻满 粉丝站！这里汇集了咻咻满的所有歌曲作品、演出记录、粉丝二创和精彩图集。关注咻咻满，感受治愈系的歌声和戏韵魅力。" />
             </Helmet>
+
+            {/* 全局浮动装饰 */}
+            <FloatingDecorations />
 
             <div className="min-h-screen pb-20 overflow-x-hidden">
                 {/* Decorative Blobs - 调整为暖色光晕 */}
@@ -26,25 +73,43 @@ const HomePage: React.FC = () => {
                             {/* Title Block */}
                             <div className="relative inline-block animate-in slide-in-from-bottom-8 duration-700">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-32 bg-[#fff4d1] blur-3xl -z-10 rounded-full opacity-60"></div>
-                                <div className="flex items-center gap-3 justify-center lg:justify-start mb-4">
-                                                                                                        <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
-                                                                                                            Non-Official Fans Site
-                                                                                                        </span>                                </div>
-                                <h1 className="text-5xl md:text-8xl font-black bg-gradient-to-r from-[#f67280] to-[#5d4037] bg-clip-text text-transparent tracking-tighter leading-tight drop-shadow-sm">
-                                    小满虫之家
-                                    <span className="block text-2xl md:text-3xl text-[#f67280] font-serif italic mt-2 tracking-normal">The fans home of Xiuxiuman</span>
-                                </h1>
+                                
+                                {/* 标题上方装饰 */}
+                                <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
+                                    <Sparkles className="w-5 h-5 text-[#f8b195] animate-pulse" />
+                                    <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
+                                        Non-Official Fans Site
+                                    </span>
+                                    <Crown className="w-5 h-5 text-yellow-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
+                                </div>
+
+                                {/* 主标题带装饰 */}
+                                <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
+                                    <Star className="w-8 h-8 text-yellow-400 animate-spin hidden md:block" style={{ animationDuration: '3s' }} />
+                                    <h1 className="text-5xl md:text-8xl font-black bg-gradient-to-r from-[#f67280] to-[#5d4037] bg-clip-text text-transparent tracking-tighter leading-tight drop-shadow-sm">
+                                        小满虫之家
+                                    </h1>
+                                    <Heart className="w-8 h-8 text-[#f67280] animate-pulse fill-[#f67280] hidden md:block" />
+                                </div>
+
+                                <span className="block text-2xl md:text-3xl text-[#f67280] font-serif italic mt-2 tracking-normal">
+                                    The fans home of Xiuxiuman
+                                </span>
+                                
                                 {/* Decoration Underline - 改为暖色 */}
-                                <div className="hidden lg:block h-3 w-32 bg-[#f8b195]/20 rounded-full mt-4">
-                                    <svg viewBox="0 0 100 10" className="w-full h-full opacity-50 text-[#f8b195] fill-current">
-                                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
-                                    </svg>
+                                <div className="hidden lg:flex items-center gap-2 h-3 w-32 mt-4">
+                                    <div className="h-3 flex-1 bg-[#f8b195]/20 rounded-full">
+                                        <svg viewBox="0 0 100 10" className="w-full h-full opacity-50 text-[#f8b195] fill-current">
+                                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
+                                        </svg>
+                                    </div>
+                                    <Sparkles className="w-4 h-4 text-[#f8b195]" />
                                 </div>
                             </div>
 
                             {/* SEO Description - 字体颜色由绿变暖褐灰 */}
                             <p className="text-lg md:text-xl text-[#8d6e63] font-bold leading-relaxed max-w-2xl mx-auto lg:mx-0 animate-in slide-in-from-bottom-8 duration-700 delay-100">
-                                这里是独立音乐人、B站主播 <strong className="text-[#5d4037]">咻咻满 (Xiuxiuman)</strong> 的非官方粉丝资料站。
+                                这里是独立音乐人、音乐主播、B站up主 <strong className="text-[#5d4037]">咻咻满 (Xiuxiuman)</strong> 的 粉丝资料站。
                                 <br className="hidden md:block" />
                                 收录了满老师的原创单曲、翻唱合集、直播回放录像以及精选粉丝二创作品。
                                 记录与分享关于她的每一个治愈瞬间。
@@ -52,8 +117,17 @@ const HomePage: React.FC = () => {
 
                             {/* Tags - 边框和文字改为暖色 */}
                             <div className="flex flex-wrap justify-center lg:justify-start gap-3 animate-in slide-in-from-bottom-8 duration-700 delay-200">
-                                {['音乐人', '古风戏腔', '治愈系', '直播回放', '百大UP主'].map(tag => (
-                                    <span key={tag} className="px-4 py-2 bg-white/60 rounded-xl text-xs font-black text-[#a1887f] border-2 border-white shadow-sm hover:scale-105 hover:bg-[#fff3e0] hover:text-[#ff7043] transition-all cursor-default">
+                                {['音乐人', '古风戏腔', '治愈系', '直播回放', '百大UP主'].map((tag, index) => (
+                                    <span 
+                                        key={tag} 
+                                        className="px-4 py-2 bg-white/60 rounded-xl text-xs font-black text-[#a1887f] border-2 border-white shadow-sm hover:scale-105 hover:bg-[#fff3e0] hover:text-[#ff7043] transition-all cursor-default flex items-center gap-1"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        {index === 0 && <Music className="w-3 h-3" />}
+                                        {index === 1 && <Sparkles className="w-3 h-3" />}
+                                        {index === 2 && <Heart className="w-3 h-3" />}
+                                        {index === 3 && <Calendar className="w-3 h-3" />}
+                                        {index === 4 && <Crown className="w-3 h-3" />}
                                         #{tag}
                                     </span>
                                 ))}
@@ -67,6 +141,7 @@ const HomePage: React.FC = () => {
                                 >
                                     <Music size={20} className="group-hover:rotate-12 transition-transform" />
                                     <span>聆听作品</span>
+                                    <Sparkles className="w-4 h-4 opacity-60" />
                                 </button>
                                 <button
                                     onClick={() => navigate('/live')}
@@ -84,33 +159,55 @@ const HomePage: React.FC = () => {
                             <div className="absolute top-8 right-8 w-full h-full bg-[#f8b195] rounded-[4rem] rotate-6 opacity-20 blur-sm"></div>
                             <div className="absolute -top-8 -left-8 w-full h-full bg-[#f6d365] rounded-[4rem] -rotate-6 opacity-20 blur-sm"></div>
 
+                            {/* 图片周围装饰 */}
+                            <div className="absolute -top-4 right-4 z-20">
+                                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg animate-bounce" style={{ animationDuration: '2s' }}>
+                                    <Heart className="w-6 h-6 text-[#f67280] fill-[#f67280]" />
+                                </div>
+                            </div>
+                            <div className="absolute -bottom-2 -left-4 z-20">
+                                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg animate-pulse">
+                                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                                </div>
+                            </div>
+                            <div className="absolute top-1/2 -right-6 z-20">
+                                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg animate-bounce" style={{ animationDuration: '3s', animationDelay: '0.5s' }}>
+                                    <Sparkles className="w-5 h-5 text-[#f8b195]" />
+                                </div>
+                            </div>
+
                             {/* Main Image Container */}
                             <div className="relative aspect-[3/4] rounded-[4rem] overflow-hidden border-8 border-white shadow-[0_40px_80px_-20px_rgba(74,55,40,0.15)] group bg-[#fef5f0]">
-                                {/*
-                                    替换提示: 请将下方的 src 替换为您想要的咻咻满美图链接
-                                    (例如: assets/images/xxm_hero.jpg 或图床链接)
-                                */}
-                                                                <img 
-                                                                    src="/homepage.webp" 
-                                                                    alt="咻咻满" 
-                                                                    className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
-                                                                />                            </div>
+                                <img
+                                    src="/homepage.webp"
+                                    alt="咻咻满"
+                                    className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Features Section */}
                 <section className="px-4 md:px-8 max-w-7xl mx-auto mb-24">
+                    {/* 区块标题装饰 */}
                     <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
                         <div className="space-y-4">
-                            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#f67280] to-[#f8b195] bg-clip-text text-transparent tracking-tighter">
-                                探索 Forest
-                            </h2>
+                            <div className="flex items-center gap-2">
+                                <Gem className="w-6 h-6 text-[#f8b195] animate-pulse" />
+                                <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#f67280] to-[#f8b195] bg-clip-text text-transparent tracking-tighter">
+                                    探索 Forest
+                                </h2>
+                                <Flower2 className="w-6 h-6 text-[#8eb69b] animate-bounce" />
+                            </div>
                             <p className="text-[#8d6e63] font-bold text-lg max-w-md">
                                 发现更多精彩内容，在音乐的森林里，与每一份热爱重逢。
                             </p>
                         </div>
-                        <div className="h-1 w-full md:w-32 bg-[#f8b195]/20 rounded-full"></div>
+                        <div className="h-1 w-full md:w-32 bg-[#f8b195]/20 rounded-full flex items-center gap-1">
+                            <div className="h-1 flex-1 bg-[#f8b195]/20 rounded-full"></div>
+                            <Sparkles className="w-4 h-4 text-[#f8b195]" />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
@@ -189,13 +286,18 @@ const HomePage: React.FC = () => {
                         </div>
 
                         <div className="relative z-10 p-12 md:p-24 text-center space-y-10">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-md rounded-3xl border border-white/40 shadow-inner mb-4">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-md rounded-3xl border border-white/40 shadow-inner mb-4 animate-pulse">
                                 <Mic2 size={32} className="text-white" />
                             </div>
 
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter max-w-4xl mx-auto leading-tight">
-                                " 所有的歌声，都是藏在时光信封里的真心。 "
-                            </h2>
+                            {/* 引用装饰 */}
+                            <div className="flex items-center justify-center gap-3">
+                                <Sparkles className="w-6 h-6 text-white/60" />
+                                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter max-w-4xl mx-auto leading-tight">
+                                    " 所有的歌声，都是藏在时光信封里的真心。 "
+                                </h2>
+                                <Sparkles className="w-6 h-6 text-white/60" />
+                            </div>
 
                             <p className="text-white/80 font-bold text-lg md:text-xl max-w-2xl mx-auto">
                                 了解更多关于咻咻满的故事，她的声线特色，以及成长历程。
@@ -205,6 +307,7 @@ const HomePage: React.FC = () => {
                                 onClick={() => navigate('/about')}
                                 className="inline-flex items-center gap-3 px-12 py-6 bg-white text-[#d84315] rounded-full font-black shadow-[0_20px_60px_-15px_rgba(255,255,255,0.5)] hover:scale-105 transition-transform duration-300"
                             >
+                                <Heart className="w-5 h-5" />
                                 <span>关于她</span>
                                 <div className="w-1 h-1 bg-[#d84315] rounded-full"></div>
                                 <span className="uppercase text-xs tracking-widest opacity-60">Read Profile</span>

@@ -1,12 +1,24 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Play } from 'lucide-react';
+import { Play, Heart, Sparkles, Palette, Star, Wand2, Paintbrush } from 'lucide-react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { fanDIYService } from '../../infrastructure/api';
 import { FanWork, FanCollection } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
+
+// 标题装饰组件
+const TitleDecoration: React.FC = () => {
+    return (
+        <div className="flex items-center gap-3">
+            <Palette className="w-7 h-7 text-pink-400 animate-bounce" style={{ animationDelay: '0.1s' }} />
+            <Heart className="w-6 h-6 text-red-400 animate-pulse fill-red-400" />
+            <Sparkles className="w-8 h-8 text-yellow-400 animate-spin" style={{ animationDuration: '3s' }} />
+            <Wand2 className="w-6 h-6 text-purple-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <Paintbrush className="w-7 h-7 text-blue-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
+        </div>
+    );
+};
 
 const FansDIYPage: React.FC = () => {
   const { collectionId } = useParams<{ collectionId?: string }>();
@@ -165,13 +177,42 @@ const FansDIYPage: React.FC = () => {
             </script>
         </Helmet>
         <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
-      <div className="text-center space-y-4">
-        <div className="inline-block px-4 py-1 bg-[#fef5f0] text-[#f8b195] text-[10px] font-black uppercase tracking-[0.3em] rounded-full border border-[#f8b195]/10 mb-2">
-          Community Creations
+        {/* 标题区域 - 带装饰 */}
+        <div className="relative">
+            {/* 背景装饰 */}
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+                <div className="absolute top-0 left-1/3 w-40 h-40 bg-gradient-to-br from-pink-300 via-purple-300 to-blue-300 opacity-15 blur-3xl rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-32 h-32 bg-gradient-to-br from-yellow-300 via-orange-300 to-pink-300 opacity-15 blur-3xl rounded-full" />
+            </div>
+            
+            <div className="text-center space-y-4 py-6">
+                {/* 装饰图标行 */}
+                <div className="flex items-center justify-center gap-4 mb-2">
+                    <TitleDecoration />
+                </div>
+                
+                {/* 标签 */}
+                <div className="inline-block px-4 py-1 bg-gradient-to-r from-pink-50 to-purple-50 text-pink-400 text-[10px] font-black uppercase tracking-[0.3em] rounded-full border border-pink-200/50 mb-2">
+                    ✨ Community Creations ✨
+                </div>
+                
+                {/* 主标题 */}
+                <h2 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">
+                    精选二创展厅
+                </h2>
+                
+                {/* 副标题带装饰线 */}
+                <div className="flex items-center justify-center gap-3">
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-pink-300" />
+                    <Heart className="w-4 h-4 text-pink-400 fill-pink-400" />
+                    <p className="text-[#8eb69b] font-bold max-w-lg">
+                        每一份热爱，都在这里闪闪发光
+                    </p>
+                    <Sparkles className="w-4 h-4 text-yellow-400" />
+                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-pink-300" />
+                </div>
+            </div>
         </div>
-        <h2 className="text-4xl md:text-5xl font-black text-[#4a3728] tracking-tighter">精选二创展厅</h2>
-        <p className="text-[#8eb69b] font-bold max-w-lg mx-auto">每一份热爱，都在这里闪闪发光 ✨ 记录属于小满虫们的精彩时刻。</p>
-      </div>
 
       {/* 筛选分类 */}
       <div className="flex flex-wrap justify-center gap-3">

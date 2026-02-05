@@ -1,13 +1,51 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart } from 'lucide-react';
 import SongTable from '../components/features/SongTable';
 import RankingChart from '../components/features/RankingChart';
 import OriginalsList from '../components/features/OriginalsList';
 import TimelineChart from '../components/features/TimelineChart';
 
 type TabType = 'hot' | 'all' | 'originals' | 'submit';
+
+// 标题装饰组件
+const TitleDecoration: React.FC<{ type: TabType }> = ({ type }) => {
+    const decorations = {
+        hot: (
+            <>
+                <Flame className="w-8 h-8 text-orange-500 animate-pulse" />
+                <Crown className="w-6 h-6 text-yellow-500 animate-bounce" style={{ animationDelay: '0.2s' }} />
+            </>
+        ),
+        all: (
+            <>
+                <Music className="w-8 h-8 text-[#8eb69b] animate-bounce" style={{ animationDelay: '0.1s' }} />
+                <Sparkles className="w-6 h-6 text-[#f8b195] animate-pulse" />
+            </>
+        ),
+        originals: (
+            <>
+                <Star className="w-8 h-8 text-yellow-400 animate-spin" style={{ animationDuration: '3s' }} />
+                <Heart className="w-6 h-6 text-pink-400 animate-pulse" />
+            </>
+        ),
+        submit: (
+            <>
+                <Rocket className="w-8 h-8 text-blue-500 animate-bounce" />
+                <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
+            </>
+        ),
+    };
+
+    return (
+        <>
+            <div className="flex items-center gap-2">
+                {decorations[type]}
+            </div>
+        </>
+    );
+};
 
 const SongsPage: React.FC = () => {
     const location = useLocation();
@@ -72,6 +110,16 @@ const SongsPage: React.FC = () => {
         }
     };
 
+    // 标题渐变色
+    const getTitleGradient = () => {
+        switch (activeTab) {
+            case 'hot': return 'from-orange-400 via-red-400 to-pink-400';
+            case 'originals': return 'from-yellow-400 via-orange-400 to-pink-400';
+            case 'submit': return 'from-blue-400 via-purple-400 to-pink-400';
+            default: return 'from-[#8eb69b] via-[#f8b195] to-[#f67280]';
+        }
+    };
+
     return (
         <>
             <Helmet>
@@ -79,13 +127,36 @@ const SongsPage: React.FC = () => {
                 <meta name="description" content={getPageDescription()} />
             </Helmet>
             <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-                <div className="text-center space-y-4">
-                    <h1 className="text-4xl md:text-5xl font-black text-[#4a3728] tracking-tighter">
-                        {getTitle()}
-                    </h1>
-                    <p className="text-[#8eb69b] font-bold">
-                        {getDescription()}
-                    </p>
+                {/* 标题区域 - 带装饰 */}
+                <div className="relative">
+                    {/* 背景装饰 */}
+                    <div className="absolute inset-0 -z-10 overflow-hidden">
+                        <div className={`absolute top-0 left-1/4 w-32 h-32 bg-gradient-to-br ${getTitleGradient()} opacity-10 blur-3xl rounded-full`} />
+                        <div className={`absolute bottom-0 right-1/4 w-24 h-24 bg-gradient-to-br ${getTitleGradient()} opacity-10 blur-3xl rounded-full`} />
+                    </div>
+                    
+                    <div className="text-center space-y-4 py-6">
+                        {/* 装饰图标行 */}
+                        <div className="flex items-center justify-center gap-4 mb-2">
+                            <TitleDecoration type={activeTab} />
+                        </div>
+                        
+                        {/* 主标题 */}
+                        <h1 className={`text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r ${getTitleGradient()} bg-clip-text text-transparent drop-shadow-sm`}>
+                            {getTitle()}
+                        </h1>
+                        
+                        {/* 副标题带装饰线 */}
+                        <div className="flex items-center justify-center gap-3">
+                            <div className={`h-px w-12 bg-gradient-to-r from-transparent to-[#f8b195]`} />
+                            <Sparkles className="w-4 h-4 text-[#f8b195]" />
+                            <p className="text-[#8eb69b] font-bold">
+                                {getDescription()}
+                            </p>
+                            <Sparkles className="w-4 h-4 text-[#f8b195]" />
+                            <div className={`h-px w-12 bg-gradient-to-l from-transparent to-[#f8b195]`} />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="w-full max-w-xl mx-auto">

@@ -1,11 +1,6 @@
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Music, Image, Calendar, Heart, BarChart3, Info } from 'lucide-react';
 
 const Navbar: React.FC = () => {
     const location = ReactRouterDOM.useLocation();
@@ -25,17 +20,17 @@ const Navbar: React.FC = () => {
         setIsRightMenuOpen(false);
     }, [location.pathname]);
 
-    // 导航项配置
+    // 导航项配置 - 带图标
     const leftNavItems = [
-        { path: '/songs', label: '满の歌声', active: isSongs },
-        { path: '/gallery', label: '满の图册', active: isGallery },
-        { path: '/live', label: '直播日历', active: isLive },
+        { path: '/songs', label: '满の歌声', active: isSongs, icon: Music },
+        { path: '/gallery', label: '满の图册', active: isGallery, icon: Image },
+        { path: '/live', label: '直播日历', active: isLive, icon: Calendar },
     ];
 
     const rightNavItems = [
-        { path: '/fansDIY', label: '精选二创', active: isFans },
-        { path: '/data', label: '满の数据', active: isData },
-        { path: '/about', label: '关于满满', active: isAbout },
+        { path: '/fansDIY', label: '精选二创', active: isFans, icon: Heart },
+        { path: '/data', label: '满の数据', active: isData, icon: BarChart3 },
+        { path: '/about', label: '关于满满', active: isAbout, icon: Info },
     ];
 
     return (
@@ -64,7 +59,8 @@ const Navbar: React.FC = () => {
                                     item.active ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'
                                 }`}
                             >
-                                <span className="text-sm font-black whitespace-nowrap px-2">
+                                <span className="text-sm font-black whitespace-nowrap px-2 flex items-center gap-1.5">
+                                    <item.icon className="w-4 h-4" />
                                     {item.label}
                                 </span>
                                 {item.active && (
@@ -99,7 +95,8 @@ const Navbar: React.FC = () => {
                                     item.active ? 'text-[#f8b195] scale-105' : 'text-[#8eb69b]'
                                 }`}
                             >
-                                <span className="text-sm font-black whitespace-nowrap px-2">
+                                <span className="text-sm font-black whitespace-nowrap px-2 flex items-center gap-1.5">
+                                    <item.icon className="w-4 h-4" />
                                     {item.label}
                                 </span>
                                 {item.active && (
@@ -137,6 +134,7 @@ const Navbar: React.FC = () => {
                                             : 'text-[#8eb69b] hover:bg-white/20'
                                     }`}
                                 >
+                                    <item.icon className="w-5 h-5" />
                                     <span className="text-sm font-black whitespace-nowrap">
                                         {item.label}
                                     </span>
@@ -164,6 +162,7 @@ const Navbar: React.FC = () => {
                                             : 'text-[#8eb69b] hover:bg-white/20'
                                     }`}
                                 >
+                                    <item.icon className="w-5 h-5" />
                                     <span className="text-sm font-black whitespace-nowrap">
                                         {item.label}
                                     </span>

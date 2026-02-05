@@ -37,7 +37,7 @@ const ContactPage: React.FC = () => {
                                         <strong className="text-[#c45a42]">小满虫之家</strong> 是咻咻满粉丝的聚集地，我们致力于收集整理咻咻满的相关资料和作品。
                                     </p>
                                     <p className="text-[#52566e] leading-relaxed">
-                                        本站为<strong className="text-[#c45a42]">非官方粉丝站</strong>，所有内容仅供粉丝交流学习使用。
+                                        本站为<strong className="text-[#c45a42]"> 粉丝站</strong>，所有内容仅供粉丝交流学习使用。
                                     </p>
                                 </div>
                                 <div className="bg-[#fce8e2]/50 rounded-xl p-4 border border-[#e3ebe3]">
@@ -67,22 +67,15 @@ const ContactPage: React.FC = () => {
                                     </div>
                                     <h3 className="font-semibold text-[#3d405b] mb-2">邮箱联系</h3>
                                     <p className="text-sm text-[#52566e] mb-3">通过邮箱与我们联系</p>
-                                    <a 
-                                        href="mailto:contact@xxm8777.cn" 
+                                    <a
+                                        href="mailto:910002662@qq.com"
                                         className="text-emerald-600 hover:text-emerald-700 font-medium text-sm"
                                     >
-                                        contact@xxm8777.cn
+                                        910002662@qq.com
                                     </a>
                                 </div>
 
-                                <div className="bg-[#fce8e2]/50 rounded-xl p-6 border border-[#e3ebe3]">
-                                    <div className="w-12 h-12 bg-[#fce8e2] rounded-full flex items-center justify-center mb-4">
-                                        <Users className="w-6 h-6 text-[#c45a42]" />
-                                    </div>
-                                    <h3 className="font-semibold text-[#3d405b] mb-2">粉丝社群</h3>
-                                    <p className="text-sm text-[#52566e] mb-3">加入小满虫粉丝群</p>
-                                    <span className="text-[#c45a42] font-medium text-sm">QQ群：123456789</span>
-                                </div>
+
 
                                 <div className="bg-sky-50/50 rounded-xl p-6 border border-sky-100">
                                     <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center mb-4">
@@ -91,12 +84,8 @@ const ContactPage: React.FC = () => {
                                     <h3 className="font-semibold text-[#3d405b] mb-2">社交媒体</h3>
                                     <p className="text-sm text-[#52566e] mb-3">关注我们的动态</p>
                                     <div className="flex gap-2">
-                                        <a href="https://space.bilibili.com/343272" target="_blank" rel="noopener noreferrer" className="text-sky-600 text-sm hover:text-sky-700">
+                                        <a href="https://space.bilibili.com/1384705804" target="_blank" rel="noopener noreferrer" className="text-sky-600 text-sm hover:text-sky-700">
                                             B站
-                                        </a>
-                                        <span className="text-[#a8a29e]">|</span>
-                                        <a href="https://weibo.com/xxm" target="_blank" rel="noopener noreferrer" className="text-sky-600 text-sm hover:text-sky-700">
-                                            微博
                                         </a>
                                     </div>
                                 </div>
@@ -125,7 +114,7 @@ const ContactPage: React.FC = () => {
                                 <div className="bg-violet-50/50 rounded-xl p-6 border border-violet-100">
                                     <h3 className="font-semibold text-[#3d405b] mb-3">🤝 合作洽谈</h3>
                                     <p className="text-sm text-[#52566e] mb-3">
-                                        我们欢迎各类合作，包括网站技术合作、内容合作、推广合作等。
+                                        我们欢迎各类合作，包括网站技术合作、内容合作等。
                                     </p>
                                     <div className="text-xs text-[#6b6f85] space-y-1">
                                         <p>• 请提供详细的合作方案</p>
@@ -143,7 +132,7 @@ const ContactPage: React.FC = () => {
                                 版权与声明
                             </h3>
                             <div className="text-sm text-[#52566e] space-y-2">
-                                <p>• 本站为粉丝自建非官方网站，所有内容仅供粉丝交流学习使用</p>
+                                <p>• 本站为粉丝自建 网站，所有内容仅供粉丝交流学习使用</p>
                                 <p>• 所有音视频、图片等素材版权归原作者所有</p>
                                 <p>• 如有侵权请联系站长删除，我们会在24小时内处理</p>
                                 <p>• 本站不以盈利为目的，所有服务均为免费</p>
