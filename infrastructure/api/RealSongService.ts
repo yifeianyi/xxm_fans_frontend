@@ -120,20 +120,23 @@ export class RealSongService implements ISongService {
       } else {
         // 未知格式，返回空结果
         console.warn('⚠️ getRecords 返回未知数据格式:', result.data);
-        return { data: { results: [], total: 0 } };
+        return { data: { results: [], total: 0, page: 1, page_size: 10 } };
       }
 
       const transformed: PaginatedResult<SongRecord> = {
         results: recordsArray.map(item => ({
           id: item.id?.toString() || '',
           songId: songId,
+          songName: item.song_name || '',
           date: item.performed_at || '',
           cover: item.cover_url || '',
           coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
           note: item.notes || '',
           videoUrl: item.url || ''
         })),
-        total: totalCount
+        total: totalCount,
+        page: result.data.page || 1,
+        page_size: result.data.page_size || 10
       };
       return { data: transformed };
     }

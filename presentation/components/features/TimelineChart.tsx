@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Play, ExternalLink, CheckCircle2, X, AlertCircle, Trash2, FileText } from 'lucide-react';
-import { realSubmissionService } from '../../../infrastructure/api/RealSubmissionService';
+import { realSubmissionService } from '../../../infrastructure/api';
 import type {
   MonthlySubmissionStatsResponse,
   MonthlySubmissionRecordsResponse,
@@ -48,14 +48,14 @@ const TimelineChart: React.FC = () => {
         // 3. 处理结果
         results.forEach(({ year, data }) => {
           stats[year] = {};
-          data.monthly_stats.forEach((stat) => {
+          data.monthlyStats.forEach((stat) => {
             stats[year][stat.month] = {
               month: stat.month,
               total: stat.total,
               valid: stat.valid,
               invalid: stat.invalid,
-              first_submission: stat.first_submission,
-              last_submission: stat.last_submission,
+              firstSubmission: stat.firstSubmission,
+              lastSubmission: stat.lastSubmission,
             };
           });
         });
@@ -81,7 +81,7 @@ const TimelineChart: React.FC = () => {
             year: selectedDate.year,
             month: selectedDate.month,
             page: 1,
-            page_size: 100, // 加载该月所有记录
+            pageSize: 100, // 加载该月所有记录
           });
 
           setMonthlyRecords(data.records);
@@ -367,19 +367,19 @@ const TimelineChart: React.FC = () => {
                          key={record.id}
                          className="group relative bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border-2 border-transparent hover:border-white hover:-translate-y-2 cursor-pointer"
                          style={{ animation: `fadeIn 0.5s ease-out ${index * 0.05}s backwards` }}
-                         onClick={() => setVideoUrl(record.video_url)}
+                         onClick={() => setVideoUrl(record.videoUrl)}
                        >
                          <div className="aspect-[4/3] relative overflow-hidden bg-[#fef5f0]">
                            <img
-                             src={record.cover_thumbnail_url || record.cover_url || '/placeholder.jpg'}
+                             src={record.coverThumbnailUrl || record.coverUrl || '/placeholder.jpg'}
                              alt={record.title}
                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                            />
                            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full flex items-center gap-1.5 shadow-sm border border-white/50">
-                             <CheckCircle2 size={10} className={record.is_valid ? "text-[#8eb69b]" : "text-gray-400"} />
-                             <span className="text-[9px] font-black text-[#4a3728]">{new Date(record.publish_time).toLocaleDateString('zh-CN')}</span>
+                             <CheckCircle2 size={10} className={record.isValid ? "text-[#8eb69b]" : "text-gray-400"} />
+                             <span className="text-[9px] font-black text-[#4a3728]">{new Date(record.publishTime).toLocaleDateString('zh-CN')}</span>
                            </div>
-                           {!record.is_valid && (
+                           {!record.isValid && (
                              <div className="absolute top-4 right-4 px-3 py-1 bg-red-50/90 backdrop-blur-md rounded-full flex items-center gap-1.5 shadow-sm border border-red-100">
                                <AlertCircle size={10} className="text-red-400" />
                                <span className="text-[9px] font-black text-red-400">无效</span>

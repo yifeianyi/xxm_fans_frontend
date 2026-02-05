@@ -121,7 +121,6 @@ export interface Gallery {
     coverThumbnailUrl?: string;  // 缩略图 URL
     level: number;
     imageCount: number;
-    image_count?: number;  // 后端返回的字段名
     folderPath: string;
     tags: string[];
     isLeaf: boolean;
@@ -138,8 +137,7 @@ export interface Breadcrumb {
 export interface GalleryImage {
     id: string;
     url: string;
-    thumbnail_url?: string;  // 缩略图 URL（后端返回的字段名）
-    thumbnailUrl?: string;   // 前端使用的缩略图 URL 字段
+    thumbnailUrl?: string;  // 缩略图 URL
     title: string;
     filename: string;
     isGif?: boolean;  // 标记是否为 GIF 动图
@@ -158,9 +156,9 @@ export interface Screenshot {
 }
 
 export interface SongCut {
-    performed_at: string;  // 演唱日期
-    song_name: string;     // 歌曲名称
-    url: string;           // 演唱记录链接（B站视频链接）
+    performedAt: string;  // 演唱日期
+    songName: string;     // 歌曲名称
+    url: string;          // 演唱记录链接（B站视频链接）
 }
 
 export interface Livestream {
@@ -202,47 +200,47 @@ export interface MonthlyStats {
     total: number;
     valid: number;
     invalid: number;
-    first_submission: string;
-    last_submission: string;
+    firstSubmission: string;
+    lastSubmission: string;
 }
 
 /** 年度汇总统计 */
 export interface YearSummary {
-    total_submissions: number;
-    valid_submissions: number;
-    invalid_submissions: number;
-    active_months: number;
+    totalSubmissions: number;
+    validSubmissions: number;
+    invalidSubmissions: number;
+    activeMonths: number;
 }
 
 /** 月度投稿统计响应 */
 export interface MonthlySubmissionStatsResponse {
     year: number;
     platform: string | null;
-    monthly_stats: MonthlyStats[];
-    year_summary: YearSummary;
+    monthlyStats: MonthlyStats[];
+    yearSummary: YearSummary;
 }
 
 /** 投稿记录 */
 export interface SubmissionRecord {
     id: number;
     platform: string;
-    work_id: string;
+    workId: string;
     title: string;
     author: string;
-    publish_time: string;
-    cover_url: string;
-    cover_thumbnail_url: string | null;
-    is_valid: boolean;
-    video_url: string;
-    video_embed_url: string;
+    publishTime: string;
+    coverUrl: string;
+    coverThumbnailUrl: string | null;
+    isValid: boolean;
+    videoUrl: string;
+    videoEmbedUrl: string;
 }
 
 /** 分页信息 */
 export interface PaginationInfo {
     total: number;
     page: number;
-    page_size: number;
-    total_pages: number;
+    pageSize: number;
+    totalPages: number;
 }
 
 /** 月度投稿记录响应 */
@@ -257,20 +255,20 @@ export interface MonthlySubmissionRecordsResponse {
 /** 年度统计 */
 export interface YearStats {
     year: number;
-    total_submissions: number;
-    valid_submissions: number;
-    invalid_submissions: number;
-    active_months: number;
-    first_submission: string;
-    last_submission: string;
+    totalSubmissions: number;
+    validSubmissions: number;
+    invalidSubmissions: number;
+    activeMonths: number;
+    firstSubmission: string;
+    lastSubmission: string;
 }
 
 /** 年度汇总 */
 export interface YearsSummary {
-    total_years: number;
-    total_submissions: number;
-    valid_submissions: number;
-    invalid_submissions: number;
+    totalYears: number;
+    totalSubmissions: number;
+    validSubmissions: number;
+    invalidSubmissions: number;
 }
 
 /** 年度投稿概览响应 */
@@ -291,14 +289,14 @@ export interface MonthlyRecordsParams {
     year: number;
     month: number;
     platform?: string;
-    is_valid?: boolean;
+    isValid?: boolean;
     page?: number;
-    page_size?: number;
+    pageSize?: number;
 }
 
 /** 年度概览查询参数 */
 export interface YearsOverviewParams {
     platform?: string;
-    start_year?: number;
-    end_year?: number;
+    startYear?: number;
+    endYear?: number;
 }

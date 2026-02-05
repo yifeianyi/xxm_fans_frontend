@@ -27,11 +27,10 @@ const HomePage: React.FC = () => {
                             <div className="relative inline-block animate-in slide-in-from-bottom-8 duration-700">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-32 bg-[#fff4d1] blur-3xl -z-10 rounded-full opacity-60"></div>
                                 <div className="flex items-center gap-3 justify-center lg:justify-start mb-4">
-                                    <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
-                                        Non-Official Fans Site
-                                    </span>
-                                </div>
-                                <h1 className="text-5xl md:text-7xl font-black text-[#5d4037] tracking-tighter leading-tight drop-shadow-sm">
+                                                                                                        <span className="px-3 py-1 bg-[#fef5f0] text-[#f8b195] text-xs font-black uppercase tracking-[0.2em] rounded-full border border-[#f8b195]/20 shadow-sm transform -rotate-2">
+                                                                                                            Non-Official Fans Site
+                                                                                                        </span>                                </div>
+                                <h1 className="text-7xl md:text-9xl font-black bg-gradient-to-r from-[#f67280] to-[#5d4037] bg-clip-text text-transparent tracking-tighter leading-tight drop-shadow-sm">
                                     小满虫之家
                                     <span className="block text-2xl md:text-3xl text-[#f67280] font-serif italic mt-2 tracking-normal">The fans home of Xiuxiuman</span>
                                 </h1>
@@ -91,12 +90,11 @@ const HomePage: React.FC = () => {
                                     替换提示: 请将下方的 src 替换为您想要的咻咻满美图链接
                                     (例如: assets/images/xxm_hero.jpg 或图床链接)
                                 */}
-                                <img
-                                    src="/homepage.webp"
-                                    alt="咻咻满"
-                                    className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
-                                />
-                            </div>
+                                                                <img 
+                                                                    src="/homepage.webp" 
+                                                                    alt="咻咻满" 
+                                                                    className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
+                                                                />                            </div>
                         </div>
                     </div>
                 </section>
@@ -105,8 +103,8 @@ const HomePage: React.FC = () => {
                 <section className="px-4 md:px-8 max-w-7xl mx-auto mb-24">
                     <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
                         <div className="space-y-4">
-                            <h2 className="text-4xl md:text-5xl font-black text-[#5d4037] tracking-tighter">
-                                探索 <span className="text-[#f67280] italic">Forest</span>
+                            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#f67280] to-[#f8b195] bg-clip-text text-transparent tracking-tighter">
+                                探索 Forest
                             </h2>
                             <p className="text-[#8d6e63] font-bold text-lg max-w-md">
                                 发现更多精彩内容，在音乐的森林里，与每一份热爱重逢。

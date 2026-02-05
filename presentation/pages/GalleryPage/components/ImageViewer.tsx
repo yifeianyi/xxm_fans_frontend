@@ -173,7 +173,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                   </div>
                 ) : (
                   <img
-                    src={img.thumbnail_url || img.url}
+                    src={img.thumbnailUrl || img.url}
                     alt={img.title}
                     className="w-full h-full object-cover"
                   />

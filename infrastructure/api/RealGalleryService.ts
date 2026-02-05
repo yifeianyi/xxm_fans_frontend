@@ -190,7 +190,7 @@ export class RealGalleryService {
     return images.map((img) => ({
       id: img.url,
       url: img.url,
-      thumbnail_url: img.thumbnail_url,
+      thumbnailUrl: img.thumbnail_url || img.thumbnailUrl,
       title: img.title,
       filename: img.filename,
       isGif: img.filename.toLowerCase().endsWith('.gif'),
