@@ -34,7 +34,7 @@ interface UseLivestreamDetailReturn {
   /** 清除选择 */
   clearSelection: () => void;
   /** 直播详情区域的引用 */
-  liveDetailRef: React.RefObject<HTMLDivElement>;
+  liveDetailRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
@@ -44,7 +44,10 @@ export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
   const liveDetailRef = useRef<HTMLDivElement>(null);
 
   const fetchLivestreamDetail = useCallback(async (date: string): Promise<void> => {
-    if (!date) return;
+    if (!date) {
+      setError('日期参数无效');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -53,30 +56,35 @@ export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
       const result = await songService.getLivestreamByDate(date);
 
       if (result.error) {
-        setError(result.error.message);
-        setSelectedLive(null);
-      } else {
-        setSelectedLive(result.data || null);
+        setError(result.error.message || '获取直播详情失败');
+        // 保留之前选中的数据，不设置为 null
+      } else if (result.data) {
+        setSelectedLive(result.data);
 
         // 滚动到详情区域
         setTimeout(() => {
-          liveDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          liveDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
+      } else {
+        setError('未找到该日期的直播记录');
       }
     } catch (err) {
-      setError('加载详情失败');
-      setSelectedLive(null);
+      setError(err instanceof Error ? err.message : '加载详情失败，请稍后重试');
     } finally {
       setLoading(false);
     }
   }, []);
 
   const handleSelectLive = useCallback((live: Livestream) => {
+    if (!live?.date) {
+      setError('直播数据无效');
+      return;
+    }
     fetchLivestreamDetail(live.date);
   }, [fetchLivestreamDetail]);
 
   const reload = useCallback(async () => {
-    if (selectedLive) {
+    if (selectedLive?.date) {
       await fetchLivestreamDetail(selectedLive.date);
     }
   }, [selectedLive, fetchLivestreamDetail]);

@@ -165,15 +165,15 @@ export interface SongCut {
 export interface Livestream {
     id: string;
     date: string;
-    title: string;
-    summary: string;
-    viewCount: string;
-    danmakuCount: string;
-    startTime: string;
-    endTime: string;
-    duration: string;
-    bvid: string;                              // B站视频BV号
-    parts: number;                             // 视频分段数
+    title?: string;                            // 直播标题（后端可能返回 null）
+    summary?: string;                          // 直播简介
+    viewCount?: string;                        // 观看人数
+    danmakuCount?: string;                     // 弹幕数
+    startTime?: string;                        // 开播时间
+    endTime?: string;                          // 下播时间
+    duration?: string;                         // 直播时长
+    bvid?: string;                             // B站视频BV号
+    parts?: number;                            // 视频分段数
     coverUrl?: string;                         // 封面图URL（基本信息）
     recordings?: LivestreamRecording[];        // 后端生成的完整视频链接列表（详细信息）
     songCuts?: SongCut[];                      // 歌曲剪辑列表（详细信息）

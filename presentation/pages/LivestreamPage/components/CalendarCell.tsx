@@ -50,11 +50,26 @@ interface CalendarCellProps {
 
 const CalendarCell: React.FC<CalendarCellProps> = ({ cell, todayStr, isSelected, onClick }) => {
   const isToday = cell.date === todayStr;
-  const hasLive = !!cell.live;
+  // 确保 live 对象有效且至少有日期字段
+  const hasLive = !!(cell.live?.date);
+
+  const handleClick = () => {
+    if (hasLive && cell.live) {
+      onClick();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (hasLive && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  };
 
   return (
     <div
-      onClick={hasLive ? onClick : undefined}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className={`aspect-video flex items-center justify-center relative rounded-2xl transition-all ${
         cell.day ? 'bg-white/60' : 'bg-transparent'
       } ${hasLive ? 'cursor-pointer hover:bg-[#fef5f0] shadow-sm' : ''} ${

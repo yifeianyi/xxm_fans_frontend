@@ -16,9 +16,9 @@
  * @since 2024-01-31
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Flame, Crown, Star, Sparkles, Heart, Zap } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useLivestreamData } from './hooks/useLivestreamData';
 import { useLivestreamDetail } from './hooks/useLivestreamDetail';
 import LivestreamHeader from './components/LivestreamHeader';
@@ -29,8 +29,23 @@ import { Loading } from '../../components/common/Loading';
 import { PageDecorations } from '../../components/common/PageDecorations';
 
 const LivestreamPage: React.FC = () => {
-  const { currentDate, lives, loading, changeMonth, loadLives, calendarCells, todayStr } = useLivestreamData();
-  const { selectedLive, handleSelectLive, liveDetailRef } = useLivestreamDetail();
+  const { currentDate, lives, loading, error, changeMonth, loadLives, calendarCells, todayStr } = useLivestreamData();
+  const { selectedLive, handleSelectLive, clearSelection, liveDetailRef } = useLivestreamDetail();
+
+  // 当切换月份时，清除选中的直播
+  useEffect(() => {
+    clearSelection();
+  }, [currentDate, clearSelection]);
+
+  // 检查选中的直播是否在当前月份的数据中
+  useEffect(() => {
+    if (selectedLive) {
+      const stillExists = lives.some(live => live.date === selectedLive.date);
+      if (!stillExists) {
+        clearSelection();
+      }
+    }
+  }, [lives, selectedLive, clearSelection]);
 
   return (
     <>
@@ -53,6 +68,14 @@ const LivestreamPage: React.FC = () => {
           />
         </div>
 
+        {/* 错误提示 */}
+        {error && (
+          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <p className="text-sm font-bold">{error}</p>
+          </div>
+        )}
+
         {/* 日历网格 */}
         {loading ? (
           <Loading />
@@ -67,7 +90,7 @@ const LivestreamPage: React.FC = () => {
         )}
 
         {/* 直播详情 */}
-        {selectedLive && <LiveDetail live={selectedLive} />}
+        {selectedLive && !loading && <LiveDetail live={selectedLive} />}
       </div>
     </>
   );

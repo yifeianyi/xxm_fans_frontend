@@ -68,22 +68,33 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
   const calendarCells = useMemo(() => {
     const cells: CalendarCellData[] = [];
 
-    // 空白单元格
-    for (let i = 1; i < daysInMonth.firstDay; i++) {
-      cells.push({ day: null, date: '' });
-    }
+    try {
+      // 空白单元格
+      for (let i = 1; i < daysInMonth.firstDay; i++) {
+        cells.push({ day: null, date: '' });
+      }
 
-    // 日期单元格
-    for (let i = 1; i <= daysInMonth.days; i++) {
-      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      const live = lives.find(l => l.date === dateStr);
-      cells.push({ day: i, date: dateStr, live });
+      // 日期单元格
+      for (let i = 1; i <= daysInMonth.days; i++) {
+        const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        // 确保 lives 是数组
+        const live = Array.isArray(lives) ? lives.find(l => l?.date === dateStr) : undefined;
+        cells.push({ day: i, date: dateStr, live });
+      }
+    } catch (err) {
+      console.error('生成日历单元格失败:', err);
     }
 
     return cells;
   }, [daysInMonth, lives, currentDate]);
 
   const loadLives = useCallback(async (year: number, month: number): Promise<void> => {
+    // 验证参数
+    if (!year || !month || month < 1 || month > 12) {
+      setError('日期参数无效');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -91,13 +102,15 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
       const result = await songService.getLivestreams(year, month);
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || '获取直播列表失败');
         setLives([]);
       } else {
-        setLives(result.data || []);
+        // 确保数据是数组
+        const data = Array.isArray(result.data) ? result.data : [];
+        setLives(data);
       }
     } catch (err) {
-      setError('加载失败，请稍后重试');
+      setError(err instanceof Error ? err.message : '加载失败，请稍后重试');
       setLives([]);
     } finally {
       setLoading(false);
@@ -105,11 +118,25 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
   }, []);
 
   const changeMonth = useCallback((offset: number) => {
-    setCurrentDate(prev => new Date(
-      prev.getFullYear(),
-      prev.getMonth() + offset,
-      1
-    ));
+    // 限制 offset 范围，防止跳转到无效日期
+    if (offset === 0) return;
+    
+    setCurrentDate(prev => {
+      const newDate = new Date(
+        prev.getFullYear(),
+        prev.getMonth() + offset,
+        1
+      );
+      // 限制年份范围在 2020-2030 之间
+      const year = newDate.getFullYear();
+      if (year < 2020) {
+        return new Date(2020, 0, 1);
+      }
+      if (year > 2030) {
+        return new Date(2030, 11, 1);
+      }
+      return newDate;
+    });
   }, []);
 
   const refresh = useCallback(async () => {
