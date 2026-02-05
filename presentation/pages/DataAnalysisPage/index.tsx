@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { Crown, Star, Sparkles, Gem, Flame } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { AccountData, TimeGranularity } from '../../../domain/types';
 import { OverviewSection, ComingSoonSection, DataAnalysisStyles } from './components';
+import { PageDecorations } from '../../components/common/PageDecorations';
 
 /**
  * 数据分析页面
@@ -68,6 +70,10 @@ const DataAnalysisPage: React.FC = () => {
         <title>咻咻满数据分析 - 账号数据、视频统计 | 小满虫之家</title>
         <meta name="description" content="查看咻咻满的账号数据和视频统计分析，包括粉丝增长、播放量、点赞数等关键指标。了解咻咻满在各平台的数据表现。" />
       </Helmet>
+      
+      {/* 页面装饰 - 数据主题 */}
+      <PageDecorations theme="data" glowColors={['#8eb69b', '#f8b195']} />
+
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
         
         {/* 顶部全站趋势 */}

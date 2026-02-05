@@ -1,6 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Mail, Globe, Heart, Music, Users, MessageCircle, Send } from 'lucide-react';
+import { Mail, Globe, Heart, Music, Users, MessageCircle, Send, Sparkles, Star, Flower2 } from 'lucide-react';
+import { PageDecorations, DecorativeDivider } from '../components/common/PageDecorations';
 
 const ContactPage: React.FC = () => {
     return (
@@ -11,13 +12,24 @@ const ContactPage: React.FC = () => {
                 <meta name="keywords" content="联系咻咻满粉丝站, 小满虫之家联系方式, 粉丝站反馈, 投稿联系" />
             </Helmet>
 
+            {/* 页面装饰 */}
+            <PageDecorations theme="default" glowColors={['#f8b195', '#8eb69b']} />
+
             <div className="min-h-screen bg-gradient-to-br from-rose-50/30 via-transparent to-emerald-50/30">
                 <div className="max-w-4xl mx-auto px-4 py-12">
                     {/* 页面标题 */}
                     <div className="text-center mb-12">
+                        <div className="flex items-center justify-center gap-3 mb-4">
+                            <Sparkles className="w-6 h-6 text-[#f8b195] animate-pulse" />
+                            <Star className="w-7 h-7 text-yellow-400 animate-bounce" />
+                            <Flower2 className="w-6 h-6 text-[#8eb69b] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        </div>
                         <h1 className="text-4xl font-black text-[#3d405b] mb-4">
                             联系我们
                         </h1>
+                        <div className="flex items-center justify-center mb-4">
+                            <DecorativeDivider />
+                        </div>
                         <p className="text-lg text-[#52566e] max-w-2xl mx-auto leading-relaxed">
                             欢迎小满虫们与我们联系交流！无论是反馈建议、合作洽谈，还是投稿分享，我们都非常期待听到您的声音。
                         </p>

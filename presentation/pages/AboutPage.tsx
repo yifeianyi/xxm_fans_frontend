@@ -3,11 +3,12 @@ import { Helmet } from 'react-helmet';
 import {
     Heart, Star, Share2, ExternalLink, Sparkles, Mic2, Users,
     Calendar, MapPin, Coffee, Feather, Music, Award, Camera,
-    Waves
+    Waves, Flower2, Leaf, Gem
 } from 'lucide-react';
 import VideoModal from '../components/common/VideoModal';
 import { siteSettingsService } from '../../infrastructure/api';
 import { SiteSettings, Milestone } from '../../infrastructure/api/RealSiteSettingsService';
+import { PageDecorations, DecorativeDivider } from '../components/common/PageDecorations';
 
 const AboutPage: React.FC = () => {
     const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
@@ -92,6 +93,9 @@ const AboutPage: React.FC = () => {
                 <title>关于咻咻满 - 个人简介、成长历程 | 小满虫之家</title>
                 <meta name="description" content="了解咻咻满的个人故事、艺术理念和成长历程。咻咻满，独立音乐人、音乐主播，以其独特的戏韵和治愈声线著称。生日3月19日，双鱼座，栖息在森林深处的树洞。" />
             </Helmet>
+            {/* 页面装饰 */}
+            <PageDecorations theme="default" showGlow={true} glowColors={['#f8b195', '#8eb69b']} />
+            
             <div className="max-w-6xl mx-auto px-4 py-16 space-y-24 animate-in fade-in duration-1000">
 
                 {/* 1. Hero Header */}
@@ -135,8 +139,14 @@ const AboutPage: React.FC = () => {
                 {/* 2. Voice Spectrum */}
                 <section className="space-y-12">
                     <div className="text-center space-y-2">
+                        <div className="flex items-center justify-center gap-3 mb-4">
+                            <Mic2 className="w-6 h-6 text-[#f8b195] animate-bounce" />
+                            <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+                            <Music className="w-6 h-6 text-[#8eb69b] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        </div>
                         <h2 className="text-4xl font-black text-[#4a3728] tracking-tighter">满の声线</h2>
                         <p className="text-[#8eb69b] font-bold text-sm tracking-widest uppercase">The Multi-Voice Spectrum</p>
+                        <DecorativeDivider />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {voiceCards.map((v, i) => (
@@ -151,8 +161,14 @@ const AboutPage: React.FC = () => {
                 {/* 3. Milestones */}
                 <section className="space-y-12">
                     <div className="text-center space-y-2">
+                        <div className="flex items-center justify-center gap-3 mb-4">
+                            <Calendar className="w-6 h-6 text-[#f8b195] animate-bounce" />
+                            <Star className="w-5 h-5 text-yellow-400 animate-pulse" />
+                            <Heart className="w-6 h-6 text-[#f67280] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        </div>
                         <h2 className="text-4xl font-black text-[#4a3728] tracking-tighter">满の时刻</h2>
                         <p className="text-[#8eb69b] font-bold">一路同行，记录关于梦想的每一个瞬间</p>
+                        <DecorativeDivider />
                     </div>
                     <div className="relative">
                         <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-[#8eb69b]/10 -translate-x-1/2 hidden md:block"></div>
@@ -189,9 +205,27 @@ const AboutPage: React.FC = () => {
                 </section>
 
                 {/* 4. Social Links */}
-                <section className="p-10 md:p-20 bg-white/40 rounded-[5rem] border-4 border-white shadow-2xl text-center space-y-12">
+                <section className="p-10 md:p-20 bg-white/40 rounded-[5rem] border-4 border-white shadow-2xl text-center space-y-12 relative overflow-hidden">
+                    {/* 角落装饰 */}
+                    <div className="absolute top-8 left-8">
+                        <Flower2 className="w-8 h-8 text-[#8eb69b]/30 animate-pulse" />
+                    </div>
+                    <div className="absolute top-8 right-8">
+                        <Leaf className="w-8 h-8 text-[#f8b195]/30 animate-bounce" style={{ animationDelay: '0.5s' }} />
+                    </div>
+                    <div className="absolute bottom-8 left-8">
+                        <Gem className="w-6 h-6 text-pink-300/30 animate-pulse" style={{ animationDelay: '1s' }} />
+                    </div>
+                    <div className="absolute bottom-8 right-8">
+                        <Sparkles className="w-8 h-8 text-yellow-400/30 animate-spin" style={{ animationDuration: '3s' }} />
+                    </div>
+                    
                     <div className="space-y-4">
-                        <h2 className="text-4xl font-black text-[#4a3728]">满の账号</h2>
+                        <div className="flex items-center justify-center gap-3">
+                            <Share2 className="w-6 h-6 text-[#f8b195] animate-bounce" />
+                            <h2 className="text-4xl font-black text-[#4a3728]">满の账号</h2>
+                            <ExternalLink className="w-6 h-6 text-[#8eb69b] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        </div>
                         <p className="text-[#8eb69b] font-bold text-lg max-w-xl mx-auto">关注满老师，在音乐的森林里，与每一份热爱重逢。</p>
                     </div>
                     <div className="flex flex-wrap justify-center gap-6">

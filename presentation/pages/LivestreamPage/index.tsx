@@ -18,6 +18,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { Flame, Crown, Star, Sparkles, Heart, Zap } from 'lucide-react';
 import { useLivestreamData } from './hooks/useLivestreamData';
 import { useLivestreamDetail } from './hooks/useLivestreamDetail';
 import LivestreamHeader from './components/LivestreamHeader';
@@ -25,6 +26,7 @@ import CalendarControl from './components/CalendarControl';
 import CalendarGrid from './components/CalendarGrid';
 import LiveDetail from './components/LiveDetail';
 import { Loading } from '../../components/common/Loading';
+import { PageDecorations } from '../../components/common/PageDecorations';
 
 const LivestreamPage: React.FC = () => {
   const { currentDate, lives, loading, changeMonth, loadLives, calendarCells, todayStr } = useLivestreamData();
@@ -36,6 +38,9 @@ const LivestreamPage: React.FC = () => {
         <title>咻咻满直播记录 - 直播回放、歌曲剪辑 | 小满虫之家</title>
         <meta name="description" content="查看咻咻满的直播记录，包括直播回放、歌曲剪辑和精彩截图。" />
       </Helmet>
+
+      {/* 页面装饰 - 直播主题 */}
+      <PageDecorations theme="live" glowColors={['#f8b195', '#f67280']} />
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
         {/* 顶部控制栏 */}

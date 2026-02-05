@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart } from 'lucide-react';
+import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart, Gem, Cloud } from 'lucide-react';
 import SongTable from '../components/features/SongTable';
 import RankingChart from '../components/features/RankingChart';
 import OriginalsList from '../components/features/OriginalsList';
 import TimelineChart from '../components/features/TimelineChart';
+import { PageDecorations } from '../components/common/PageDecorations';
 
 type TabType = 'hot' | 'all' | 'originals' | 'submit';
 
@@ -126,6 +127,13 @@ const SongsPage: React.FC = () => {
                 <title>{getPageTitle()} | 小满虫之家</title>
                 <meta name="description" content={getPageDescription()} />
             </Helmet>
+            
+            {/* 页面装饰 - 根据当前标签显示不同主题 */}
+            <PageDecorations 
+                theme={activeTab === 'hot' ? 'live' : activeTab === 'originals' ? 'music' : activeTab === 'submit' ? 'data' : 'default'}
+                glowColors={activeTab === 'hot' ? ['#f67280', '#f8b195'] : activeTab === 'originals' ? ['#f8b195', '#f6d365'] : ['#8eb69b', '#f8b195']}
+            />
+
             <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
                 {/* 标题区域 - 带装饰 */}
                 <div className="relative">

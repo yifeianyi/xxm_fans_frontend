@@ -142,10 +142,10 @@ const LivestreamPage: React.FC = () => {
         // 使用直播详情中的 songCuts
         const songCuts = livestreamData.songCuts || [];
         setSongRecords(songCuts.map(cut => ({
-          id: cut.performedAt,
+          id: cut.performed_at,
           songId: '',
-          songName: cut.songName,
-          date: cut.performedAt,
+          songName: cut.song_name,
+          date: cut.performed_at,
           cover: '',
           coverThumbnailUrl: '',
           note: '',

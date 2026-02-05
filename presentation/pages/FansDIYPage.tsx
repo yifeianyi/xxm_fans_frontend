@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Play, Heart, Sparkles, Palette, Star, Wand2, Paintbrush } from 'lucide-react';
+import { Play, Heart, Sparkles, Palette, Star, Wand2, Paintbrush, Gem, Flower2 } from 'lucide-react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { fanDIYService } from '../../infrastructure/api';
 import { FanWork, FanCollection } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
+import { PageDecorations } from '../components/common/PageDecorations';
 
 // 标题装饰组件
 const TitleDecoration: React.FC = () => {
@@ -176,6 +177,10 @@ const FansDIYPage: React.FC = () => {
                 {JSON.stringify(getStructuredData())}
             </script>
         </Helmet>
+        
+        {/* 页面装饰 - 粉丝主题 */}
+        <PageDecorations theme="fans" glowColors={['#f67280', '#f8b195']} />
+
         <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
         {/* 标题区域 - 带装饰 */}
         <div className="relative">

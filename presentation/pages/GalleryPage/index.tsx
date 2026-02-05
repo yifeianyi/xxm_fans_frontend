@@ -19,6 +19,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { Sparkles, Star, Heart, Camera, Sun } from 'lucide-react';
 import GallerySidebar from './components/GallerySidebar';
 import GalleryHeader from './components/GalleryHeader';
 import GalleryGrid from './components/GalleryGrid';
@@ -27,6 +28,7 @@ import ImageViewer from './components/ImageViewer';
 import ChildrenImagesDisplay from './components/ChildrenImagesDisplay';
 import WelcomeBanner from './components/WelcomeBanner';
 import { useGalleryData } from './hooks/useGalleryData';
+import { PageDecorations } from '../../components/common/PageDecorations';
 
 const GalleryPage: React.FC = () => {
   const {
@@ -79,6 +81,28 @@ const GalleryPage: React.FC = () => {
           }
         />
       </Helmet>
+
+      {/* 页面装饰 - 图集主题 */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-5">
+        <div className="absolute top-20 left-10 animate-bounce" style={{ animationDuration: '3s' }}>
+          <Star className="w-6 h-6 text-yellow-400/40" />
+        </div>
+        <div className="absolute top-32 left-24 animate-pulse" style={{ animationDelay: '0.4s' }}>
+          <Sparkles className="w-5 h-5 text-[#f8b195]/40" />
+        </div>
+        <div className="absolute top-24 right-16 animate-spin" style={{ animationDuration: '4s' }}>
+          <Sun className="w-8 h-8 text-orange-300/30" />
+        </div>
+        <div className="absolute top-40 right-8 animate-pulse" style={{ animationDelay: '0.6s' }}>
+          <Heart className="w-5 h-5 text-[#f67280]/30 fill-[#f67280]/30" />
+        </div>
+        <div className="absolute bottom-40 right-16 animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+          <Camera className="w-6 h-6 text-[#8eb69b]/30" />
+        </div>
+        <div className="absolute bottom-32 left-20 animate-pulse" style={{ animationDelay: '0.8s' }}>
+          <Sparkles className="w-5 h-5 text-pink-300/30" />
+        </div>
+      </div>
 
       <div className="flex h-screen bg-[#fef5f0]">
         <GallerySidebar

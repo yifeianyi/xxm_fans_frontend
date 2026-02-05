@@ -156,9 +156,10 @@ export interface Screenshot {
 }
 
 export interface SongCut {
-    performedAt: string;  // 演唱日期
-    songName: string;     // 歌曲名称
+    performed_at: string;  // 演唱日期
+    song_name: string;     // 歌曲名称
     url: string;          // 演唱记录链接（B站视频链接）
+    coverThumbnailUrl?: string;  // 封面缩略图 URL
 }
 
 export interface Livestream {

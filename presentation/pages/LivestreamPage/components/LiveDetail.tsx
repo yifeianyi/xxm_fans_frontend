@@ -71,7 +71,7 @@ const LiveDetail: React.FC<LiveDetailProps> = ({ live }) => {
               <div className="space-y-2">
                 {live.songCuts.slice(0, 5).map((cut, idx) => (
                   <div key={idx} className="bg-white/60 p-3 rounded-xl">
-                    <p className="text-sm font-black text-[#4a3728]">{cut.songName}</p>
+                    <p className="text-sm font-black text-[#4a3728]">{cut.song_name}</p>
                   </div>
                 ))}
                 {live.songCuts.length > 5 && (

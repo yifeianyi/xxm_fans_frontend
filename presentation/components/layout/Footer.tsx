@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Music, Heart, Video, Image, Trophy, Calendar, ExternalLink, Mail, Info } from 'lucide-react';
+import { Music, Heart, Video, Image, Trophy, Calendar, ExternalLink, Mail, Info, Sparkles, Star, Flower2 } from 'lucide-react';
 
 const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
@@ -26,9 +26,23 @@ const Footer: React.FC = () => {
     ];
 
     return (
-        <footer className="mt-auto border-t border-white/40 bg-white/10 backdrop-blur-sm">
+        <footer className="mt-auto border-t border-white/40 bg-white/10 backdrop-blur-sm relative overflow-hidden">
+            {/* 装饰元素 */}
+            <div className="absolute top-4 left-10 opacity-20">
+                <Sparkles className="w-5 h-5 text-[#f8b195] animate-pulse" />
+            </div>
+            <div className="absolute top-8 right-20 opacity-20">
+                <Star className="w-4 h-4 text-yellow-400 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+            <div className="absolute bottom-20 left-1/4 opacity-15">
+                <Flower2 className="w-6 h-6 text-[#8eb69b] animate-bounce" style={{ animationDuration: '4s' }} />
+            </div>
+            <div className="absolute top-16 right-1/3 opacity-15">
+                <Heart className="w-5 h-5 text-[#f67280] animate-pulse" style={{ animationDelay: '0.5s' }} />
+            </div>
+            
             {/* 主要内容区 */}
-            <div className="max-w-6xl mx-auto px-4 py-12">
+            <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* 站点介绍 */}
                     <div className="space-y-4 md:col-span-1">
@@ -123,7 +137,12 @@ const Footer: React.FC = () => {
                 </div>
 
                 {/* SEO描述文字 */}
-                <p className="text-center text-[10px] text-[#a5c9b1] mt-4 max-w-2xl mx-auto leading-relaxed">
+                <div className="flex items-center justify-center gap-2 mb-4">
+                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-[#a5c9b1]/50" />
+                    <Sparkles className="w-3 h-3 text-[#a5c9b1]" />
+                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-[#a5c9b1]/50" />
+                </div>
+                <p className="text-center text-[10px] text-[#a5c9b1] max-w-2xl mx-auto leading-relaxed">
                     春风拂过青草地，满满歌声暖人心。本站为咻咻满粉丝自建 网站，
                     所有资源版权归原著作权人所有。用音乐记录每一份感动，用热爱传递每一段美好。
                     欢迎关注咻咻满B站直播间，每周固定时间直播，带来精彩歌曲演唱和互动。

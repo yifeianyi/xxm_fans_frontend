@@ -27,7 +27,7 @@ const generateSongRecords = (date: string, count: number): SongRecord[] => {
         cover: `https://picsum.photos/seed/record-${date}-${i}/800/600`,
         coverThumbnailUrl: `https://picsum.photos/seed/record-${date}-${i}/160/120`,
         note: `精彩演唱 #${i + 1}`,
-        videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
+        url: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
     }));
 };
 
@@ -88,10 +88,10 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=2' }
             ],
             songCuts: [
-                { name: '月光小夜曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=3' },
-                { name: '雪花飘飘', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=4' },
-                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=5' },
-                { name: '未命名', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=6' }
+                { performed_at: '', song_name: '月光小夜曲', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=3' },
+                { performed_at: '', song_name: '雪花飘飘', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=4' },
+                { performed_at: '', song_name: '森林来信', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=5' },
+                { performed_at: '', song_name: '未命名', url: 'https://player.bilibili.com/player.html?bvid=BV1GJ411x7hD&p=6' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251205ss1/800/450',
@@ -117,9 +117,9 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD' }
             ],
             songCuts: [
-                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=1' },
-                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=2' },
-                { name: '你的名字', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=3' }
+                { performed_at: '', song_name: '满天星', url: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=1' },
+                { performed_at: '', song_name: '溯光者', url: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=2' },
+                { performed_at: '', song_name: '你的名字', url: 'https://player.bilibili.com/player.html?bvid=BV1hJ411x7hD&p=3' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251212ss1/800/450',
@@ -143,10 +143,10 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD' }
             ],
             songCuts: [
-                { name: '冬至夜', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=1' },
-                { name: '暖冬', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=2' },
-                { name: '陪伴', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=3' },
-                { name: '晚安曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=4' }
+                { performed_at: '', song_name: '冬至夜', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=1' },
+                { performed_at: '', song_name: '暖冬', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=2' },
+                { performed_at: '', song_name: '陪伴', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=3' },
+                { performed_at: '', song_name: '晚安曲', url: 'https://player.bilibili.com/player.html?bvid=BV1kJ411x7hD&p=4' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251220ss1/800/450',
@@ -174,11 +174,11 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=3' }
             ],
             songCuts: [
-                { name: '圣诞快乐', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=4' },
-                { name: '平安夜', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=5' },
-                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=6' },
-                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=7' },
-                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=8' }
+                { performed_at: '', song_name: '圣诞快乐', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=4' },
+                { performed_at: '', song_name: '平安夜', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=5' },
+                { performed_at: '', song_name: '满天星', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=6' },
+                { performed_at: '', song_name: '溯光者', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=7' },
+                { performed_at: '', song_name: '森林来信', url: 'https://player.bilibili.com/player.html?bvid=BV1pJ411x7hD&p=8' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251225ss1/800/450',
@@ -208,10 +208,10 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '2026展望', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=3' }
             ],
             songCuts: [
-                { name: '这一年', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=4' },
-                { name: '新年快乐', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=5' },
-                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=6' },
-                { name: '未来可期', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=7' }
+                { performed_at: '', song_name: '这一年', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=4' },
+                { performed_at: '', song_name: '新年快乐', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=5' },
+                { performed_at: '', song_name: '满天星', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=6' },
+                { performed_at: '', song_name: '未来可期', url: 'https://player.bilibili.com/player.html?bvid=BV1vJ411x7hD&p=7' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251231ss1/800/450',
@@ -241,9 +241,9 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD' }
             ],
             songCuts: [
-                { name: '秋意浓', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=1' },
-                { name: '落叶', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=2' },
-                { name: '月光小夜曲', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=3' }
+                { performed_at: '', song_name: '秋意浓', url: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=1' },
+                { performed_at: '', song_name: '落叶', url: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=2' },
+                { performed_at: '', song_name: '月光小夜曲', url: 'https://player.bilibili.com/player.html?bvid=BV1cJ411x7hD&p=3' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251108ss1/800/450',
@@ -267,11 +267,11 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD' }
             ],
             songCuts: [
-                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=1' },
-                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=2' },
-                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=3' },
-                { name: '你的名字', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=4' },
-                { name: '未命名', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=5' }
+                { performed_at: '', song_name: '满天星', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=1' },
+                { performed_at: '', song_name: '溯光者', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=2' },
+                { performed_at: '', song_name: '森林来信', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=3' },
+                { performed_at: '', song_name: '你的名字', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=4' },
+                { performed_at: '', song_name: '未命名', url: 'https://player.bilibili.com/player.html?bvid=BV1dJ411x7hD&p=5' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251115ss1/800/450',
@@ -298,10 +298,10 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '下半场', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=2' }
             ],
             songCuts: [
-                { name: '感谢有你', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=3' },
-                { name: '陪伴', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=4' },
-                { name: '满天星', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=5' },
-                { name: '溯光者', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=6' }
+                { performed_at: '', song_name: '感谢有你', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=3' },
+                { performed_at: '', song_name: '陪伴', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=4' },
+                { performed_at: '', song_name: '满天星', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=5' },
+                { performed_at: '', song_name: '溯光者', url: 'https://player.bilibili.com/player.html?bvid=BV1eJ411x7hD&p=6' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251122ss1/800/450',
@@ -327,9 +327,9 @@ const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
                 { title: '完整回放', url: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD' }
             ],
             songCuts: [
-                { name: '11月总结', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=1' },
-                { name: '新歌预告', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=2' },
-                { name: '森林来信', videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=3' }
+                { performed_at: '', song_name: '11月总结', url: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=1' },
+                { performed_at: '', song_name: '新歌预告', url: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=2' },
+                { performed_at: '', song_name: '森林来信', url: 'https://player.bilibili.com/player.html?bvid=BV1fJ411x7hD&p=3' }
             ],
             screenshots: [
                 'https://picsum.photos/seed/20251129ss1/800/450',
@@ -391,7 +391,7 @@ const MOCK_MONTHLY_RECORDS: SongRecord[] = Array.from({ length: 12 }, (_, i) => 
     date: `2025-01-${(i * 2 + 1).toString().padStart(2, '0')}`,
     cover: `https://picsum.photos/seed/rec${i}/800/600`,
     note: `精彩演唱瞬间 #${i + 1}`,
-    videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
+    url: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
 }));
 
 export const mockApi = {
@@ -401,7 +401,7 @@ export const mockApi = {
         return [
             {
                 id: 'main',
-                name: '咻咻满 (主站)',
+                song_name: '咻咻满 (主站)',
                 totalFollowers: 1254800,
                 history: {
                     HOUR: generatePoints(24, 1250000, 300),
@@ -411,7 +411,7 @@ export const mockApi = {
             },
             {
                 id: 'sub',
-                name: '小满虫的树洞',
+                song_name: '小满虫的树洞',
                 totalFollowers: 158000,
                 history: {
                     HOUR: generatePoints(24, 150000, 50),
