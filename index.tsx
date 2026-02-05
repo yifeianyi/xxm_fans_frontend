@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App';
+import { SWRProvider } from './infrastructure/components/SWRProvider';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,6 +13,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   // <React.StrictMode>
-    <App />
+    <SWRProvider>
+      <App />
+    </SWRProvider>
   // </React.StrictMode>
 );

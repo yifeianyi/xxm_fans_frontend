@@ -1,18 +1,45 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import ErrorBoundary from './presentation/components/common/ErrorBoundary';
 import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
-import HomePage from './presentation/pages/HomePage';
-import SongsPage from './presentation/pages/SongsPage';
-import OriginalsPage from './presentation/pages/OriginalsPage';
-import FansDIYPage from './presentation/pages/FansDIYPage';
-import AboutPage from './presentation/pages/AboutPage';
-import GalleryPage from './presentation/pages/GalleryPage';
-import LivestreamPage from './presentation/pages/LivestreamPage';
-import DataAnalysisPage from './presentation/pages/DataAnalysisPage';
+import { Loading } from './presentation/components/common/Loading';
+
+// 使用 React.lazy 实现路由级代码分割
+// 将页面组件拆分为独立的 chunk，按需加载
+const HomePage = lazy(() => import('./presentation/pages/HomePage'));
+const SongsPage = lazy(() => import('./presentation/pages/SongsPage'));
+const OriginalsPage = lazy(() => import('./presentation/pages/OriginalsPage'));
+const FansDIYPage = lazy(() => import('./presentation/pages/FansDIYPage'));
+const AboutPage = lazy(() => import('./presentation/pages/AboutPage'));
+const GalleryPage = lazy(() => import('./presentation/pages/GalleryPage'));
+const LivestreamPage = lazy(() => import('./presentation/pages/LivestreamPage'));
+const DataAnalysisPage = lazy(() => import('./presentation/pages/DataAnalysisPage'));
+
+// 路由配置
+const routes = [
+    { path: '/', element: <HomePage /> },
+    { path: '/songs', element: <SongsPage /> },
+    { path: '/songs/hot', element: <SongsPage /> },
+    { path: '/songs/originals', element: <SongsPage /> },
+    { path: '/songs/submit', element: <SongsPage /> },
+    { path: '/originals', element: <OriginalsPage /> },
+    { path: '/gallery', element: <GalleryPage /> },
+    { path: '/live', element: <LivestreamPage /> },
+    { path: '/data', element: <DataAnalysisPage /> },
+    { path: '/fansDIY', element: <FansDIYPage /> },
+    { path: '/fansDIY/:collectionId', element: <FansDIYPage /> },
+    { path: '/about', element: <AboutPage /> },
+];
+
+// 页面加载 fallback 组件
+const PageLoading: React.FC = () => (
+    <div className="min-h-[50vh] flex items-center justify-center">
+        <Loading size="lg" />
+    </div>
+);
 
 const App: React.FC = () => {
     return (
@@ -24,20 +51,17 @@ const App: React.FC = () => {
                 <div className="min-h-screen flex flex-col transition-all duration-500">
                     <Navbar />
                     <main className="flex-1">
-                        <ReactRouterDOM.Routes>
-                            <ReactRouterDOM.Route path="/" element={<HomePage />} />
-                            <ReactRouterDOM.Route path="/songs" element={<SongsPage />} />
-                            <ReactRouterDOM.Route path="/songs/hot" element={<SongsPage />} />
-                            <ReactRouterDOM.Route path="/songs/originals" element={<SongsPage />} />
-                            <ReactRouterDOM.Route path="/songs/submit" element={<SongsPage />} />
-                            <ReactRouterDOM.Route path="/originals" element={<OriginalsPage />} />
-                            <ReactRouterDOM.Route path="/gallery" element={<GalleryPage />} />
-                            <ReactRouterDOM.Route path="/live" element={<LivestreamPage />} />
-                            <ReactRouterDOM.Route path="/data" element={<DataAnalysisPage />} />
-                            <ReactRouterDOM.Route path="/fansDIY" element={<FansDIYPage />} />
-                            <ReactRouterDOM.Route path="/fansDIY/:collectionId" element={<FansDIYPage />} />
-                            <ReactRouterDOM.Route path="/about" element={<AboutPage />} />
-                        </ReactRouterDOM.Routes>
+                        <Suspense fallback={<PageLoading />}>
+                            <ReactRouterDOM.Routes>
+                                {routes.map((route) => (
+                                    <ReactRouterDOM.Route
+                                        key={route.path}
+                                        path={route.path}
+                                        element={route.element}
+                                    />
+                                ))}
+                            </ReactRouterDOM.Routes>
+                        </Suspense>
                     </main>
                     <Footer />
                 </div>
