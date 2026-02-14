@@ -191,7 +191,7 @@ const SongTable: React.FC = () => {
             <col className="w-[8%]" />
           </colgroup>
           <thead>
-            <tr className="bg-[#f2f9f1]/90 text-[#8eb69b] text-[11px] font-black border-b border-white/40 uppercase tracking-tighter">
+            <tr className="bg-[#f2f9f1]/90 text-[#8eb69b] text-[11px] lg:text-base font-black border-b border-white/40 uppercase tracking-tighter">
               <th className="px-1 py-4">歌名</th>
               <th className="px-1 py-4 cursor-pointer hover:text-[#f8b195]" onClick={() => handleSort('originalArtist')}>
                 原唱 {sortBy === 'singer' && (sortDir === 'asc' ? '↑' : '↓')}
@@ -211,7 +211,7 @@ const SongTable: React.FC = () => {
               <th className="px-1 py-4">记录</th>
             </tr>
           </thead>
-          <tbody className="text-[#4a3728] text-[11px] font-bold">
+          <tbody className="text-[#4a3728] text-[11px] lg:text-base font-bold">
             {loading ? (
               <tr><td colSpan={9} className="py-24"><Loading text="" /></td></tr>
             ) : songs.map(song => (
@@ -219,7 +219,7 @@ const SongTable: React.FC = () => {
                 <tr className={`border-b border-white/10 hover:bg-white/40 transition-all ${expandedId === song.id ? 'bg-white/50' : ''}`}>
                   <td className="px-1 py-4">
                     <button onClick={() => handleCopy(song.name)} className="group flex flex-col items-center hover:text-[#f8b195] font-black transition-all mx-auto max-w-full leading-tight">
-                      <span className="text-[12px] break-words px-1">{song.name}</span>
+                      <span className="text-[12px] lg:text-base break-words px-1">{song.name}</span>
                       {copyStatus === song.name && <span className="text-[8px] text-green-500 font-normal">已复制</span>}
                     </button>
                   </td>
@@ -231,7 +231,7 @@ const SongTable: React.FC = () => {
                   <td className="px-1 py-4">
                     <div className="grid grid-cols-2 gap-1 w-fit mx-auto">
                       {song.genres.map(g => (
-                        <button key={g} onClick={() => handleQuickFilter('genres', g)} className="text-[8px] px-1.5 py-0.5 bg-[#f1f8f1] text-[#8eb69b] rounded-md font-bold border border-[#8eb69b]/10 whitespace-nowrap">
+                        <button key={g} onClick={() => handleQuickFilter('genres', g)} className="text-[8px] lg:text-xs px-1.5 py-0.5 bg-[#f1f8f1] text-[#8eb69b] rounded-md font-bold border border-[#8eb69b]/10 whitespace-nowrap">
                           {g}
                         </button>
                       ))}
@@ -244,11 +244,11 @@ const SongTable: React.FC = () => {
                       ))}
                     </div>
                   </td>
-                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.firstPerformance ? song.firstPerformance.slice(2) : '-'}</td>
-                  <td className="px-1 py-4 text-[10px] text-[#8eb69b] font-bold whitespace-nowrap">{song.lastPerformance ? song.lastPerformance.slice(2) : '-'}</td>
+                  <td className="px-1 py-4 text-[10px] lg:text-sm text-[#8eb69b] font-bold whitespace-nowrap">{song.firstPerformance ? song.firstPerformance.slice(2) : '-'}</td>
+                  <td className="px-1 py-4 text-[10px] lg:text-sm text-[#8eb69b] font-bold whitespace-nowrap">{song.lastPerformance ? song.lastPerformance.slice(2) : '-'}</td>
                   <td className="px-1 py-4">
                     <div className="flex justify-center">
-                      <span className="inline-flex items-center justify-center w-8 h-8 bg-[#fef5f0] text-[#f8b195] rounded-full text-[13px] font-black">
+                      <span className="inline-flex items-center justify-center w-8 h-8 bg-[#fef5f0] text-[#f8b195] rounded-full text-[13px] lg:text-base font-black">
                         {song.performanceCount}
                       </span>
                     </div>
@@ -256,7 +256,7 @@ const SongTable: React.FC = () => {
                   <td className="px-1 py-4">
                     <div className="flex flex-wrap gap-1 justify-center">
                       {song.tags.map(t => (
-                        <button key={t} onClick={() => handleQuickFilter('tags', t)} className="text-[8px] px-2 py-0.5 bg-[#fffceb] text-[#d4af37] border border-[#d4af37]/20 rounded-md font-black whitespace-nowrap">
+                        <button key={t} onClick={() => handleQuickFilter('tags', t)} className="text-[8px] lg:text-xs px-2 py-0.5 bg-[#fffceb] text-[#d4af37] border border-[#d4af37]/20 rounded-md font-black whitespace-nowrap">
                           {t}
                         </button>
                       ))}
@@ -279,7 +279,7 @@ const SongTable: React.FC = () => {
         {/* 紧凑型分页器 */}
         {totalPages > 1 && (
           <div className="px-4 py-4 flex items-center justify-between bg-white/10 border-t border-white/20">
-            <span className="text-[10px] text-[#8eb69b] font-black tracking-widest hidden sm:inline">
+            <span className="text-[10px] lg:text-xs text-[#8eb69b] font-black tracking-widest hidden sm:inline">
               {total} SONGS • PAGE {page}/{totalPages}
             </span>
             <div className="flex items-center gap-1 mx-auto sm:mx-0">
@@ -294,7 +294,7 @@ const SongTable: React.FC = () => {
                     <button
                       key={p}
                       onClick={() => setPage(p as number)}
-                      className={`min-w-[28px] h-7 rounded-lg text-[10px] font-black transition-all border ${page === p ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-sm' : 'bg-white/40 text-[#8eb69b] border-white/60 hover:border-[#f8b195]/40'}`}
+                      className={`min-w-[28px] h-7 rounded-lg text-[10px] lg:text-xs font-black transition-all border ${page === p ? 'bg-[#f8b195] text-white border-[#f8b195] shadow-sm' : 'bg-white/40 text-[#8eb69b] border-white/60 hover:border-[#f8b195]/40'}`}
                     >
                       {p}
                     </button>
