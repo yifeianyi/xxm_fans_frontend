@@ -64,14 +64,17 @@ function FansDIYContent() {
         const init = async () => {
             setLoading(true);
             try {
+                console.log('[FansDIY] Loading data...');
                 const [colsResult, worksResult] = await Promise.all([
                     getCollections(),
                     getWorks({ page_size: 100 })
                 ]);
+                console.log('[FansDIY] Collections:', colsResult);
+                console.log('[FansDIY] Works:', worksResult);
                 setCollections(colsResult);
                 setWorks(worksResult.results);
             } catch (error) {
-                console.error('数据加载失败:', error);
+                console.error('[FansDIY] 数据加载失败:', error);
             } finally {
                 setLoading(false);
             }

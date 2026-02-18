@@ -13,10 +13,12 @@ const CACHE_TIMES = {
  * 获取二创合集列表
  */
 export async function getCollections(): Promise<FanCollection[]> {
-    const result = await get<any[]>('/fansDIY/collections/', CACHE_TIMES.COLLECTIONS);
+    const result = await get<any>('/fansDIY/collections/', CACHE_TIMES.COLLECTIONS);
     
     if (result.data) {
-        return result.data.map(transformCollection);
+        // 后端返回分页格式: { total, page, results: [...] }
+        const items = result.data.results || result.data;
+        return items.map(transformCollection);
     }
     throw result.error || new Error('Failed to fetch collections');
 }
