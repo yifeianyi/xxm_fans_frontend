@@ -36,6 +36,8 @@ export default function MusicPlayer({ songId, onClose }: MusicPlayerProps) {
                         src={`//music.163.com/outchain/player?type=2&id=${songId}&auto=1&height=32`}
                         className="w-full h-full"
                         title="网易云音乐播放器"
+                        sandbox="allow-scripts allow-same-origin allow-popups"
+                        loading="lazy"
                     ></iframe>
                 </div>
 

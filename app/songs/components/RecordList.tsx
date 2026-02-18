@@ -4,9 +4,7 @@ import React from 'react';
 import { Play } from 'lucide-react';
 import { SongRecord } from '@/app/domain/types';
 import { useSongRecords } from '@/app/infrastructure/hooks/useSongs';
-
-// API 基础 URL - 用于拼接图片路径
-const API_BASE_URL = 'http://localhost:8000';
+import { getFullCoverUrl } from '@/app/infrastructure/api/base';
 
 interface RecordListProps {
     songId: string;
@@ -18,9 +16,7 @@ export default function RecordList({ songId, onPlay }: RecordListProps) {
 
     // 构建完整图片 URL
     const getFullImageUrl = (path: string | null | undefined): string => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        return `${API_BASE_URL}${path}`;
+        return getFullCoverUrl(path);
     };
 
     if (isLoading) {

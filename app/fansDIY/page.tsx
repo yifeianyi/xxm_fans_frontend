@@ -64,17 +64,14 @@ function FansDIYContent() {
         const init = async () => {
             setLoading(true);
             try {
-                console.log('[FansDIY] Loading data...');
                 const [colsResult, worksResult] = await Promise.all([
                     getCollections(),
                     getWorks({ page_size: 100 })
                 ]);
-                console.log('[FansDIY] Collections:', colsResult);
-                console.log('[FansDIY] Works:', worksResult);
                 setCollections(colsResult);
                 setWorks(worksResult.results);
             } catch (error) {
-                console.error('[FansDIY] 数据加载失败:', error);
+                // 数据加载失败，静默处理
             } finally {
                 setLoading(false);
             }
@@ -93,7 +90,7 @@ function FansDIYContent() {
                 const result = await getWorks({ collection: newCol, page_size: 100 });
                 setWorks(result.results);
             } catch (error) {
-                console.error('[FansDIY] 加载合集作品失败:', error);
+                // 加载合集作品失败，静默处理
             } finally {
                 setLoading(false);
             }
@@ -105,7 +102,7 @@ function FansDIYContent() {
                 const result = await getWorks({ page_size: 100 });
                 setWorks(result.results);
             } catch (error) {
-                console.error('[FansDIY] 加载所有作品失败:', error);
+                // 加载所有作品失败，静默处理
             } finally {
                 setLoading(false);
             }

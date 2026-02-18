@@ -38,9 +38,6 @@ export default function RankingChart() {
         },
         {
             shouldRetryOnError: false,
-            onError: (err) => {
-                console.log('Recommendation API not available:', err.message);
-            }
         }
     );
 

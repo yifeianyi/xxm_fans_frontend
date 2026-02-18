@@ -51,7 +51,8 @@ export default function OriginalsList() {
         }
 
         // 如果点击的是当前正在播放的歌曲，则停止播放
-        if (currentWork && currentWork.title === work.title) {
+        // 使用 title + date 组合作为唯一标识（原唱作品可能没有唯一 ID）
+        if (currentWork && currentWork.title === work.title && currentWork.date === work.date) {
             setCurrentWork(null);
             return;
         }
@@ -61,7 +62,8 @@ export default function OriginalsList() {
 
     const isWorkPlaying = (work: OriginalWork) => {
         if (!currentWork) return false;
-        return currentWork.title === work.title;
+        // 使用 title + date 组合作为唯一标识
+        return currentWork.title === work.title && currentWork.date === work.date;
     };
 
     // 错误提示

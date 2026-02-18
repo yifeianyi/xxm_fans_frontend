@@ -21,9 +21,6 @@ export default function AboutPage() {
                     getMilestones(),
                 ]);
 
-                console.log('[AboutPage] Settings loaded:', settings);
-                console.log('[AboutPage] Avatar URL:', settings?.artist_avatar_url);
-
                 setSiteSettings(settings);
                 setMilestones(milestonesData);
             } catch (error) {
@@ -97,7 +94,6 @@ export default function AboutPage() {
                                 alt={siteSettings?.artist_name || "XXM Hero"}
                                 className="absolute inset-0 w-full h-full object-cover rounded-[4rem] border-4 border-white -rotate-3 hover:rotate-0 transition-all duration-700"
                                 onError={(e) => {
-                                    console.error('[AboutPage] Image failed to load:', siteSettings?.artist_avatar_url);
                                     e.currentTarget.src = "https://picsum.photos/seed/xxm_hero/800/800";
                                 }}
                             />

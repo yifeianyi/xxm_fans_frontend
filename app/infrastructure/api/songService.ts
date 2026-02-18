@@ -27,7 +27,6 @@ class ApiClient {
             const normalizedBaseURL = this.baseURL.endsWith('/') ? this.baseURL : `${this.baseURL}/`;
             const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
             const url = `${normalizedBaseURL}${normalizedEndpoint}`;
-            console.log(`[API Request] ${url}`);
 
             const response = await fetch(url, {
                 ...options,

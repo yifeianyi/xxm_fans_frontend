@@ -45,8 +45,6 @@ export async function request<T>(
     const url = `${normalizedBaseURL}${normalizedEndpoint}`;
     
     try {
-        console.log(`[API Request] ${isServerSide ? '[SSR]' : '[CSR]'} ${url}`);
-        
         // Next.js fetch 选项
         const fetchOptions: any = {
             ...options,
@@ -68,8 +66,6 @@ export async function request<T>(
         }
 
         const responseData = await response.json();
-        
-        console.log(`[API Response] ${endpoint}:`, responseData ? 'OK' : 'Empty');
 
         // 处理后端的统一响应格式: { code, message, data }
         if (responseData && typeof responseData === 'object' && 'code' in responseData) {
@@ -85,15 +81,8 @@ export async function request<T>(
     } catch (error) {
         // 详细错误日志
         if (error instanceof ApiError) {
-            console.error(`[API Error] ${endpoint}:`, {
-                status: error.status,
-                message: error.message,
-                url: url,
-                isServerSide: isServerSide
-            });
             return { error };
         }
-        console.error(`[API Network Error] ${endpoint}:`, error);
         return { error: new ApiError(500, 'Network error') };
     }
 }
@@ -131,11 +120,6 @@ export function getFullCoverUrl(coverPath: string | null | undefined): string {
     const normalizedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
     const mediaBaseURL = getMediaBaseURL();
     const fullUrl = `${mediaBaseURL}${normalizedPath}`;
-    
-    // 调试日志（开发环境）
-    if (typeof window !== 'undefined') {
-        console.log('[getFullCoverUrl]', { coverPath, mediaBaseURL, fullUrl });
-    }
     
     return fullUrl;
 }

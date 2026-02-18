@@ -1,52 +1,52 @@
 /**
- * useDebounce - 防抖Hook
+ * useDebounce - 防抖 Hook（值版本）
  *
  * @module shared/hooks
- * @description 延迟执行函数，避免频繁触发
+ * @description 延迟更新值，避免频繁触发
  *
  * @example
  * ```tsx
- * const debouncedSearch = useDebounce(search, 500);
+ * const debouncedSearchTerm = useDebounce(searchTerm, 500);
  * ```
- *
- * @category Hooks
- * @subcategory Shared
- *
- * @version 1.0.0
- * @since 2024-01-31
  */
 
 import { useState, useEffect } from 'react';
 
 /**
- * 防抖Hook
+ * 防抖 Hook - 值版本
  *
- * 延迟执行函数，避免频繁触发
+ * 延迟更新值，避免频繁触发
  *
- * @template T - 函数类型
- * @param {T} func - 要防抖的函数
+ * @template T - 值的类型
+ * @param {T} value - 要防抖的值
  * @param {number} delay - 延迟时间（毫秒）
- * @returns {T} 防抖后的函数
+ * @returns {T} 防抖后的值
  *
  * @example
  * ```tsx
- * const debouncedSearch = useDebounce(search, 500);
+ * const [searchTerm, setSearchTerm] = useState('');
+ * const debouncedSearchTerm = useDebounce(searchTerm, 500);
+ *
+ * // 使用 debouncedSearchTerm 进行搜索，避免每次输入都触发
+ * useEffect(() => {
+ *   searchAPI(debouncedSearchTerm);
+ * }, [debouncedSearchTerm]);
  * ```
  */
-function useDebounce<T extends (...args: any[]) => any>(func: T, delay: number): T {
-  const [debouncedFunc, setDebouncedFunc] = useState<T>(() => func);
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedFunc(() => func);
-    }, delay);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [func, delay]);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
 
-  return debouncedFunc;
+    return debouncedValue;
 }
 
 export default useDebounce;
