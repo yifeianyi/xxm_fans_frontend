@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useSongs } from '@/app/infrastructure/hooks/useSongs';
 import { Song, FilterState } from '@/app/domain/types';
@@ -12,10 +12,7 @@ const TAGS = ['小甜歌', '高难度', '经典', '新歌', '合唱', '现场'];
 const LANGUAGES = ['国语', '粤语', '英语', '日语', '韩语'];
 
 export default function SongTable() {
-    const [songs, setSongs] = useState<Song[]>([]);
-    const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [filters, setFilters] = useState<FilterState>({ genres: [], tags: [], languages: [] });
     const [showFilters, setShowFilters] = useState(false);
@@ -24,7 +21,7 @@ export default function SongTable() {
     const [sortBy, setSortBy] = useState<string>('last_performed');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-    const { songs: fetchedSongs, total: fetchedTotal, isLoading } = useSongs({
+    const { songs, total, isLoading, error } = useSongs({
         q: search,
         page,
         limit: 50,
@@ -33,17 +30,6 @@ export default function SongTable() {
         tags: filters.tags.join(','),
         language: filters.languages.join(','),
     });
-
-    useEffect(() => {
-        if (fetchedSongs) {
-            setSongs(fetchedSongs);
-            setTotal(fetchedTotal);
-        }
-    }, [fetchedSongs, fetchedTotal]);
-
-    useEffect(() => {
-        setLoading(isLoading);
-    }, [isLoading]);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,6 +100,22 @@ export default function SongTable() {
         }
         return pages;
     }, [page, totalPages]);
+
+    // 错误提示
+    if (error) {
+        return (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <p className="text-red-600 font-bold mb-2">数据加载失败</p>
+                <p className="text-red-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg font-bold hover:bg-red-200 transition-colors"
+                >
+                    重试
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -210,6 +212,16 @@ export default function SongTable() {
                 )}
             </div>
 
+            {/* 数据状态显示 */}
+            <div className="flex items-center justify-between px-2">
+                <p className="text-sm text-[#8eb69b]">
+                    {isLoading ? '加载中...' : `共 ${total} 首歌曲`}
+                </p>
+                <p className="text-sm text-[#8eb69b]">
+                    第 {page} / {totalPages} 页
+                </p>
+            </div>
+
             {/* 表格 */}
             <div className="bg-white/60 rounded-2xl shadow-sm border-2 border-white overflow-hidden">
                 <div className="overflow-x-auto">
@@ -241,7 +253,7 @@ export default function SongTable() {
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? (
+                            {isLoading ? (
                                 <tr>
                                     <td colSpan={7} className="px-4 py-12 text-center text-[#8eb69b]">
                                         <div className="flex items-center justify-center gap-2">
@@ -258,7 +270,7 @@ export default function SongTable() {
                                     </td>
                                 </tr>
                             ) : (
-                                songs.map((song, index) => (
+                                songs.map((song: Song, index: number) => (
                                     <React.Fragment key={song.id}>
                                         <tr 
                                             className="border-t border-[#8eb69b]/10 hover:bg-white/40 transition-colors cursor-pointer"
@@ -271,7 +283,7 @@ export default function SongTable() {
                                                 <div className="font-bold text-[#5d4037]">{song.name}</div>
                                                 {song.tags.length > 0 && (
                                                     <div className="flex gap-1 mt-1">
-                                                        {song.tags.slice(0, 2).map(tag => (
+                                                        {song.tags.slice(0, 2).map((tag: string) => (
                                                             <span key={tag} className="px-1.5 py-0.5 bg-[#f8b195]/20 text-[#f8b195] text-xs rounded">
                                                                 {tag}
                                                             </span>
@@ -282,7 +294,7 @@ export default function SongTable() {
                                             <td className="px-4 py-3 text-sm text-[#8eb69b]">{song.originalArtist}</td>
                                             <td className="px-4 py-3">
                                                 <div className="flex flex-wrap gap-1">
-                                                    {song.genres.slice(0, 2).map(genre => (
+                                                    {song.genres.slice(0, 2).map((genre: string) => (
                                                         <span key={genre} className="px-2 py-0.5 bg-[#8eb69b]/20 text-[#8eb69b] text-xs rounded-full">
                                                             {genre}
                                                         </span>

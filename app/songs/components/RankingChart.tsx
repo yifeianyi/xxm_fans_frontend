@@ -7,7 +7,7 @@ import { Song } from '@/app/domain/types';
 
 export default function RankingChart() {
     const [range, setRange] = useState<'all' | '3m' | '1y'>('all');
-    const { topSongs, isLoading } = useTopSongs(range);
+    const { topSongs, isLoading, error } = useTopSongs(range);
 
     const maxCount = topSongs.length > 0 
         ? Math.max(...topSongs.map((s: Song) => s.performanceCount), 1) 
@@ -19,6 +19,16 @@ export default function RankingChart() {
         if (index === 2) return 'from-orange-400 via-orange-500 to-orange-600';
         return 'from-[#8eb69b] to-[#f8b195]';
     };
+
+    // 错误提示
+    if (error) {
+        return (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <p className="text-red-600 font-bold mb-2">排行榜加载失败</p>
+                <p className="text-red-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -63,6 +73,10 @@ export default function RankingChart() {
                         <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                         <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
+                </div>
+            ) : topSongs.length === 0 ? (
+                <div className="text-center py-12 text-[#8eb69b]">
+                    <p>暂无排行榜数据</p>
                 </div>
             ) : (
                 <div className="space-y-3">

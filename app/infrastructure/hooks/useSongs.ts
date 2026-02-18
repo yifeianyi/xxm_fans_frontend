@@ -4,7 +4,26 @@ import useSWR from 'swr';
 import { Song, SongRecord } from '@/app/domain/types';
 import { PaginatedResult, GetSongsParams, GetRecordsParams } from '../api/apiTypes';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+// 处理后端统一响应格式: { code, message, data }
+const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    
+    // 如果后端返回统一格式 { code, message, data }
+    if (result && typeof result === 'object' && 'code' in result) {
+        if (result.code === 200) {
+            return result.data;
+        } else {
+            throw new Error(result.message || 'API error');
+        }
+    }
+    
+    // 直接返回数据
+    return result;
+};
 
 /**
  * 歌曲列表 Hook - 用于 Client Components
@@ -28,9 +47,10 @@ export function useSongs(
         { fallbackData }
     );
 
+    // 后端返回 total，不是 count
     return {
         songs: data?.results || [],
-        total: data?.count || 0,
+        total: data?.total || data?.count || 0,
         isLoading,
         error,
         mutate,
@@ -74,7 +94,7 @@ export function useSongRecords(
 
     return {
         records: data?.results || [],
-        total: data?.count || 0,
+        total: data?.total || data?.count || 0,
         isLoading,
         error,
     };
