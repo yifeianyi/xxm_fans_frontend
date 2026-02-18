@@ -4,13 +4,21 @@ import useSWR from 'swr';
 import { Song, SongRecord } from '@/app/domain/types';
 import { PaginatedResult, GetSongsParams, GetRecordsParams } from '../api/apiTypes';
 
+// API 基础 URL - Client Component 直接使用后端地址
+const API_BASE_URL = 'http://localhost:8000/api';
+
 // 处理后端统一响应格式: { code, message, data }
 const fetcher = async (url: string) => {
-    const response = await fetch(url);
+    // 使用完整 URL
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+    console.log('[Fetcher] Requesting:', fullUrl);
+    
+    const response = await fetch(fullUrl);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     const result = await response.json();
+    console.log('[Fetcher] Response:', result);
     
     // 如果后端返回统一格式 { code, message, data }
     if (result && typeof result === 'object' && 'code' in result) {
@@ -42,7 +50,7 @@ export function useSongs(
     if (params.language) queryParams.set('language', params.language);
 
     const { data, error, isLoading, mutate } = useSWR(
-        `/api/songs/?${queryParams.toString()}`,
+        `/songs/?${queryParams.toString()}`,
         fetcher,
         { fallbackData }
     );
@@ -62,7 +70,7 @@ export function useSongs(
  */
 export function useSong(id: string, fallbackData?: Song) {
     const { data, error, isLoading } = useSWR(
-        id ? `/api/songs/${id}/` : null,
+        id ? `/songs/${id}/` : null,
         fetcher,
         { fallbackData }
     );
@@ -87,7 +95,7 @@ export function useSongRecords(
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
 
     const { data, error, isLoading } = useSWR(
-        songId ? `/api/songs/${songId}/records/?${queryParams.toString()}` : null,
+        songId ? `/songs/${songId}/records/?${queryParams.toString()}` : null,
         fetcher,
         { fallbackData }
     );
@@ -108,7 +116,7 @@ export function useTopSongs(timeRange?: string, fallbackData?: Song[]) {
     if (timeRange) queryParams.set('time_range', timeRange);
 
     const { data, error, isLoading } = useSWR(
-        `/api/top_songs/?${queryParams.toString()}`,
+        `/top_songs/?${queryParams.toString()}`,
         fetcher,
         { fallbackData }
     );

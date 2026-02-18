@@ -1,31 +1,63 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PlayCircle, Shuffle, Disc, ExternalLink } from 'lucide-react';
-import { getOriginals } from '@/app/infrastructure/api/songService';
+import { getOriginalsClient } from '@/app/infrastructure/api/clientApi';
 import { OriginalWork } from '@/app/domain/types';
 
 export default function OriginalsList() {
     const [works, setWorks] = useState<OriginalWork[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [currentWork, setCurrentWork] = useState<OriginalWork | null>(null);
 
     useEffect(() => {
-        const loadWorks = async () => {
+        let cancelled = false;
+        
+        async function loadWorks() {
+            setLoading(true);
+            setError(null);
+            
             try {
-                const result = await getOriginals();
-                setWorks(result);
+                const data = await getOriginalsClient();
+                
+                if (!cancelled) {
+                    // 转换数据格式
+                    const transformedWorks: OriginalWork[] = data.map((item: any) => ({
+                        title: item.title || '',
+                        date: item.date || '',
+                        desc: item.desc || '',
+                        cover: item.cover || '',
+                        songId: item.song_id,
+                        neteaseId: item.netease_id,
+                        bilibiliBvid: item.bilibili_bvid,
+                        featured: item.featured || false,
+                    }));
+                    
+                    setWorks(transformedWorks);
+                    console.log('[OriginalsList] Loaded', transformedWorks.length, 'works');
+                }
             } catch (err) {
-                console.error('Failed to load originals:', err);
+                if (!cancelled) {
+                    console.error('[OriginalsList] Error:', err);
+                    setError(err instanceof Error ? err.message : '加载失败');
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
-        };
+        }
+        
         loadWorks();
+        
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-    const featuredOriginals = works.filter(w => w.featured);
-    const archivedOriginals = works.filter(w => !w.featured);
+    const featuredOriginals = useMemo(() => works.filter(w => w.featured), [works]);
+    const archivedOriginals = useMemo(() => works.filter(w => !w.featured), [works]);
 
     const handleRandomPlay = () => {
         if (works.length === 0) return;
@@ -61,6 +93,16 @@ export default function OriginalsList() {
         }
         return null;
     };
+
+    // 错误提示
+    if (error) {
+        return (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+                <p className="text-red-600 font-bold mb-2">原唱作品加载失败</p>
+                <p className="text-red-500 text-sm">{error}</p>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

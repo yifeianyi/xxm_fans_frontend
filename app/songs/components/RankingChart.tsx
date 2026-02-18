@@ -1,13 +1,61 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sparkles, Trophy, Flame, Music } from 'lucide-react';
-import { useTopSongs } from '@/app/infrastructure/hooks/useSongs';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Trophy, Flame } from 'lucide-react';
+import { getTopSongsClient } from '@/app/infrastructure/api/clientApi';
 import { Song } from '@/app/domain/types';
 
 export default function RankingChart() {
     const [range, setRange] = useState<'all' | '3m' | '1y'>('all');
-    const { topSongs, isLoading, error } = useTopSongs(range);
+    const [topSongs, setTopSongs] = useState<Song[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        
+        async function loadRanking() {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const data = await getTopSongsClient(range);
+                
+                if (!cancelled) {
+                    // 转换数据格式
+                    const transformedSongs: Song[] = data.map((item: any) => ({
+                        id: item.id?.toString() || '',
+                        name: item.song_name || '未知歌曲',
+                        originalArtist: item.singer || '未知歌手',
+                        genres: [], // 排行榜 API 不返回 genres
+                        languages: [],
+                        firstPerformance: item.first_perform || '',
+                        lastPerformance: item.last_perform || '',
+                        performanceCount: item.perform_count || 0,
+                        tags: [],
+                    }));
+                    
+                    setTopSongs(transformedSongs);
+                    console.log('[RankingChart] Loaded', transformedSongs.length, 'songs');
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('[RankingChart] Error:', err);
+                    setError(err instanceof Error ? err.message : '加载失败');
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+        
+        loadRanking();
+        
+        return () => {
+            cancelled = true;
+        };
+    }, [range]);
 
     const maxCount = topSongs.length > 0 
         ? Math.max(...topSongs.map((s: Song) => s.performanceCount), 1) 
@@ -25,7 +73,7 @@ export default function RankingChart() {
         return (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
                 <p className="text-red-600 font-bold mb-2">排行榜加载失败</p>
-                <p className="text-red-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                <p className="text-red-500 text-sm">{error}</p>
             </div>
         );
     }
@@ -66,7 +114,7 @@ export default function RankingChart() {
             </div>
 
             {/* 排行榜列表 */}
-            {isLoading ? (
+            {loading ? (
                 <div className="flex items-center justify-center py-12">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -101,13 +149,6 @@ export default function RankingChart() {
                                         {song.name}
                                     </h3>
                                     <p className="text-[#8eb69b] text-sm">{song.originalArtist}</p>
-                                    <div className="flex gap-2 mt-1">
-                                        {song.genres.slice(0, 2).map((genre: string) => (
-                                            <span key={genre} className="px-2 py-0.5 bg-[#8eb69b]/20 text-[#8eb69b] text-xs rounded-full">
-                                                {genre}
-                                            </span>
-                                        ))}
-                                    </div>
                                 </div>
 
                                 {/* 演唱次数 */}

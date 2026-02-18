@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
-import { useSongs } from '@/app/infrastructure/hooks/useSongs';
+import { getSongsClient } from '@/app/infrastructure/api/clientApi';
 import { Song, FilterState } from '@/app/domain/types';
 import { formatDate } from '@/app/shared/utils';
 
@@ -12,7 +12,11 @@ const TAGS = ['小甜歌', '高难度', '经典', '新歌', '合唱', '现场'];
 const LANGUAGES = ['国语', '粤语', '英语', '日语', '韩语'];
 
 export default function SongTable() {
+    const [songs, setSongs] = useState<Song[]>([]);
+    const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [filters, setFilters] = useState<FilterState>({ genres: [], tags: [], languages: [] });
     const [showFilters, setShowFilters] = useState(false);
@@ -21,15 +25,61 @@ export default function SongTable() {
     const [sortBy, setSortBy] = useState<string>('last_performed');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-    const { songs, total, isLoading, error } = useSongs({
-        q: search,
-        page,
-        limit: 50,
-        ordering: sortDir === 'asc' ? sortBy : `-${sortBy}`,
-        styles: filters.genres.join(','),
-        tags: filters.tags.join(','),
-        language: filters.languages.join(','),
-    });
+    // 加载数据
+    useEffect(() => {
+        let cancelled = false;
+        
+        async function loadSongs() {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const data = await getSongsClient({
+                    q: search,
+                    page,
+                    limit: 50,
+                    ordering: sortDir === 'asc' ? sortBy : `-${sortBy}`,
+                    styles: filters.genres.join(','),
+                    tags: filters.tags.join(','),
+                    language: filters.languages.join(','),
+                });
+                
+                if (!cancelled) {
+                    // 转换数据格式
+                    const transformedSongs: Song[] = data.results.map((item: any) => ({
+                        id: item.id?.toString() || '',
+                        name: item.song_name || '未知歌曲',
+                        originalArtist: item.singer || '未知歌手',
+                        genres: Array.isArray(item.styles) ? item.styles : [],
+                        languages: item.language ? [item.language] : [],
+                        firstPerformance: item.first_perform || '',
+                        lastPerformance: item.last_performed || '',
+                        performanceCount: item.perform_count || 0,
+                        tags: Array.isArray(item.tags) ? item.tags : [],
+                    }));
+                    
+                    setSongs(transformedSongs);
+                    setTotal(data.total);
+                    console.log('[SongTable] Loaded', transformedSongs.length, 'songs, total:', data.total);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('[SongTable] Error:', err);
+                    setError(err instanceof Error ? err.message : '加载失败');
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+        
+        loadSongs();
+        
+        return () => {
+            cancelled = true;
+        };
+    }, [search, page, sortBy, sortDir, filters]);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -106,10 +156,10 @@ export default function SongTable() {
         return (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
                 <p className="text-red-600 font-bold mb-2">数据加载失败</p>
-                <p className="text-red-500 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                <p className="text-red-500 text-sm mb-4">{error}</p>
                 <button 
                     onClick={() => window.location.reload()}
-                    className="mt-4 px-4 py-2 bg-red-100 text-red-600 rounded-lg font-bold hover:bg-red-200 transition-colors"
+                    className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-bold hover:bg-red-200 transition-colors"
                 >
                     重试
                 </button>
@@ -215,10 +265,10 @@ export default function SongTable() {
             {/* 数据状态显示 */}
             <div className="flex items-center justify-between px-2">
                 <p className="text-sm text-[#8eb69b]">
-                    {isLoading ? '加载中...' : `共 ${total} 首歌曲`}
+                    {loading ? '加载中...' : `共 ${total} 首歌曲`}
                 </p>
                 <p className="text-sm text-[#8eb69b]">
-                    第 {page} / {totalPages} 页
+                    第 {page} / {totalPages || 1} 页
                 </p>
             </div>
 
@@ -253,7 +303,7 @@ export default function SongTable() {
                             </tr>
                         </thead>
                         <tbody>
-                            {isLoading ? (
+                            {loading ? (
                                 <tr>
                                     <td colSpan={7} className="px-4 py-12 text-center text-[#8eb69b]">
                                         <div className="flex items-center justify-center gap-2">
