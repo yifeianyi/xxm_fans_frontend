@@ -1,11 +1,75 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Grid, List, ChevronRight, Folder, Clock, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Image as ImageIcon, Grid, ChevronRight, Folder, X, ChevronLeft, Maximize2, Play } from 'lucide-react';
 import { galleryRepository } from '@/app/infrastructure/repositories';
-import { Gallery } from '@/app/domain/types';
+import { Gallery, GalleryImage } from '@/app/domain/types';
 import { ErrorBoundary } from '@/app/shared/components';
 import Link from 'next/link';
+
+// 图片网格组件
+function ImageGrid({ 
+    images, 
+    onImageClick 
+}: { 
+    images: GalleryImage[]; 
+    onImageClick: (img: GalleryImage, index: number) => void;
+}) {
+    if (!images || images.length === 0) {
+        return (
+            <div className="text-center py-12 text-[#8eb69b]">
+                <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
+                <p>暂无图片</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {images.map((img, idx) => (
+                <div
+                    key={img.id || idx}
+                    className="group relative aspect-square bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-white"
+                    onClick={() => onImageClick(img, idx)}
+                >
+                    {img.isVideo ? (
+                        <video
+                            src={img.url}
+                            poster={img.thumbnailUrl || img.url}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            onMouseEnter={(e) => e.currentTarget.play()}
+                            onMouseLeave={(e) => e.currentTarget.pause()}
+                        />
+                    ) : (
+                        <img
+                            src={img.thumbnailUrl || img.url}
+                            alt={img.title || img.filename}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            loading="lazy"
+                        />
+                    )}
+                    
+                    {/* 媒体类型标签 */}
+                    {(img.isGif || img.isVideo) && (
+                        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full flex items-center gap-1">
+                            <Play size={10} fill="white" />
+                            <span className="text-[10px] font-bold">{img.isVideo ? 'VIDEO' : 'GIF'}</span>
+                        </div>
+                    )}
+                    
+                    {/* 悬停效果 */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Maximize2 size={28} className="text-white drop-shadow-lg" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 // 图集卡片组件
 function GalleryCard({ gallery, onClick }: { gallery: Gallery; onClick?: () => void }) {
@@ -55,10 +119,7 @@ function GalleryCard({ gallery, onClick }: { gallery: Gallery; onClick?: () => v
                     </p>
                 )}
                 <div className="flex items-center justify-between text-xs text-[#8eb69b]/70">
-                    <span className="flex items-center gap-1">
-                        <Calendar size={12} />
-                        {gallery.createdAt ? new Date(gallery.createdAt).toLocaleDateString() : '未知日期'}
-                    </span>
+                    <span>{gallery.imageCount} 张图片</span>
                     {!gallery.isLeaf && (
                         <span className="flex items-center gap-1 text-[#f8b195]">
                             查看
@@ -72,27 +133,28 @@ function GalleryCard({ gallery, onClick }: { gallery: Gallery; onClick?: () => v
 }
 
 // 面包屑组件
-function Breadcrumb({ items }: { items: Array<{ id: string; title: string }> }) {
+function Breadcrumb({ 
+    items, 
+    onRootClick 
+}: { 
+    items: Array<{ id: string; title: string }>;
+    onRootClick: () => void;
+}) {
     return (
-        <nav className="flex items-center gap-2 text-sm mb-6">
-            <Link 
-                href="/albums"
+        <nav className="flex items-center gap-2 text-sm flex-wrap">
+            <button 
+                onClick={onRootClick}
                 className="text-[#8eb69b] hover:text-[#f8b195] font-bold transition-colors"
             >
                 全部图集
-            </Link>
+            </button>
             {items.map((item, index) => (
                 <React.Fragment key={item.id}>
-                    <ChevronRight size={16} className="text-[#8eb69b]/50" />
+                    <ChevronRight size={16} className="text-[#8eb69b]/50 flex-shrink-0" />
                     {index === items.length - 1 ? (
                         <span className="text-[#5d4037] font-bold">{item.title}</span>
                     ) : (
-                        <Link
-                            href={`/albums?parent=${item.id}`}
-                            className="text-[#8eb69b] hover:text-[#f8b195] font-bold transition-colors"
-                        >
-                            {item.title}
-                        </Link>
+                        <span className="text-[#8eb69b]">{item.title}</span>
                     )}
                 </React.Fragment>
             ))}
@@ -100,14 +162,113 @@ function Breadcrumb({ items }: { items: Array<{ id: string; title: string }> }) 
     );
 }
 
+// 图片查看器弹窗
+function ImageViewer({
+    images,
+    currentIndex,
+    onClose,
+    onPrevious,
+    onNext
+}: {
+    images: GalleryImage[];
+    currentIndex: number;
+    onClose: () => void;
+    onPrevious: () => void;
+    onNext: () => void;
+}) {
+    if (!images || images.length === 0) return null;
+    
+    const currentImage = images[currentIndex];
+    
+    // 键盘导航
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+            if (e.key === 'ArrowLeft') onPrevious();
+            if (e.key === 'ArrowRight') onNext();
+        };
+        
+        document.addEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = 'hidden';
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = '';
+        };
+    }, [onClose, onPrevious, onNext]);
+    
+    return (
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            {/* 关闭按钮 */}
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-50 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all"
+            >
+                <X size={24} />
+            </button>
+            
+            {/* 计数器 */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 rounded-full text-white text-sm font-bold">
+                {currentIndex + 1} / {images.length}
+            </div>
+            
+            {/* 上一张 */}
+            <button
+                onClick={(e) => { e.stopPropagation(); onPrevious(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all z-50"
+            >
+                <ChevronLeft size={28} />
+            </button>
+            
+            {/* 下一张 */}
+            <button
+                onClick={(e) => { e.stopPropagation(); onNext(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all z-50"
+            >
+                <ChevronRight size={28} />
+            </button>
+            
+            {/* 图片容器 */}
+            <div 
+                className="max-w-[90vw] max-h-[85vh] flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {currentImage?.isVideo ? (
+                    <video
+                        src={currentImage.url}
+                        className="max-w-full max-h-[85vh] rounded-lg"
+                        controls
+                        autoPlay
+                    />
+                ) : (
+                    <img
+                        src={currentImage?.url}
+                        alt={currentImage?.title || currentImage?.filename}
+                        className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
 // 主页面
 export default function AlbumsPage() {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [currentGallery, setCurrentGallery] = useState<Gallery | null>(null);
+    const [images, setImages] = useState<GalleryImage[]>([]);
+    const [breadcrumbs, setBreadcrumbs] = useState<Array<{ id: string; title: string }>>([]);
+    const [loading, setLoading] = useState(false);
+    const [loadingImages, setLoadingImages] = useState(false);
     
-    // 获取图集数据
+    // 图片查看器状态
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    
+    // 加载图集树
     useEffect(() => {
         const fetchGalleries = async () => {
             setLoading(true);
@@ -125,22 +286,77 @@ export default function AlbumsPage() {
     }, []);
     
     // 处理图集点击
-    const handleGalleryClick = (gallery: Gallery) => {
-        if (gallery.isLeaf) {
-            // 叶子节点，显示图片详情
-            setCurrentGallery(gallery);
-        } else {
-            // 非叶子节点，进入子目录
-            // TODO: 实现子目录导航
-            console.log('Navigate to sub-gallery:', gallery.id);
+    const handleGalleryClick = useCallback(async (gallery: Gallery) => {
+        setCurrentGallery(gallery);
+        
+        // 更新面包屑
+        if (gallery.breadcrumbs) {
+            setBreadcrumbs(gallery.breadcrumbs);
         }
+        
+        // 如果是叶子节点，加载图片
+        if (gallery.isLeaf) {
+            setLoadingImages(true);
+            try {
+                const result = await galleryRepository.getGalleryImages(gallery.id);
+                setImages(result.images);
+            } catch (error) {
+                console.error('Failed to fetch images:', error);
+                setImages([]);
+            } finally {
+                setLoadingImages(false);
+            }
+        } else {
+            setImages([]);
+        }
+    }, []);
+    
+    // 返回根目录
+    const handleRootClick = useCallback(() => {
+        setCurrentGallery(null);
+        setBreadcrumbs([]);
+        setImages([]);
+    }, []);
+    
+    // 处理图片点击
+    const handleImageClick = useCallback((img: GalleryImage, index: number) => {
+        setCurrentImageIndex(index);
+        setLightboxOpen(true);
+    }, []);
+    
+    // 上一张图片
+    const handlePreviousImage = useCallback(() => {
+        setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1);
+    }, [images.length]);
+    
+    // 下一张图片
+    const handleNextImage = useCallback(() => {
+        setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
+    }, [images.length]);
+    
+    // 获取当前显示的内容
+    const getDisplayGalleries = () => {
+        if (currentGallery) {
+            // 如果有子图集，显示子图集
+            if (currentGallery.children && currentGallery.children.length > 0) {
+                return currentGallery.children;
+            }
+            // 如果是叶子节点且有图片，不显示图集卡片
+            if (currentGallery.isLeaf) {
+                return [];
+            }
+        }
+        return galleries;
     };
+    
+    const displayGalleries = getDisplayGalleries();
+    const showImageGrid = currentGallery?.isLeaf;
     
     return (
         <ErrorBoundary>
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* 页面标题 */}
-                <div className="text-center mb-10">
+                <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#f8b195] to-[#f67280] bg-clip-text text-transparent mb-4">
                         满の图册
                     </h1>
@@ -149,37 +365,28 @@ export default function AlbumsPage() {
                     </p>
                 </div>
                 
-                {/* 工具栏 */}
-                <div className="flex items-center justify-between mb-8">
-                    <Breadcrumb items={[]} />
-                    
-                    {/* 视图切换 */}
-                    <div className="flex items-center gap-2 bg-white/40 rounded-full p-1 border-2 border-white">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-full transition-all ${
-                                viewMode === 'grid' 
-                                    ? 'bg-[#f8b195] text-white' 
-                                    : 'text-[#8eb69b] hover:bg-white/50'
-                            }`}
-                        >
-                            <Grid size={18} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-full transition-all ${
-                                viewMode === 'list' 
-                                    ? 'bg-[#f8b195] text-white' 
-                                    : 'text-[#8eb69b] hover:bg-white/50'
-                            }`}
-                        >
-                            <List size={18} />
-                        </button>
+                {/* 面包屑 */}
+                {(currentGallery || breadcrumbs.length > 0) && (
+                    <div className="mb-6">
+                        <Breadcrumb 
+                            items={breadcrumbs} 
+                            onRootClick={handleRootClick}
+                        />
                     </div>
-                </div>
+                )}
                 
-                {/* 图集列表 */}
-                {loading ? (
+                {/* 当前图集标题 */}
+                {currentGallery && (
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-black text-[#5d4037]">{currentGallery.title}</h2>
+                        {currentGallery.description && (
+                            <p className="text-[#8eb69b] mt-2">{currentGallery.description}</p>
+                        )}
+                    </div>
+                )}
+                
+                {/* 加载状态 */}
+                {loading && (
                     <div className="flex items-center justify-center py-20">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" />
@@ -187,15 +394,32 @@ export default function AlbumsPage() {
                             <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                     </div>
-                ) : galleries.length === 0 ? (
-                    <div className="text-center py-20 text-[#8eb69b]">
-                        <ImageIcon size={64} className="mx-auto mb-4 opacity-50" />
-                        <p className="font-bold text-lg">暂无图集</p>
-                        <p className="text-sm mt-2">图集正在整理中，敬请期待...</p>
+                )}
+                
+                {/* 图片网格 */}
+                {showImageGrid && (
+                    <div className="mb-8">
+                        {loadingImages ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" />
+                                    <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </div>
+                            </div>
+                        ) : (
+                            <ImageGrid 
+                                images={images} 
+                                onImageClick={handleImageClick} 
+                            />
+                        )}
                     </div>
-                ) : viewMode === 'grid' ? (
+                )}
+                
+                {/* 图集网格 */}
+                {!loading && displayGalleries.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {galleries.map(gallery => (
+                        {displayGalleries.map(gallery => (
                             <GalleryCard
                                 key={gallery.id}
                                 gallery={gallery}
@@ -203,69 +427,26 @@ export default function AlbumsPage() {
                             />
                         ))}
                     </div>
-                ) : (
-                    <div className="space-y-4">
-                        {galleries.map(gallery => (
-                            <div
-                                key={gallery.id}
-                                onClick={() => handleGalleryClick(gallery)}
-                                className="flex items-center gap-4 bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white shadow-lg p-4 hover:shadow-xl transition-all cursor-pointer"
-                            >
-                                {gallery.coverUrl ? (
-                                    <img
-                                        src={gallery.coverThumbnailUrl || gallery.coverUrl}
-                                        alt={gallery.title}
-                                        className="w-24 h-24 object-cover rounded-xl"
-                                    />
-                                ) : (
-                                    <div className="w-24 h-24 bg-gradient-to-br from-[#f8b195]/20 to-[#f67280]/20 rounded-xl flex items-center justify-center">
-                                        <ImageIcon size={32} className="text-[#f8b195]/50" />
-                                    </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-black text-[#5d4037] text-lg mb-1 truncate">
-                                        {gallery.title}
-                                    </h3>
-                                    {gallery.description && (
-                                        <p className="text-sm text-[#8eb69b] line-clamp-1 mb-2">
-                                            {gallery.description}
-                                        </p>
-                                    )}
-                                    <div className="flex items-center gap-4 text-xs text-[#8eb69b]/70">
-                                        <span className="flex items-center gap-1">
-                                            <ImageIcon size={12} />
-                                            {gallery.imageCount} 张图片
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={12} />
-                                            {gallery.createdAt ? new Date(gallery.createdAt).toLocaleDateString() : '未知日期'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <ChevronRight size={24} className="text-[#8eb69b]" />
-                            </div>
-                        ))}
+                )}
+                
+                {/* 空状态 */}
+                {!loading && !currentGallery && galleries.length === 0 && (
+                    <div className="text-center py-20 text-[#8eb69b]">
+                        <ImageIcon size={64} className="mx-auto mb-4 opacity-50" />
+                        <p className="font-bold text-lg">暂无图集</p>
+                        <p className="text-sm mt-2">图集正在整理中，敬请期待...</p>
                     </div>
                 )}
                 
-                {/* TODO: 图片详情弹窗 */}
-                {currentGallery && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                        <div className="bg-white rounded-[2rem] max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                                <h2 className="text-xl font-black text-[#5d4037]">{currentGallery.title}</h2>
-                                <button
-                                    onClick={() => setCurrentGallery(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                            <div className="p-6 text-center text-[#8eb69b]">
-                                <p>图片浏览功能开发中...</p>
-                            </div>
-                        </div>
-                    </div>
+                {/* 图片查看器 */}
+                {lightboxOpen && (
+                    <ImageViewer
+                        images={images}
+                        currentIndex={currentImageIndex}
+                        onClose={() => setLightboxOpen(false)}
+                        onPrevious={handlePreviousImage}
+                        onNext={handleNextImage}
+                    />
                 )}
             </div>
         </ErrorBoundary>
