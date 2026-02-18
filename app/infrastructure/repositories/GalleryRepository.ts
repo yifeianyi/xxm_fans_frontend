@@ -106,6 +106,50 @@ export class GalleryRepository implements IGalleryRepository {
             message: '同步成功',
         };
     }
+
+    /**
+     * 获取子图集图片聚合
+     * @param galleryId 父图集 ID
+     * @returns 子图集图片分组
+     */
+    async getChildrenImages(galleryId: string): Promise<{
+        children: Array<{
+            gallery: Gallery;
+            images: GalleryImage[];
+        }>;
+        totalGalleries: number;
+        totalImages: number;
+    }> {
+        const result = await this.apiClient.get<any>(`/gallery/${galleryId}/children-images/`);
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        const data = result.data;
+
+        // 如果是叶子节点，返回单组数据
+        if (data.images) {
+            return {
+                children: [{
+                    gallery: GalleryMapper.fromBackend(data.gallery),
+                    images: GalleryMapper.imageListFromBackend(data.images),
+                }],
+                totalGalleries: 1,
+                totalImages: data.total || data.images.length,
+            };
+        }
+
+        // 如果是父节点，返回子图集分组
+        return {
+            children: (data.children || []).map((item: any) => ({
+                gallery: GalleryMapper.fromBackend(item.gallery),
+                images: GalleryMapper.imageListFromBackend(item.images || []),
+            })),
+            totalGalleries: data.total_galleries || 0,
+            totalImages: data.total_images || 0,
+        };
+    }
 }
 
 /**

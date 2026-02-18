@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/app/shared/components';
 import { useAlbumsData } from './hooks/useAlbumsData';
 import { Sidebar } from './components/Sidebar';
 import { ImageGrid } from './components/ImageGrid';
+import { ChildrenImagesDisplay } from './components/ChildrenImagesDisplay';
 import { ImageViewer } from './components/ImageViewer';
 
 /**
@@ -127,6 +128,7 @@ export default function AlbumsPage() {
         galleryTree,
         currentGallery,
         images,
+        childrenImagesGroups,
         breadcrumbs,
         loading,
         loadingImages,
@@ -203,15 +205,20 @@ export default function AlbumsPage() {
                     <div className="flex-1 overflow-y-auto p-6">
                         {loading ? (
                             <LoadingState />
+                        ) : loadingImages ? (
+                            <LoadingState />
                         ) : currentGallery?.isLeaf ? (
                             // 叶子节点 - 显示图片
-                            loadingImages ? (
-                                <LoadingState />
-                            ) : (
-                                <ImageGrid images={images} onImageClick={handleImageClick} />
-                            )
+                            <ImageGrid images={images} onImageClick={handleImageClick} />
+                        ) : childrenImagesGroups.length > 0 ? (
+                            // 非叶子节点 - 显示子图集图片聚合
+                            <ChildrenImagesDisplay
+                                childrenGroups={childrenImagesGroups}
+                                allChildrenImages={images}
+                                onImageClick={handleImageClick}
+                            />
                         ) : displayGalleries.length > 0 ? (
-                            // 非叶子节点 - 显示子图集
+                            // 非叶子节点且无图片 - 显示子图集卡片
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {displayGalleries.map((gallery) => (
                                     <GalleryCard
@@ -222,7 +229,7 @@ export default function AlbumsPage() {
                                 ))}
                             </div>
                         ) : (
-                            <EmptyState message={currentGallery ? '该图集暂无子图集' : '暂无图集'} />
+                            <EmptyState message={currentGallery ? '该图集暂无内容' : '暂无图集'} />
                         )}
                     </div>
                 </main>

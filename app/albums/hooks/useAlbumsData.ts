@@ -9,6 +9,10 @@ interface UseAlbumsDataReturn {
     galleryTree: Gallery[];
     currentGallery: Gallery | null;
     images: GalleryImage[];
+    childrenImagesGroups: Array<{
+        gallery: Gallery;
+        images: GalleryImage[];
+    }>;
     breadcrumbs: Array<{ id: string; title: string }>;
     
     // 加载状态
@@ -29,7 +33,7 @@ interface UseAlbumsDataReturn {
     handleGalleryClick: (gallery: Gallery) => void;
     handleRootClick: () => void;
     toggleExpand: (galleryId: string) => void;
-    handleImageClick: (index: number) => void;
+    handleImageClick: (img: GalleryImage, index: number) => void;
     handleCloseLightbox: () => void;
     handlePreviousImage: () => void;
     handleNextImage: () => void;
@@ -96,6 +100,10 @@ export function useAlbumsData(): UseAlbumsDataReturn {
     const [galleryTree, setGalleryTree] = useState<Gallery[]>([]);
     const [currentGallery, setCurrentGallery] = useState<Gallery | null>(null);
     const [images, setImages] = useState<GalleryImage[]>([]);
+    const [childrenImagesGroups, setChildrenImagesGroups] = useState<Array<{
+        gallery: Gallery;
+        images: GalleryImage[];
+    }>>([]);
     const [loading, setLoading] = useState(true);
     const [loadingImages, setLoadingImages] = useState(false);
     
@@ -147,21 +155,29 @@ export function useAlbumsData(): UseAlbumsDataReturn {
             return newSet;
         });
         
-        // 如果是叶子节点，加载图片
-        if (gallery.isLeaf) {
-            setLoadingImages(true);
-            try {
+        // 加载图片
+        setLoadingImages(true);
+        try {
+            if (gallery.isLeaf) {
+                // 叶子节点 - 加载自己的图片
                 const result = await galleryRepository.getGalleryImages(gallery.id);
                 setImages(result.images);
-                setCurrentImageIndex(0);
-            } catch (error) {
-                console.error('Failed to fetch images:', error);
-                setImages([]);
-            } finally {
-                setLoadingImages(false);
+                setChildrenImagesGroups([]);
+            } else {
+                // 非叶子节点 - 加载子图集图片聚合
+                const result = await galleryRepository.getChildrenImages(gallery.id);
+                setChildrenImagesGroups(result.children);
+                // 合并所有图片用于查看器
+                const allImages = result.children.flatMap(child => child.images);
+                setImages(allImages);
             }
-        } else {
+            setCurrentImageIndex(0);
+        } catch (error) {
+            console.error('Failed to fetch images:', error);
             setImages([]);
+            setChildrenImagesGroups([]);
+        } finally {
+            setLoadingImages(false);
         }
     }, []);
     
@@ -186,7 +202,7 @@ export function useAlbumsData(): UseAlbumsDataReturn {
     }, []);
     
     // 处理图片点击
-    const handleImageClick = useCallback((index: number) => {
+    const handleImageClick = useCallback((img: GalleryImage, index: number) => {
         setCurrentImageIndex(index);
         setLightboxOpen(true);
     }, []);
@@ -216,6 +232,7 @@ export function useAlbumsData(): UseAlbumsDataReturn {
         galleryTree,
         currentGallery,
         images,
+        childrenImagesGroups,
         breadcrumbs,
         
         // 加载状态

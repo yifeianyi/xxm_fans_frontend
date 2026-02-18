@@ -6,7 +6,7 @@ import { GalleryImage } from '@/app/domain/types';
 
 interface ImageGridProps {
     images: GalleryImage[];
-    onImageClick: (index: number) => void;
+    onImageClick: (img: GalleryImage, index: number) => void;
 }
 
 /**
@@ -19,7 +19,7 @@ function ImageCard({
 }: {
     image: GalleryImage;
     index: number;
-    onClick: () => void;
+    onClick: (img: GalleryImage, index: number) => void;
 }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
@@ -48,7 +48,7 @@ function ImageCard({
         <div
             ref={imgRef}
             className="group relative aspect-square bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-white"
-            onClick={onClick}
+            onClick={() => onClick(image, index)}
         >
             {/* 骨架屏占位 */}
             {!isLoaded && (
@@ -114,7 +114,7 @@ export function ImageGrid({ images, onImageClick }: ImageGridProps) {
                     key={image.id || index}
                     image={image}
                     index={index}
-                    onClick={() => onImageClick(index)}
+                    onClick={onImageClick}
                 />
             ))}
         </div>
