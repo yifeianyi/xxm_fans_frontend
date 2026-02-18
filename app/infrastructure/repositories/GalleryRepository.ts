@@ -31,7 +31,7 @@ export class GalleryRepository implements IGalleryRepository {
         if (params.page) queryParams.set('page', params.page.toString());
         if (params.limit) queryParams.set('limit', params.limit.toString());
 
-        const result = await this.apiClient.get<any[]>(`/gallery/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any[]>(`/gallery/tree/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
