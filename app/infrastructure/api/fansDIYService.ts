@@ -62,11 +62,13 @@ export async function getCollectionWorks(
 
 /**
  * 获取作品列表
+ * 支持按合集筛选
  */
-export async function getWorks(params?: GetWorksParams): Promise<PaginatedResult<FanWork>> {
+export async function getWorks(params?: GetWorksParams & { collection?: string }): Promise<PaginatedResult<FanWork>> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+    if (params?.collection) queryParams.set('collection', params.collection);
 
     const result = await get<PaginatedResult<any>>(
         `/fansDIY/works/?${queryParams.toString()}`,

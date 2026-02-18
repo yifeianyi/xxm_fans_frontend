@@ -49,7 +49,7 @@ export interface GetWorksParams {
     page?: number;
     limit?: number;
     page_size?: number;
-    collection?: number;
+    collection?: string;
 }
 
 // ==================== API 响应类型 ====================

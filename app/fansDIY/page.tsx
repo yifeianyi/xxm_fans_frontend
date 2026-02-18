@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Play, Heart, Sparkles, Palette, Wand2, Paintbrush } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollections, getWorks, getCollectionWorks } from '@/app/infrastructure/api/fansDIYService';
+import { getCollections, getWorks } from '@/app/infrastructure/api/fansDIYService';
 import { FanWork, FanCollection } from '@/app/domain/types';
 import VideoModal from '@/app/songs/components/VideoModal';
 
@@ -90,7 +90,7 @@ function FansDIYContent() {
             // 加载该合集的作品
             setLoading(true);
             try {
-                const result = await getCollectionWorks(newCol, { page_size: 100 });
+                const result = await getWorks({ collection: newCol, page_size: 100 });
                 setWorks(result.results);
             } catch (error) {
                 console.error('[FansDIY] 加载合集作品失败:', error);
