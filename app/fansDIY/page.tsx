@@ -5,7 +5,7 @@ import { Play, Heart, Sparkles, Palette, Wand2, Paintbrush } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollections, getWorks } from '@/app/infrastructure/api/fansDIYService';
 import { FanWork, FanCollection } from '@/app/domain/types';
-import VideoModal from '@/app/songs/components/VideoModal';
+import VideoModal from '@/app/presentation/components/songs/VideoModal';
 
 // 标题装饰组件
 const TitleDecoration: React.FC = () => {

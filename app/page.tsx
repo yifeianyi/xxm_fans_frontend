@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import HomePageClient from './components/features/HomePageClient';
+import HomePageClient from './presentation/components/features/HomePageClient';
 
 export const metadata: Metadata = {
     title: '咻咻满粉丝网站 - 小满虫之家 | 独立音乐人、音乐主播',

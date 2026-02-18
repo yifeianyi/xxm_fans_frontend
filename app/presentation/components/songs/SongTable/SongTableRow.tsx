@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Song } from '@/app/domain/types';
-import RecordList from '@/app/songs/components/RecordList';
+import RecordList from '../RecordList';
 
 // ============ Types ============
 

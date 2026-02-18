@@ -8,8 +8,8 @@ import { SongFilters } from '@/app/presentation/components/songs/SongFilters';
 import { SongPagination } from '@/app/presentation/components/songs/SongPagination';
 import { SongTableHeader } from './SongTableHeader';
 import { SongTableRow } from './SongTableRow';
-import VideoModal from '@/app/songs/components/VideoModal';
-import MysteryBoxModal from '@/app/songs/components/MysteryBoxModal';
+import VideoModal from '../VideoModal';
+import MysteryBoxModal from '../MysteryBoxModal';
 
 // ============ Loading Component ============
 

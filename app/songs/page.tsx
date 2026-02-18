@@ -5,9 +5,9 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart } from 'lucide-react';
 import { SongTable } from '@/app/presentation/components/songs';
 import { ErrorBoundary } from '@/app/shared/components';
-import RankingChart from './components/RankingChart';
-import OriginalsList from './components/OriginalsList';
-import TimelineChart from './components/TimelineChart';
+import RankingChart from '../presentation/components/songs/RankingChart';
+import OriginalsList from '../presentation/components/songs/OriginalsList';
+import TimelineChart from '../presentation/components/songs/TimelineChart';
 
 type TabType = 'hot' | 'all' | 'originals' | 'submit';
 
