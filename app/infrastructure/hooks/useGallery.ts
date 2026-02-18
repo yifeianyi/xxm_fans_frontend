@@ -1,22 +1,45 @@
+/**
+ * Gallery Hooks
+ * 
+ * 基于 SWR 的图集数据获取 Hooks
+ * 内部使用 Repository 模式访问数据
+ * 
+ * @module infrastructure/hooks
+ */
+
 'use client';
 
 import useSWR from 'swr';
 import { Gallery, GalleryImage } from '@/app/domain/types';
-import { PaginatedResult } from '../api/apiTypes';
+import { galleryRepository } from '../repositories';
+import { GetGalleriesParams, GetGalleryImagesParams } from '@/app/domain/repositories';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+// ============ SWR Keys ============
+
+const SWR_KEYS = {
+    galleries: (params?: GetGalleriesParams) => ['galleries', params],
+    gallery: (id: string) => ['gallery', id],
+    galleryImages: (galleryId: string, params?: GetGalleryImagesParams) => ['galleryImages', galleryId, params],
+};
+
+// ============ Hooks ============
 
 /**
  * 图集列表 Hook
+ * 
+ * @param params 查询参数
+ * @param fallbackData 初始数据（用于 SSR）
+ * @returns 图集列表和状态
+ * 
+ * @example
+ * ```typescript
+ * const { galleries, isLoading, error } = useGalleries({ parentId: '123' });
+ * ```
  */
-export function useGalleries(parentId?: string, fallbackData?: Gallery[]) {
-    const endpoint = parentId 
-        ? `/api/gallery/?parent=${parentId}` 
-        : '/api/gallery/';
-
+export function useGalleries(params?: GetGalleriesParams, fallbackData?: Gallery[]) {
     const { data, error, isLoading, mutate } = useSWR(
-        endpoint,
-        fetcher,
+        SWR_KEYS.galleries(params),
+        async () => galleryRepository.getGalleries(params),
         { fallbackData }
     );
 
@@ -30,11 +53,20 @@ export function useGalleries(parentId?: string, fallbackData?: Gallery[]) {
 
 /**
  * 图集详情 Hook
+ * 
+ * @param id 图集 ID
+ * @param fallbackData 初始数据（用于 SSR）
+ * @returns 图集详情和状态
+ * 
+ * @example
+ * ```typescript
+ * const { gallery, isLoading, error } = useGallery('123');
+ * ```
  */
 export function useGallery(id: string, fallbackData?: Gallery) {
     const { data, error, isLoading } = useSWR(
-        id ? `/api/gallery/${id}/` : null,
-        fetcher,
+        id ? SWR_KEYS.gallery(id) : null,
+        async () => galleryRepository.getGalleryById(id),
         { fallbackData }
     );
 
@@ -47,21 +79,31 @@ export function useGallery(id: string, fallbackData?: Gallery) {
 
 /**
  * 图集图片 Hook
+ * 
+ * @param galleryId 图集 ID
+ * @param params 分页参数
+ * @param fallbackData 初始数据（用于 SSR）
+ * @returns 图片列表和状态
+ * 
+ * @example
+ * ```typescript
+ * const { images, total, isLoading } = useGalleryImages('123', { page: 1, page_size: 20 });
+ * ```
  */
 export function useGalleryImages(
     galleryId: string,
-    page: number = 1,
-    fallbackData?: PaginatedResult<GalleryImage>
+    params?: GetGalleryImagesParams,
+    fallbackData?: { images: GalleryImage[]; total: number }
 ) {
     const { data, error, isLoading } = useSWR(
-        galleryId ? `/api/gallery/${galleryId}/items/?page=${page}` : null,
-        fetcher,
+        galleryId ? SWR_KEYS.galleryImages(galleryId, params) : null,
+        async () => galleryRepository.getGalleryImages(galleryId, params),
         { fallbackData }
     );
 
     return {
-        images: data?.results || [],
-        total: data?.count || 0,
+        images: data?.images || [],
+        total: data?.total || 0,
         isLoading,
         error,
     };

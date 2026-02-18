@@ -1,121 +1,210 @@
-# DDD 三层架构重构文档
+# DDD 分层架构文档
 
-## 📋 重构概述
-
-本次重构将原有的混乱架构改造为清晰的 **DDD 三层架构**：
-- **Domain (领域层)**：核心业务逻辑和抽象
-- **Application (应用层)**：用例编排
-- **Infrastructure (基础设施层)**：技术实现
-- **Presentation (表现层)**：UI 组件
+> 本文档描述 XXM Next.js 项目的架构设计和最佳实践
+> 最后更新: 2026-02-18
 
 ---
 
-## 🏗️ 新架构结构
+## 📋 架构概述
+
+本项目采用 **DDD（领域驱动设计）分层架构**，将代码组织为清晰的层次结构：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Presentation 层                         │
+│                    (UI 组件、页面、状态管理)                    │
+├─────────────────────────────────────────────────────────────┤
+│                      Application 层                          │
+│              (用例编排、业务流程、缓存策略)                     │
+├─────────────────────────────────────────────────────────────┤
+│                        Domain 层                             │
+│         (领域模型、仓储接口、业务规则定义)                      │
+├─────────────────────────────────────────────────────────────┤
+│                     Infrastructure 层                        │
+│    (仓储实现、数据映射、API 客户端、外部服务)                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 依赖规则
+
+**上层依赖下层，下层不依赖上层**
+- Presentation → Application → Domain
+- Infrastructure → Domain
+- 跨层调用必须通过接口（Domain 层定义）
+
+---
+
+## 🏗️ 目录结构
 
 ```
 app/
 ├── domain/                          # 领域层 - 核心业务
-│   ├── types.ts                     # 实体类型定义
-│   └── repositories/
-│       ├── ISongRepository.ts       # 仓储接口（抽象）
+│   ├── types.ts                     # 领域模型类型定义
+│   └── repositories/                # 仓储接口（抽象）
+│       ├── ISongRepository.ts
+│       ├── IGalleryRepository.ts
+│       ├── ILivestreamRepository.ts
+│       ├── IFansDIYRepository.ts
+│       ├── IAnalyticsRepository.ts
 │       └── index.ts
 │
 ├── application/                     # 应用层 - 用例编排
-│   └── songs/
-│       ├── GetSongListUseCase.ts    # 获取歌曲列表用例
-│       ├── GetSongDetailUseCase.ts  # 获取歌曲详情用例
-│       └── index.ts
+│   ├── songs/
+│   │   ├── GetSongListUseCase.ts
+│   │   ├── GetSongDetailUseCase.ts
+│   │   ├── GetHotSongsUseCase.ts
+│   │   ├── GetRandomSongUseCase.ts
+│   │   ├── SearchSongsUseCase.ts
+│   │   └── index.ts
+│   ├── gallery/
+│   │   ├── GetGalleryTreeUseCase.ts
+│   │   └── index.ts
+│   └── index.ts
 │
 ├── infrastructure/                  # 基础设施层 - 实现
 │   ├── api/
-│   │   ├── base.ts                  # HTTP 基础客户端
+│   │   ├── base.ts                  # API 客户端
 │   │   ├── apiTypes.ts              # API 类型定义
-│   │   ├── songService.ts           # 旧版服务（兼容）
+│   │   ├── songService.ts           # 兼容层（调用 Repository）
+│   │   ├── submissionService.ts     # 投稿服务
 │   │   └── index.ts                 # 统一导出
-│   ├── hooks/
-│   │   ├── useSongs.ts              # SWR Hooks（新）
+│   ├── mappers/                     # 数据映射器
+│   │   ├── SongMapper.ts
+│   │   ├── GalleryMapper.ts
+│   │   ├── LivestreamMapper.ts
+│   │   ├── FansDIYMapper.ts
+│   │   ├── AnalyticsMapper.ts
 │   │   └── index.ts
-│   ├── mappers/
-│   │   └── SongMapper.ts            # 数据映射器
-│   └── repositories/
-│       ├── SongRepository.ts        # 仓储实现
-│       └── index.ts
+│   ├── repositories/                # 仓储实现
+│   │   ├── SongRepository.ts
+│   │   ├── GalleryRepository.ts
+│   │   ├── LivestreamRepository.ts
+│   │   ├── FansDIYRepository.ts
+│   │   ├── AnalyticsRepository.ts
+│   │   └── index.ts
+│   ├── hooks/                       # 基础设施 Hooks
+│   │   ├── useSongs.ts
+│   │   ├── useGallery.ts
+│   │   └── index.ts
+│   └── config/
+│       └── config.ts
 │
 ├── presentation/                    # 表现层 - UI
-│   ├── components/
+│   ├── components/                  # UI 组件
 │   │   └── songs/
-│   │       ├── SongTable/           # 歌曲表格（重构后）
-│   │       │   ├── index.tsx        # 主组件
-│   │       │   ├── SongTableRow.tsx # 行组件
-│   │       │   └── SongTableHeader.tsx
-│   │       ├── SongFilters/         # 筛选组件
-│   │       ├── SongPagination/      # 分页组件
+│   │       ├── SongTable/
+│   │       ├── SongFilters/
+│   │       ├── SongPagination/
 │   │       └── index.ts
-│   ├── hooks/
-│   │   └── useSongTable.ts          # 表格状态管理
+│   ├── hooks/                       # 表现层 Hooks
+│   │   └── useSongTable.ts
 │   └── constants/
-│       └── songs.ts                 # 常量定义
+│       └── songs.ts
 │
-└── songs/
-    ├── page.tsx                     # 页面（使用新架构）
-    └── components/
-        ├── RecordList.tsx           # 记录列表（已更新）
-        ├── RankingChart.tsx         # 排行榜（已更新）
-        ├── OriginalsList.tsx        # 原唱作品（已更新）
-        └── VideoModal.tsx
+├── shared/                          # 共享层 - 通用工具
+│   ├── components/
+│   │   └── ErrorBoundary.tsx
+│   ├── hooks/
+│   │   ├── useDebounce.ts
+│   │   ├── useLocalStorage.ts
+│   │   └── index.ts
+│   ├── utils/
+│   │   ├── device.ts
+│   │   └── index.ts
+│   └── services/
+│       └── VideoPlayerService.ts
+│
+├── components/                      # ⚠️ 待迁移到 presentation/
+│   ├── layout/
+│   │   ├── Navbar.tsx
+│   │   └── Footer.tsx
+│   ├── features/
+│   │   └── HomePageClient.tsx
+│   └── common/
+│
+├── songs/                           # 页面路由
+│   ├── page.tsx
+│   └── components/                  # ⚠️ 待迁移到 presentation/
+│
+├── gallery/                         # 页面路由
+├── live/                            # 页面路由
+├── fansDIY/                         # 页面路由
+├── about/                           # 页面路由
+├── contact/                         # 页面路由
+├── page.tsx                         # 首页
+└── layout.tsx                       # 根布局
 ```
 
 ---
 
-## ✅ 重构完成内容
+## 🎯 各层职责
 
-### 1. 解决双轨制 API 问题
+### 1. Domain 层（领域层）
 
-**之前：**
+**职责**：定义核心业务概念，不依赖任何外部技术
+
 ```typescript
-// Server Component 用
-import { getSongs } from '@/app/infrastructure/api/songService';
+// domain/types.ts - 领域模型
+export interface Song {
+    id: string;
+    name: string;
+    originalArtist: string;
+    // ...
+}
 
-// Client Component 用（重复代码！）
-import { getSongsClient } from '@/app/infrastructure/api/clientApi';
+// domain/repositories/ISongRepository.ts - 仓储接口
+export interface ISongRepository {
+    getSongs(params?: GetSongsParams): Promise<PaginatedResult<Song>>;
+    getSongById(id: string): Promise<Song>;
+    // ...
+}
 ```
 
-**现在：**
-```typescript
-// 统一使用 Repository
-import { songRepository } from '@/app/infrastructure/repositories';
+**特点**：
+- 纯 TypeScript 类型和接口
+- 不依赖任何框架或库
+- 可被任何实现复用
 
-// 同时支持 Server/Client Components
-const data = await songRepository.getSongs(params);
+### 2. Application 层（应用层）
+
+**职责**：编排业务逻辑，协调多个领域对象
+
+```typescript
+// application/songs/GetSongListUseCase.ts
+export class GetSongListUseCase {
+    constructor(private songRepository: ISongRepository) {}
+
+    async execute(params: GetSongsParams = {}) {
+        const result = await this.songRepository.getSongs(params);
+        
+        // 业务逻辑：计算是否有更多数据
+        const hasMore = result.results.length >= (params.limit || 20);
+
+        return { songs: result.results, total: result.total, hasMore };
+    }
+}
 ```
 
-**成果：**
-- ✅ 删除 `clientApi.ts`（200+ 行重复代码）
-- ✅ 统一数据访问接口
-- ✅ 数据转换逻辑集中到 Mapper
+**特点**：
+- 依赖 Domain 层的接口
+- 实现具体的业务用例
+- 可以包含缓存、权限等业务规则
 
----
+### 3. Infrastructure 层（基础设施层）
 
-### 2. 提取 Mapper 统一数据转换
+**职责**：提供技术实现，包括数据访问、外部 API 调用等
 
-**之前：** 转换逻辑散落在各处
 ```typescript
-// songService.ts
-const transformedSongs = data.results.map((item: any) => ({
-    id: item.id?.toString() || '',
-    name: item.song_name || '未知歌曲',
-    // ... 每处都要写
-}));
+// infrastructure/repositories/SongRepository.ts
+export class SongRepository implements ISongRepository {
+    constructor(private apiClient: ApiClient) {}
 
-// clientApi.ts（重复！）
-const transformedSongs = data.results.map((item: any) => ({
-    id: item.id?.toString() || '',
-    // ... 又写一遍
-}));
-```
+    async getSongs(params?: GetSongsParams) {
+        const result = await this.apiClient.get('/songs/', params);
+        return SongMapper.fromBackendList(result.data);
+    }
+}
 
-**现在：** 集中管理
-```typescript
 // infrastructure/mappers/SongMapper.ts
 export class SongMapper {
     static fromBackend(item: any): Song {
@@ -125,190 +214,127 @@ export class SongMapper {
             // ...
         };
     }
+}
+```
+
+**特点**：
+- 实现 Domain 层定义的接口
+- 处理数据转换（Backend → Domain）
+- 封装技术细节（HTTP、缓存等）
+
+### 4. Presentation 层（表现层）
+
+**职责**：处理用户界面和用户交互
+
+```typescript
+// presentation/components/songs/SongTable/index.tsx
+export function SongTable() {
+    const { songs, isLoading } = useSongs(params);
     
-    static fromBackendList(items: any[]): Song[] {
-        return items.map(item => this.fromBackend(item));
-    }
-}
-```
-
-**成果：**
-- ✅ 数据转换逻辑统一
-- ✅ 易于维护（改一处，全局生效）
-- ✅ 可测试性提升
-
----
-
-### 3. 拆分 SongTable 组件
-
-**之前：** 428 行的单体组件
-```
-SongTable.tsx (428 行)
-├── 数据获取逻辑
-├── 状态管理
-├── 数据转换
-├── 搜索处理
-├── 筛选逻辑
-├── 分页逻辑
-├── 排序逻辑
-├── UI 渲染
-└── 样式
-```
-
-**现在：** 职责分离
-```
-presentation/components/songs/
-├── SongTable/
-│   ├── index.tsx          # 容器组件 - 组装子组件
-│   ├── SongTableRow.tsx   # 行渲染
-│   └── SongTableHeader.tsx # 表头/排序
-├── SongFilters/           # 筛选逻辑
-│   └── index.tsx
-├── SongPagination/        # 分页逻辑
-│   └── index.tsx
-└── presentation/hooks/
-    └── useSongTable.ts    # 状态管理 Hook
-```
-
-**成果：**
-- ✅ 单一职责原则
-- ✅ 组件可复用
-- ✅ 易于测试
-- ✅ 代码可读性大幅提升
-
----
-
-### 4. 创建 Application UseCase
-
-**新增：** 应用层编排业务逻辑
-```typescript
-// application/songs/GetSongListUseCase.ts
-export class GetSongListUseCase {
-    constructor(private songRepository: ISongRepository) {}
-
-    async execute(params: GetSongsParams = {}): Promise<SongListDTO> {
-        const result = await this.songRepository.getSongs(params);
-        
-        return {
-            songs: result.results,
-            total: result.total,
-            hasMore: result.results.length >= (params.limit || 20),
-        };
-    }
-}
-```
-
-**成果：**
-- ✅ 领域逻辑与 UI 分离
-- ✅ 用例可独立测试
-- ✅ 支持依赖注入
-
----
-
-### 5. 统一 Hooks
-
-**之前：** 重复的 fetcher 逻辑
-```typescript
-// useSongs.ts
-const fetcher = async (url: string) => {
-    // 重复的处理后端响应格式逻辑
-};
-```
-
-**现在：** 调用 Repository
-```typescript
-// infrastructure/hooks/useSongs.ts
-export function useSongs(params: GetSongsParams = {}) {
-    const { data, error, isLoading } = useSWR(
-        SWR_KEYS.songs(params),
-        createRepositoryFetcher(() => songRepository.getSongs(params)),
-        { keepPreviousData: true }
+    return (
+        <table>
+            {/* 渲染逻辑 */}
+        </table>
     );
-    // ...
 }
 ```
 
-**成果：**
-- ✅ Hooks 直接使用 Repository
-- ✅ 无需重复处理响应格式
-- ✅ 缓存策略统一
-
----
-
-## 📊 重构前后对比
-
-| 指标 | 重构前 | 重构后 | 改善 |
-|------|--------|--------|------|
-| **代码行数** | ~428 行 (SongTable) | ~200 行 (分散组件) | 降低 53% |
-| **重复代码** | 多处重复转换逻辑 | 统一 Mapper | 消除重复 |
-| **API 实现** | 2 套 (Server/Client) | 1 套 Repository | 合并 |
-| **组件职责** | 混杂 | 单一职责 | 清晰 |
-| **可测试性** | 低 | 高 | 提升 |
-| **可扩展性** | 修改困难 | 易于扩展 | 提升 |
+**特点**：
+- 依赖 Application 或 Infrastructure 层
+- 只关注 UI 渲染和交互
+- 不包含业务逻辑
 
 ---
 
 ## 📝 使用指南
 
-### 新增功能开发
+### 获取数据（推荐方式）
 
 ```typescript
-// 1. 在 domain/repositories 添加接口方法
-export interface ISongRepository {
-    getNewFeature(): Promise<NewType>;
+// 方式 1：直接使用 Repository（Server/Client 通用）
+import { songRepository } from '@/app/infrastructure/repositories';
+
+const songs = await songRepository.getSongs({ page: 1 });
+
+// 方式 2：使用 SWR Hooks（Client Component）
+import { useSongs } from '@/app/infrastructure/hooks';
+
+function SongList() {
+    const { songs, isLoading } = useSongs({ page: 1 });
+    // ...
 }
 
-// 2. 在 infrastructure/repositories 实现
-export class SongRepository implements ISongRepository {
-    async getNewFeature(): Promise<NewType> {
-        // 实现
-    }
-}
+// 方式 3：使用 UseCase（复杂业务场景）
+import { GetHotSongsUseCase } from '@/app/application/songs';
 
-// 3. 在 application 添加 UseCase（可选）
-
-// 4. 在 hooks 添加 Hook（可选）
-
-// 5. 在 presentation/components 添加组件
+const useCase = new GetHotSongsUseCase(songRepository);
+const { songs } = await useCase.execute('1m', 10);
 ```
 
-### 向后兼容
+### 向后兼容（旧代码）
 
-旧代码仍然可用（已标记为废弃）：
 ```typescript
 // ⚠️ 旧方式（仍可用，但不推荐）
-import { getSongs } from '@/app/infrastructure/api/songService';
+import { songService } from '@/app/infrastructure/api';
+
+const result = await songService.getSongs(params);
+if (result.data) {
+    // 处理数据
+}
 
 // ✅ 新方式（推荐）
 import { songRepository } from '@/app/infrastructure/repositories';
+
+const songs = await songRepository.getSongs(params);
+// 直接返回领域模型
 ```
 
 ---
 
-## 🎯 后续建议
+## 🔄 数据流向
 
-1. **逐步迁移其他模块**
-   - Gallery
-   - Livestream
-   - FansDIY
-   - Analytics
-
-2. **添加测试**
-   - Mapper 单元测试
-   - Repository 集成测试
-   - UseCase 单元测试
-
-3. **性能优化**
-   - 虚拟滚动（大量数据）
-   - 增量加载
-   - 预加载策略
+```
+用户操作 → Presentation 层
+              ↓
+         调用 Hooks
+              ↓
+    Infrastructure 层
+              ↓
+         Repository
+              ↓
+    调用 Mapper 转换数据
+              ↓
+         API Client
+              ↓
+         后端 API
+```
 
 ---
 
-## 🏆 重构收益
+## ✅ 架构优势
 
-1. **架构清晰**：符合 DDD 三层架构，依赖关系明确
-2. **代码复用**：消除重复代码，提高复用率
-3. **可维护性**：职责分离，易于维护
-4. **可测试性**：各层可独立测试
-5. **可扩展性**：新增功能更加容易
+| 优势 | 说明 |
+|------|------|
+| **可测试性** | 可以 Mock Repository 进行单元测试 |
+| **可替换性** | 可以轻松替换数据源（如从 REST 改为 GraphQL） |
+| **可维护性** | 职责清晰，修改影响范围可控 |
+| **可复用性** | Domain 层可以在不同平台复用 |
+
+---
+
+## 📚 相关文档
+
+- `docs/PROJECT_STATUS.md` - 项目状态报告
+- `docs/TODO.md` - 任务清单
+- `docs/SERVICE_VS_REPOSITORY.md` - 架构模式对比
+
+---
+
+## 🏷️ 命名规范
+
+| 层级 | 文件命名 | 类/接口命名 |
+|------|---------|------------|
+| Domain | `IxxxRepository.ts` | `ISongRepository` |
+| Application | `XxxUseCase.ts` | `GetSongListUseCase` |
+| Infrastructure | `xxxMapper.ts`, `xxxRepository.ts` | `SongMapper`, `SongRepository` |
+| Presentation | `xxx/index.tsx` | `SongTable` |
