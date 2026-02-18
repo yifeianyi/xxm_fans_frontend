@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Play, Heart, Sparkles, Palette, Wand2, Paintbrush } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollections, getWorks } from '@/app/infrastructure/api/fansDIYService';
+import { getCollections, getWorks, getCollectionWorks } from '@/app/infrastructure/api/fansDIYService';
 import { FanWork, FanCollection } from '@/app/domain/types';
 import VideoModal from '@/app/songs/components/VideoModal';
 
@@ -82,23 +82,38 @@ function FansDIYContent() {
         init();
     }, []);
 
-    // 分类切换时更新URL
-    const handleCollectionChange = (newCol: string) => {
+    // 分类切换时更新URL并加载对应作品
+    const handleCollectionChange = async (newCol: string) => {
         setSelectedCol(newCol);
         if (newCol !== 'all') {
             router.push(`/fansDIY?collection=${newCol}`, { scroll: false });
+            // 加载该合集的作品
+            setLoading(true);
+            try {
+                const result = await getCollectionWorks(newCol, { page_size: 100 });
+                setWorks(result.results);
+            } catch (error) {
+                console.error('[FansDIY] 加载合集作品失败:', error);
+            } finally {
+                setLoading(false);
+            }
         } else {
             router.push('/fansDIY', { scroll: false });
+            // 重新加载所有作品
+            setLoading(true);
+            try {
+                const result = await getWorks({ page_size: 100 });
+                setWorks(result.results);
+            } catch (error) {
+                console.error('[FansDIY] 加载所有作品失败:', error);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
-    const filteredWorks = selectedCol === 'all'
-        ? works
-        : works.filter(w => {
-            const match = w.collectionId === selectedCol;
-            console.log('[Filter]', { workCollectionId: w.collectionId, selectedCol, match });
-            return match;
-        });
+    // 作品已经根据选择的合集加载，不需要再过滤
+    const filteredWorks = works;
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
