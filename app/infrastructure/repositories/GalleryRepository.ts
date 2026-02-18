@@ -75,8 +75,8 @@ export class GalleryRepository implements IGalleryRepository {
         }
 
         return {
-            images: GalleryMapper.imageListFromBackend(data.results || []),
-            total: data.total || data.results?.length || 0,
+            images: GalleryMapper.imageListFromBackend(data.images || []),
+            total: data.total || data.images?.length || 0,
         };
     }
 
