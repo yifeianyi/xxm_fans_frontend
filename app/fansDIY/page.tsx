@@ -94,7 +94,11 @@ function FansDIYContent() {
 
     const filteredWorks = selectedCol === 'all'
         ? works
-        : works.filter(w => w.collectionId === selectedCol);
+        : works.filter(w => {
+            const match = w.collectionId === selectedCol;
+            console.log('[Filter]', { workCollectionId: w.collectionId, selectedCol, match });
+            return match;
+        });
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-12 space-y-12 animate-in fade-in duration-700">
