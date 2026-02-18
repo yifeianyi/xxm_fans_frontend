@@ -21,7 +21,10 @@ class ApiClient {
 
     private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
         try {
-            const url = `${this.baseURL}${endpoint}`;
+            // 确保 URL 正确拼接（处理斜杠）
+            const normalizedBaseURL = this.baseURL.endsWith('/') ? this.baseURL : `${this.baseURL}/`;
+            const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+            const url = `${normalizedBaseURL}${normalizedEndpoint}`;
             console.log(`[Submission API] ${url}`);
 
             const response = await fetch(url, {
