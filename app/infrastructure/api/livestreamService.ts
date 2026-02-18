@@ -1,5 +1,5 @@
 // 直播服务 - 适配 Next.js Server Components
-import { get } from './base';
+import { get, getFullCoverUrl } from './base';
 import { Livestream, SongCut, Screenshot } from '@/app/domain/types';
 import { PaginatedResult } from './apiTypes';
 
@@ -116,7 +116,7 @@ function transformLivestream(item: any): Livestream {
         duration: item.duration,
         bvid: item.bvid,
         parts: item.parts,
-        coverUrl: item.cover_url,
+        coverUrl: getFullCoverUrl(item.cover_url),
         recordings: item.recordings,
         songCuts: item.song_cuts?.map(transformSongCut),
         screenshots: item.screenshots?.map(transformScreenshot),
@@ -129,13 +129,13 @@ function transformSongCut(item: any): SongCut {
         performed_at: item.performed_at || '',
         song_name: item.song_name || '',
         url: item.url || '',
-        coverThumbnailUrl: item.cover_thumbnail_url,
+        coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url),
     };
 }
 
 function transformScreenshot(item: any): Screenshot {
     return {
-        url: item.url || '',
-        thumbnailUrl: item.thumbnail_url || '',
+        url: getFullCoverUrl(item.url),
+        thumbnailUrl: getFullCoverUrl(item.thumbnail_url),
     };
 }

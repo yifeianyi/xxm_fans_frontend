@@ -1,5 +1,5 @@
 // 图集服务 - 适配 Next.js Server Components
-import { get } from './base';
+import { get, getFullCoverUrl } from './base';
 import { Gallery, GalleryImage, Breadcrumb } from '@/app/domain/types';
 import { PaginatedResult } from './apiTypes';
 
@@ -61,8 +61,8 @@ function transformGallery(item: any): Gallery {
         id: item.id?.toString() || '',
         title: item.title || '',
         description: item.description || '',
-        coverUrl: item.cover_url || '',
-        coverThumbnailUrl: item.cover_thumbnail_url,
+        coverUrl: getFullCoverUrl(item.cover_url),
+        coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url),
         level: item.level || 0,
         imageCount: item.image_count || 0,
         folderPath: item.folder_path || '',
@@ -80,8 +80,8 @@ function transformGallery(item: any): Gallery {
 function transformGalleryImage(item: any): GalleryImage {
     return {
         id: item.id?.toString() || '',
-        url: item.url || '',
-        thumbnailUrl: item.thumbnail_url,
+        url: getFullCoverUrl(item.url),
+        thumbnailUrl: getFullCoverUrl(item.thumbnail_url),
         title: item.title || '',
         filename: item.filename || '',
         isGif: item.is_gif || false,

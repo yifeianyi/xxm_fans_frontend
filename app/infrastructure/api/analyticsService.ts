@@ -1,5 +1,5 @@
 // 数据分析服务 - 适配 Next.js Server Components
-import { get } from './base';
+import { get, getFullCoverUrl } from './base';
 import { AccountData, VideoStats, TimeGranularity, CorrelationData } from '@/app/domain/types';
 
 const CACHE_TIMES = {
@@ -94,7 +94,7 @@ function transformVideoStats(item: any): VideoStats {
     return {
         id: item.id?.toString() || '',
         title: item.title || '',
-        cover: item.cover || '',
+        cover: getFullCoverUrl(item.cover),
         publishTime: item.publish_time || '',
         duration: item.duration || '',
         views: item.views || 0,

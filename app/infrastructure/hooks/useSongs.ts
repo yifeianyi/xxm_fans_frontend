@@ -2,63 +2,47 @@
 
 import useSWR from 'swr';
 import { Song, SongRecord } from '@/app/domain/types';
-import { PaginatedResult, GetSongsParams, GetRecordsParams } from '../api/apiTypes';
+import { songService } from '../api';
+import { PaginatedResult, GetSongsParams, GetRecordsParams, GetTopSongsParams } from '../api/apiTypes';
 
-// API 基础 URL - Client Component 直接使用后端地址
-const API_BASE_URL = 'http://localhost:8000/api';
+// ============ SWR Keys ============
 
-// 处理后端统一响应格式: { code, message, data }
-const fetcher = async (url: string) => {
-    // 使用完整 URL
-    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
-    console.log('[Fetcher] Requesting:', fullUrl);
-    
-    const response = await fetch(fullUrl);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const result = await response.json();
-    console.log('[Fetcher] Response:', result);
-    
-    // 如果后端返回统一格式 { code, message, data }
-    if (result && typeof result === 'object' && 'code' in result) {
-        if (result.code === 200) {
-            return result.data;
-        } else {
-            throw new Error(result.message || 'API error');
-        }
-    }
-    
-    // 直接返回数据
-    return result;
+const SWR_KEYS = {
+    songs: (params: GetSongsParams) => ['songs', params],
+    song: (id: string) => ['song', id],
+    records: (songId: string, params?: GetRecordsParams) => ['records', songId, params],
+    topSongs: (params?: GetTopSongsParams) => ['topSongs', params],
+    styles: () => ['styles'],
+    tags: () => ['tags'],
 };
 
+// ============ Hooks ============
+
 /**
- * 歌曲列表 Hook - 用于 Client Components
+ * 歌曲列表 Hook
  */
 export function useSongs(
     params: GetSongsParams = {},
     fallbackData?: PaginatedResult<Song>
 ) {
-    const queryParams = new URLSearchParams();
-    if (params.q) queryParams.set('q', params.q);
-    if (params.page) queryParams.set('page', params.page.toString());
-    if (params.limit) queryParams.set('limit', params.limit.toString());
-    if (params.ordering) queryParams.set('ordering', params.ordering);
-    if (params.styles) queryParams.set('styles', params.styles);
-    if (params.tags) queryParams.set('tags', params.tags);
-    if (params.language) queryParams.set('language', params.language);
-
     const { data, error, isLoading, mutate } = useSWR(
-        `/songs/?${queryParams.toString()}`,
-        fetcher,
-        { fallbackData }
+        SWR_KEYS.songs(params),
+        async () => {
+            const result = await songService.getSongs(params);
+            if (result.error) throw result.error;
+            return result.data!;
+        },
+        { 
+            fallbackData,
+            keepPreviousData: true,
+        }
     );
 
-    // 后端返回 total，不是 count
     return {
         songs: data?.results || [],
-        total: data?.total || data?.count || 0,
+        total: data?.total || 0,
+        page: data?.page || 1,
+        pageSize: data?.page_size || 20,
         isLoading,
         error,
         mutate,
@@ -69,9 +53,13 @@ export function useSongs(
  * 歌曲详情 Hook
  */
 export function useSong(id: string, fallbackData?: Song) {
-    const { data, error, isLoading } = useSWR(
-        id ? `/songs/${id}/` : null,
-        fetcher,
+    const { data, error, isLoading, mutate } = useSWR(
+        id ? SWR_KEYS.song(id) : null,
+        async () => {
+            const result = await songService.getSongById(id);
+            if (result.error) throw result.error;
+            return result.data!;
+        },
         { fallbackData }
     );
 
@@ -79,6 +67,7 @@ export function useSong(id: string, fallbackData?: Song) {
         song: data,
         isLoading,
         error,
+        mutate,
     };
 }
 
@@ -90,34 +79,39 @@ export function useSongRecords(
     params?: GetRecordsParams,
     fallbackData?: PaginatedResult<SongRecord>
 ) {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.set('page', params.page.toString());
-    if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
-
-    const { data, error, isLoading } = useSWR(
-        songId ? `/songs/${songId}/records/?${queryParams.toString()}` : null,
-        fetcher,
+    const { data, error, isLoading, mutate } = useSWR(
+        songId ? SWR_KEYS.records(songId, params) : null,
+        async () => {
+            const result = await songService.getRecords(songId, params);
+            if (result.error) throw result.error;
+            return result.data!;
+        },
         { fallbackData }
     );
 
     return {
         records: data?.results || [],
-        total: data?.total || data?.count || 0,
+        total: data?.total || 0,
         isLoading,
         error,
+        mutate,
     };
 }
 
 /**
  * 排行榜 Hook
  */
-export function useTopSongs(timeRange?: string, fallbackData?: Song[]) {
-    const queryParams = new URLSearchParams();
-    if (timeRange) queryParams.set('time_range', timeRange);
-
+export function useTopSongs(
+    params?: GetTopSongsParams,
+    fallbackData?: Song[]
+) {
     const { data, error, isLoading } = useSWR(
-        `/top_songs/?${queryParams.toString()}`,
-        fetcher,
+        SWR_KEYS.topSongs(params),
+        async () => {
+            const result = await songService.getTopSongs(params);
+            if (result.error) throw result.error;
+            return result.data!;
+        },
         { fallbackData }
     );
 
@@ -125,5 +119,62 @@ export function useTopSongs(timeRange?: string, fallbackData?: Song[]) {
         topSongs: data || [],
         isLoading,
         error,
+    };
+}
+
+/**
+ * 曲风列表 Hook
+ */
+export function useStyles() {
+    const { data, error, isLoading } = useSWR(
+        SWR_KEYS.styles(),
+        async () => {
+            const result = await songService.getStyles();
+            if (result.error) throw result.error;
+            return result.data!;
+        },
+        { revalidateOnFocus: false }
+    );
+
+    return {
+        styles: data || [],
+        isLoading,
+        error,
+    };
+}
+
+/**
+ * 标签列表 Hook
+ */
+export function useTags() {
+    const { data, error, isLoading } = useSWR(
+        SWR_KEYS.tags(),
+        async () => {
+            const result = await songService.getTags();
+            if (result.error) throw result.error;
+            return result.data!;
+        },
+        { revalidateOnFocus: false }
+    );
+
+    return {
+        tags: data || [],
+        isLoading,
+        error,
+    };
+}
+
+/**
+ * 筛选选项 Hook（曲风 + 标签）
+ */
+export function useFilterOptions() {
+    const stylesQuery = useStyles();
+    const tagsQuery = useTags();
+
+    return {
+        styles: stylesQuery.styles,
+        tags: tagsQuery.tags,
+        isLoading: stylesQuery.isLoading || tagsQuery.isLoading,
+        error: stylesQuery.error || tagsQuery.error,
     };
 }

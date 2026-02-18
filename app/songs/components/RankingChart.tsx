@@ -1,65 +1,55 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sparkles, Trophy, Flame } from 'lucide-react';
-import { getTopSongsClient } from '@/app/infrastructure/api/clientApi';
 import { Song } from '@/app/domain/types';
+import { songService } from '@/app/infrastructure/api';
+import useSWR from 'swr';
+import MysteryBoxModal from './MysteryBoxModal';
+import VideoModal from './VideoModal';
+
+type TimeRange = 'all' | '3m' | '1y';
+
+const RANKING_KEY = 'top-songs';
+const RECOMMENDATION_KEY = 'recommendation';
 
 export default function RankingChart() {
-    const [range, setRange] = useState<'all' | '3m' | '1y'>('all');
-    const [topSongs, setTopSongs] = useState<Song[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [range, setRange] = useState<TimeRange>('all');
+    const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    
+    // 获取排行榜数据
+    const { data: topSongs = [], isLoading: isLoadingSongs, error: songsError } = useSWR(
+        `${RANKING_KEY}-${range}`,
+        async () => {
+            const result = await songService.getTopSongs({ range, limit: 50 });
+            if (result.error) throw result.error;
+            return result.data!;
+        }
+    );
 
-    useEffect(() => {
-        let cancelled = false;
-        
-        async function loadRanking() {
-            setLoading(true);
-            setError(null);
-            
-            try {
-                const data = await getTopSongsClient(range);
-                
-                if (!cancelled) {
-                    // 转换数据格式
-                    const transformedSongs: Song[] = data.map((item: any) => ({
-                        id: item.id?.toString() || '',
-                        name: item.song_name || '未知歌曲',
-                        originalArtist: item.singer || '未知歌手',
-                        genres: [], // 排行榜 API 不返回 genres
-                        languages: [],
-                        firstPerformance: item.first_perform || '',
-                        lastPerformance: item.last_perform || '',
-                        performanceCount: item.perform_count || 0,
-                        tags: [],
-                    }));
-                    
-                    setTopSongs(transformedSongs);
-                    console.log('[RankingChart] Loaded', transformedSongs.length, 'songs');
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('[RankingChart] Error:', err);
-                    setError(err instanceof Error ? err.message : '加载失败');
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
+    // 获取推荐语数据
+    const { data: recommendation, isLoading: isLoadingRec } = useSWR(
+        RECOMMENDATION_KEY,
+        async () => {
+            const result = await songService.getRecommendation();
+            if (result.error) throw result.error;
+            return result.data;
+        },
+        {
+            shouldRetryOnError: false,
+            onError: (err) => {
+                console.log('Recommendation API not available:', err.message);
             }
         }
-        
-        loadRanking();
-        
-        return () => {
-            cancelled = true;
-        };
-    }, [range]);
+    );
 
-    const maxCount = topSongs.length > 0 
-        ? Math.max(...topSongs.map((s: Song) => s.performanceCount), 1) 
-        : 1;
+    const maxCount = useMemo(() => 
+        topSongs.length > 0 
+            ? Math.max(...topSongs.map((s: Song) => s.performanceCount), 1) 
+            : 1,
+        [topSongs]
+    );
 
     const getRankStyle = (index: number) => {
         if (index === 0) return 'from-yellow-400 via-orange-400 to-red-400';
@@ -69,14 +59,18 @@ export default function RankingChart() {
     };
 
     // 错误提示
-    if (error) {
+    if (songsError) {
         return (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
                 <p className="text-red-600 font-bold mb-2">排行榜加载失败</p>
-                <p className="text-red-500 text-sm">{error}</p>
+                <p className="text-red-500 text-sm">{songsError instanceof Error ? songsError.message : '加载失败'}</p>
             </div>
         );
     }
+
+    // 推荐语内容 - 优先使用后端数据，否则使用默认值
+    const recommendationContent = recommendation?.content || '每一首歌都是满满的用心演绎，快来发现热门作品吧！';
+    const recommendedSongs = recommendation?.recommendedSongsDetails || [];
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -90,7 +84,7 @@ export default function RankingChart() {
                     ].map(({ key, label }) => (
                         <button
                             key={key}
-                            onClick={() => setRange(key as any)}
+                            onClick={() => setRange(key as TimeRange)}
                             className={`px-6 py-2 rounded-full text-sm font-black transition-all ${
                                 range === key
                                     ? 'bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white shadow-md'
@@ -103,18 +97,43 @@ export default function RankingChart() {
                 </div>
             </div>
 
-            {/* 推荐语 */}
+            {/* 推荐语 - 从后端获取 */}
             <div className="px-8 py-6 bg-gradient-to-r from-[#f8b195] to-[#f67280] rounded-3xl text-white shadow-xl flex flex-col items-center justify-center gap-4 border-2 border-white/50">
                 <div className="flex items-center gap-3">
                     <Sparkles size={20} className="text-yellow-200 fill-yellow-200" />
                     <span className="text-base font-black tracking-wider text-center">
-                        每一首歌都是满满的用心演绎，快来发现热门作品吧！
+                        {recommendationContent}
                     </span>
                 </div>
+                {/* 推荐歌曲标签 */}
+                {recommendedSongs.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {recommendedSongs.map((song: any) => (
+                            <button
+                                key={song.id}
+                                onClick={() => setSelectedSong({
+                                    id: song.id,
+                                    name: song.name,
+                                    originalArtist: song.singer,
+                                    genres: [],
+                                    languages: song.language ? [song.language] : [],
+                                    firstPerformance: '',
+                                    lastPerformance: '',
+                                    performanceCount: 0,
+                                    tags: []
+                                })}
+                                className="px-3 py-1 bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 rounded-full text-xs font-bold transition-all"
+                                title={`${song.name} - ${song.singer}`}
+                            >
+                                {song.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* 排行榜列表 */}
-            {loading ? (
+            {isLoadingSongs ? (
                 <div className="flex items-center justify-center py-12">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -144,7 +163,7 @@ export default function RankingChart() {
                                 </div>
 
                                 {/* 歌曲信息 */}
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedSong(song)}>
                                     <h3 className="font-black text-[#5d4037] text-lg truncate group-hover:text-[#f8b195] transition-colors">
                                         {song.name}
                                     </h3>
@@ -174,6 +193,22 @@ export default function RankingChart() {
                     ))}
                 </div>
             )}
+
+            {/* 歌曲详情弹窗 */}
+            <MysteryBoxModal
+                isOpen={!!selectedSong}
+                onClose={() => setSelectedSong(null)}
+                song={selectedSong}
+                onPlay={setVideoUrl}
+                title="歌曲详情"
+            />
+
+            {/* 视频播放弹窗 */}
+            <VideoModal
+                isOpen={!!videoUrl}
+                onClose={() => setVideoUrl(null)}
+                videoUrl={videoUrl || ''}
+            />
         </div>
     );
 }

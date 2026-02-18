@@ -1,191 +1,282 @@
-// 歌曲服务 - 适配 Next.js Server Components
-import { get } from './base';
-import { Song, SongRecord, OriginalWork } from '@/app/domain/types';
-import { PaginatedResult, GetSongsParams, GetRecordsParams, GetTopSongsParams } from './apiTypes';
+// 歌曲服务 - 适配 Next.js Server/Client Components
+// 基于原项目 RealSongService 实现
 
-// 缓存时间配置（秒）
-const CACHE_TIMES = {
-    SONGS_LIST: 60,      // 歌曲列表缓存 1 分钟
-    SONG_DETAIL: 300,    // 歌曲详情缓存 5 分钟
-    STYLES_TAGS: 3600,   // 曲风标签缓存 1 小时
-    TOP_SONGS: 3600,     // 排行榜缓存 1 小时
-};
+import { Song, SongRecord, OriginalWork, Recommendation } from '@/app/domain/types';
+import {
+    ApiResult,
+    PaginatedResult,
+    GetSongsParams,
+    GetRecordsParams,
+    GetTopSongsParams,
+    ApiError
+} from './apiTypes';
+import { getFullCoverUrl } from './base';
 
-/**
- * 获取歌曲列表
- */
-export async function getSongs(params: GetSongsParams = {}): Promise<PaginatedResult<Song>> {
-    const queryParams = new URLSearchParams();
-    if (params.q) queryParams.set('q', params.q);
-    if (params.page) queryParams.set('page', params.page.toString());
-    if (params.limit) queryParams.set('limit', params.limit.toString());
-    if (params.ordering) queryParams.set('ordering', params.ordering);
-    if (params.styles) queryParams.set('styles', params.styles);
-    if (params.tags) queryParams.set('tags', params.tags);
-    if (params.language) queryParams.set('language', params.language);
-
-    const result = await get<PaginatedResult<any>>(
-        `/songs/?${queryParams.toString()}`,
-        CACHE_TIMES.SONGS_LIST
-    );
-
-    if (result.data) {
-        return {
-            ...result.data,
-            results: result.data.results.map(transformSong),
-        };
-    }
-    throw result.error || new Error('Failed to fetch songs');
-}
+// API 基础 URL - 从环境变量获取
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
 /**
- * 获取歌曲详情
+ * API 客户端 - 内部类
  */
-export async function getSongById(id: string): Promise<Song> {
-    const result = await get<any>(`/songs/${id}/`, CACHE_TIMES.SONG_DETAIL);
-    if (result.data) {
-        return transformSong(result.data);
+class ApiClient {
+    private baseURL = API_BASE_URL;
+
+    private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
+        try {
+            const url = `${this.baseURL}${endpoint}`;
+            console.log(`[API Request] ${url}`);
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options?.headers
+                }
+            });
+
+            if (!response.ok) {
+                throw new ApiError(response.status, `Request failed: ${response.statusText}`);
+            }
+
+            const responseData = await response.json();
+
+            // 处理后端的统一响应格式: { code, message, data }
+            if (responseData && typeof responseData === 'object' && 'code' in responseData) {
+                if (responseData.code === 200) {
+                    return { data: responseData.data as T };
+                } else {
+                    throw new ApiError(responseData.code, responseData.message || 'Request failed');
+                }
+            }
+
+            // 如果不是统一格式，直接返回数据
+            return { data: responseData as T };
+        } catch (error) {
+            console.error(`[API Error] ${endpoint}:`, error);
+            if (error instanceof ApiError) {
+                return { error };
+            }
+            return { error: new ApiError(500, 'Network error') };
+        }
     }
-    throw result.error || new Error('Failed to fetch song');
+
+    async get<T>(endpoint: string): Promise<ApiResult<T>> {
+        return this.request<T>(endpoint, { method: 'GET' });
+    }
 }
+
+const apiClient = new ApiClient();
 
 /**
- * 获取歌曲演唱记录
+ * 歌曲服务类
  */
-export async function getSongRecords(
-    songId: string,
-    params?: GetRecordsParams
-): Promise<PaginatedResult<SongRecord>> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.set('page', params.page.toString());
-    if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+class SongService {
+    async getSongs(params: GetSongsParams): Promise<ApiResult<PaginatedResult<Song>>> {
+        const queryParams = new URLSearchParams();
+        if (params.q) queryParams.set('q', params.q);
+        if (params.page) queryParams.set('page', params.page.toString());
+        if (params.limit) queryParams.set('limit', params.limit.toString());
+        if (params.ordering) queryParams.set('ordering', params.ordering);
+        if (params.styles) queryParams.set('styles', params.styles);
+        if (params.tags) queryParams.set('tags', params.tags);
+        if (params.language) queryParams.set('language', params.language);
 
-    const result = await get<PaginatedResult<any>>(
-        `/songs/${songId}/records/?${queryParams.toString()}`,
-        CACHE_TIMES.SONGS_LIST
-    );
+        const result = await apiClient.get<PaginatedResult<any>>(`/songs/?${queryParams.toString()}`);
 
-    if (result.data) {
-        return {
-            ...result.data,
-            results: result.data.results.map(transformSongRecord),
-        };
+        if (result.data) {
+            const transformed: PaginatedResult<Song> = {
+                ...result.data,
+                results: result.data.results.map((item: any) => ({
+                    id: item.id?.toString() || '',
+                    name: item.song_name || '未知歌曲',
+                    originalArtist: item.singer || '未知歌手',
+                    genres: Array.isArray(item.styles) ? item.styles : [],
+                    languages: item.language ? [item.language] : [],
+                    firstPerformance: item.first_perform || '',
+                    lastPerformance: item.last_performed || item.last_perform || '',
+                    performanceCount: item.perform_count || 0,
+                    tags: Array.isArray(item.tags) ? item.tags : []
+                }))
+            };
+            return { data: transformed };
+        }
+        return result;
     }
-    throw result.error || new Error('Failed to fetch records');
-}
 
-/**
- * 获取曲风列表
- */
-export async function getStyles(): Promise<string[]> {
-    const result = await get<{ styles: string[] }>('/styles/', CACHE_TIMES.STYLES_TAGS);
-    if (result.data) {
-        return result.data.styles || [];
+    async getSongById(id: string): Promise<ApiResult<Song>> {
+        const result = await apiClient.get<any>(`/songs/${id}/`);
+
+        if (result.data) {
+            const transformed: Song = {
+                id: result.data.id?.toString() || '',
+                name: result.data.song_name || '未知歌曲',
+                originalArtist: result.data.singer || '未知歌手',
+                genres: Array.isArray(result.data.styles) ? result.data.styles : [],
+                languages: result.data.language ? [result.data.language] : [],
+                firstPerformance: result.data.first_perform || '',
+                lastPerformance: result.data.last_performed || result.data.last_perform || '',
+                performanceCount: result.data.perform_count || 0,
+                tags: Array.isArray(result.data.tags) ? result.data.tags : []
+            };
+            return { data: transformed };
+        }
+        return result;
     }
-    throw result.error || new Error('Failed to fetch styles');
-}
 
-/**
- * 获取标签列表
- */
-export async function getTags(): Promise<string[]> {
-    const result = await get<{ tags: string[] }>('/tags/', CACHE_TIMES.STYLES_TAGS);
-    if (result.data) {
-        return result.data.tags || [];
+    async getRecords(songId: string, params?: GetRecordsParams): Promise<ApiResult<PaginatedResult<SongRecord>>> {
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.set('page', params.page.toString());
+        if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+
+        const result = await apiClient.get<any>(`/songs/${songId}/records/?${queryParams.toString()}`);
+
+        if (result.data) {
+            // 兼容处理两种数据格式：分页格式 和 数组格式
+            let recordsArray: any[];
+            let totalCount: number;
+
+            if (Array.isArray(result.data)) {
+                recordsArray = result.data;
+                totalCount = result.data.length;
+            } else if (result.data.results && Array.isArray(result.data.results)) {
+                recordsArray = result.data.results;
+                totalCount = result.data.total || result.data.results.length;
+            } else {
+                console.warn('⚠️ getRecords 返回未知数据格式:', result.data);
+                return { data: { results: [], total: 0, page: 1, page_size: 10 } };
+            }
+
+            const transformed: PaginatedResult<SongRecord> = {
+                results: recordsArray.map((item: any) => ({
+                    id: item.id?.toString() || '',
+                    songId: songId,
+                    songName: item.song_name || '',
+                    date: item.performed_at || '',
+                    cover: getFullCoverUrl(item.cover_url || item.cover),
+                    coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url || item.cover_url || item.cover),
+                    note: item.notes || item.note || '',
+                    videoUrl: item.url || item.video_url || ''
+                })),
+                total: totalCount,
+                page: result.data.page || 1,
+                page_size: result.data.page_size || 10
+            };
+            return { data: transformed };
+        }
+        return result;
     }
-    throw result.error || new Error('Failed to fetch tags');
-}
 
-/**
- * 获取排行榜
- */
-export async function getTopSongs(params?: GetTopSongsParams): Promise<Song[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.timeRange) queryParams.set('time_range', params.timeRange);
-    if (params?.limit) queryParams.set('limit', params.limit.toString());
-
-    const result = await get<any[]>(
-        `/top_songs/?${queryParams.toString()}`,
-        CACHE_TIMES.TOP_SONGS
-    );
-
-    if (result.data) {
-        return result.data.map(transformSong);
+    async getStyles(): Promise<ApiResult<string[]>> {
+        const result = await apiClient.get<{ styles: string[] }>('/styles/');
+        if (result.data) {
+            return { data: result.data.styles || [] };
+        }
+        return { error: result.error || new ApiError(500, 'Failed to fetch styles') };
     }
-    throw result.error || new Error('Failed to fetch top songs');
-}
 
-/**
- * 获取原唱作品
- */
-export async function getOriginals(): Promise<OriginalWork[]> {
-    const result = await get<any[]>('/originals/', CACHE_TIMES.SONGS_LIST);
-    if (result.data) {
-        return result.data.map(transformOriginalWork);
+    async getTags(): Promise<ApiResult<string[]>> {
+        const result = await apiClient.get<{ tags: string[] }>('/tags/');
+        if (result.data) {
+            return { data: result.data.tags || [] };
+        }
+        return { error: result.error || new ApiError(500, 'Failed to fetch tags') };
     }
-    throw result.error || new Error('Failed to fetch originals');
-}
 
-/**
- * 获取推荐歌曲
- */
-export async function getFeaturedSongs(limit: number = 6): Promise<Song[]> {
-    const result = await get<any[]>(`/featured-songs/?limit=${limit}`, CACHE_TIMES.SONGS_LIST);
-    if (result.data) {
-        return result.data.map(transformSong);
+    async getTopSongs(params?: GetTopSongsParams): Promise<ApiResult<Song[]>> {
+        const queryParams = new URLSearchParams();
+        if (params?.range) {
+            queryParams.set('range', params.range);
+        }
+        if (params?.limit) queryParams.set('limit', params.limit.toString());
+
+        const result = await apiClient.get<any[]>(`/top_songs/?${queryParams.toString()}`);
+
+        if (result.data) {
+            const transformed: Song[] = result.data.map((item: any) => ({
+                id: item.id?.toString() || '',
+                name: item.song_name || '未知歌曲',
+                originalArtist: item.singer || '未知歌手',
+                genres: Array.isArray(item.styles) ? item.styles : [],
+                languages: item.language ? [item.language] : [],
+                firstPerformance: item.first_perform || '',
+                lastPerformance: item.last_performed || '',
+                performanceCount: item.perform_count || 0,
+                tags: Array.isArray(item.tags) ? item.tags : []
+            }));
+            return { data: transformed };
+        }
+        return result;
     }
-    throw result.error || new Error('Failed to fetch featured songs');
-}
 
-/**
- * 获取随机歌曲
- */
-export async function getRandomSong(): Promise<Song> {
-    const result = await get<any>('/random-song/', 0); // 不缓存
-    if (result.data) {
-        return transformSong(result.data);
+    async getOriginalWorks(): Promise<ApiResult<OriginalWork[]>> {
+        const result = await apiClient.get<any[]>('/original-works/');
+
+        if (result.data && Array.isArray(result.data)) {
+            const transformed: OriginalWork[] = result.data.map((item: any) => ({
+                title: item.title || '',
+                date: item.date || '',
+                desc: item.desc || '',
+                cover: getFullCoverUrl(item.cover),
+                // 支持两种字段命名：驼峰命名（后端返回）和下划线命名（兼容）
+                songId: item.songId || item.song_id || '',
+                neteaseId: item.neteaseId || item.netease_id || '',
+                bilibiliBvid: item.bilibiliBvid || item.bilibili_bvid || item.bvid || '',
+                featured: item.featured || false
+            }));
+            return { data: transformed };
+        }
+        return result;
     }
-    throw result.error || new Error('Failed to fetch random song');
+
+    async getRandomSong(): Promise<ApiResult<Song>> {
+        const result = await apiClient.get<any>('/random-song/');
+
+        if (result.data) {
+            const transformed: Song = {
+                id: result.data.id?.toString() || '',
+                name: result.data.song_name || '未知歌曲',
+                originalArtist: result.data.singer || '未知歌手',
+                genres: Array.isArray(result.data.styles) ? result.data.styles : [],
+                languages: result.data.language ? [result.data.language] : [],
+                firstPerformance: result.data.first_perform || '',
+                lastPerformance: result.data.last_performed || '',
+                performanceCount: result.data.perform_count || 0,
+                tags: Array.isArray(result.data.tags) ? result.data.tags : []
+            };
+            return { data: transformed };
+        }
+        return result;
+    }
+
+    async getRecommendation(): Promise<ApiResult<Recommendation & { recommendedSongsDetails?: any[] }>> {
+        const result = await apiClient.get<any>('/site-settings/');
+
+        if (result.data) {
+            // API 返回的是数组，取第一个激活的推荐
+            const recommendationData = Array.isArray(result.data) 
+                ? result.data.find((r: any) => r.is_active) || result.data[0] 
+                : result.data;
+
+            if (recommendationData) {
+                const recommendedSongsDetails = recommendationData.recommended_songs_details?.map((song: any) => ({
+                    id: song.id?.toString() || '',
+                    name: song.song_name || '未知歌曲',
+                    singer: song.singer || '未知歌手',
+                    language: song.language || '未知语种'
+                })) || [];
+
+                const transformed: Recommendation & { recommendedSongsDetails?: any[] } = {
+                    content: recommendationData.content || '',
+                    recommendedSongs: recommendationData.recommended_songs?.map((song: any) => song.id?.toString() || '') || [],
+                    recommendedSongsDetails: recommendedSongsDetails
+                };
+
+                return { data: transformed };
+            }
+        }
+        return result as ApiResult<Recommendation & { recommendedSongsDetails?: any[] }>;
+    }
 }
 
-// ========== 数据转换函数 ==========
-
-function transformSong(item: any): Song {
-    return {
-        id: item.id?.toString() || '',
-        name: item.song_name || '未知歌曲',
-        originalArtist: item.singer || '未知歌手',
-        genres: Array.isArray(item.styles) ? item.styles : [],
-        languages: item.language ? [item.language] : [],
-        firstPerformance: item.first_perform || '',
-        lastPerformance: item.last_performed || '',
-        performanceCount: item.perform_count || 0,
-        tags: Array.isArray(item.tags) ? item.tags : [],
-    };
-}
-
-function transformSongRecord(item: any): SongRecord {
-    return {
-        id: item.id?.toString() || '',
-        songId: item.song?.toString() || '',
-        songName: item.song_name || '',
-        date: item.performed_at || '',
-        cover: item.cover || '',
-        coverThumbnailUrl: item.cover_thumbnail_url,
-        note: item.note || '',
-        videoUrl: item.video_url || '',
-    };
-}
-
-function transformOriginalWork(item: any): OriginalWork {
-    return {
-        title: item.title || '',
-        date: item.date || '',
-        desc: item.desc || '',
-        cover: item.cover || '',
-        songId: item.song_id,
-        neteaseId: item.netease_id,
-        bilibiliBvid: item.bilibili_bvid,
-        featured: item.featured || false,
-    };
-}
+// 导出单例实例
+export const songService = new SongService();

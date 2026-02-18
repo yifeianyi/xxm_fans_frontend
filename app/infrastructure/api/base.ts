@@ -1,6 +1,6 @@
 // 基础 API 客户端 - 适配 Next.js Server/Client Components
 import { config } from '../config/config';
-import { ApiResult, ApiErrorClass } from './apiTypes';
+import { ApiResult, ApiError } from './apiTypes';
 
 interface FetchOptions extends RequestInit {
     revalidate?: number;
@@ -8,16 +8,20 @@ interface FetchOptions extends RequestInit {
 
 /**
  * 获取基础 URL
+ * 
+ * 注意：Client-side 和 Server-side 都使用完整 URL 直接访问后端
+ * 避免 Next.js rewrite 配置的复杂性
  */
 function getBaseURL(): string {
-    // Server-side: 使用完整 URL
+    // Server-side: 使用环境变量
     if (typeof window === 'undefined') {
         return process.env.API_BASE_URL || 
                process.env.NEXT_PUBLIC_API_BASE_URL || 
                'http://localhost:8000/api';
     }
-    // Client-side: 使用相对路径
-    return '/api';
+    // Client-side: 使用 NEXT_PUBLIC_ 环境变量
+    return process.env.NEXT_PUBLIC_API_BASE_URL || 
+           'http://localhost:8000/api';
 }
 
 /**
@@ -50,7 +54,7 @@ export async function request<T>(
         const response = await fetch(url, fetchOptions);
 
         if (!response.ok) {
-            throw new ApiErrorClass(response.status, `Request failed: ${response.statusText}`);
+            throw new ApiError(response.status, `Request failed: ${response.statusText}`);
         }
 
         const responseData = await response.json();
@@ -62,7 +66,7 @@ export async function request<T>(
             if (responseData.code === 200) {
                 return { data: responseData.data as T };
             } else {
-                throw new ApiErrorClass(responseData.code, responseData.message || 'Request failed');
+                throw new ApiError(responseData.code, responseData.message || 'Request failed');
             }
         }
 
@@ -70,10 +74,10 @@ export async function request<T>(
         return { data: responseData as T };
     } catch (error) {
         console.error(`[API Error] ${endpoint}:`, error); // 调试日志
-        if (error instanceof ApiErrorClass) {
+        if (error instanceof ApiError) {
             return { error };
         }
-        return { error: new ApiErrorClass(500, 'Network error') };
+        return { error: new ApiError(500, 'Network error') };
     }
 }
 
@@ -82,4 +86,22 @@ export async function request<T>(
  */
 export async function get<T>(endpoint: string, revalidate?: number): Promise<ApiResult<T>> {
     return request<T>(endpoint, { method: 'GET', revalidate });
+}
+
+// 媒体文件基础 URL（去掉 /api 后缀）
+const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+
+/**
+ * 转换封面 URL 为完整路径
+ * 将相对路径如 /media/covers/... 转换为完整 URL
+ */
+export function getFullCoverUrl(coverPath: string | null | undefined): string {
+    if (!coverPath) return '';
+    // 如果已经是完整 URL，直接返回
+    if (coverPath.startsWith('http://') || coverPath.startsWith('https://')) {
+        return coverPath;
+    }
+    // 确保路径以 / 开头
+    const normalizedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
+    return `${MEDIA_BASE_URL}${normalizedPath}`;
 }

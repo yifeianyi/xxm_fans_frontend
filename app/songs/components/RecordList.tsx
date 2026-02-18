@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Play } from 'lucide-react';
-import { getSongRecords } from '@/app/infrastructure/api/clientApi';
 import { SongRecord } from '@/app/domain/types';
+import { useSongRecords } from '@/app/infrastructure/hooks/useSongs';
 
 // API 基础 URL - 用于拼接图片路径
 const API_BASE_URL = 'http://localhost:8000';
@@ -14,9 +14,7 @@ interface RecordListProps {
 }
 
 export default function RecordList({ songId, onPlay }: RecordListProps) {
-    const [records, setRecords] = useState<SongRecord[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { records, isLoading, error } = useSongRecords(songId, { page: 1, page_size: 20 });
 
     // 构建完整图片 URL
     const getFullImageUrl = (path: string | null | undefined): string => {
@@ -25,50 +23,7 @@ export default function RecordList({ songId, onPlay }: RecordListProps) {
         return `${API_BASE_URL}${path}`;
     };
 
-    useEffect(() => {
-        let cancelled = false;
-        
-        async function loadRecords() {
-            setLoading(true);
-            setError(null);
-            
-            try {
-                const data = await getSongRecords(songId, { page: 1, page_size: 20 });
-                
-                if (!cancelled) {
-                    const transformedRecords: SongRecord[] = data.results.map((item: any) => ({
-                        id: item.id?.toString() || '',
-                        songId: item.song?.toString() || '',
-                        songName: item.song_name || '',
-                        date: item.performed_at || '',
-                        cover: item.cover_url || '',
-                        coverThumbnailUrl: item.cover_thumbnail_url,
-                        note: item.notes || '',
-                        videoUrl: item.url || '',
-                    }));
-                    
-                    setRecords(transformedRecords);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('[RecordList] Error:', err);
-                    setError(err instanceof Error ? err.message : '加载失败');
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-        
-        loadRecords();
-        
-        return () => {
-            cancelled = true;
-        };
-    }, [songId]);
-
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="p-10 flex items-center justify-center gap-2">
                 <div className="w-2 h-2 bg-[#f8b195] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -81,7 +36,7 @@ export default function RecordList({ songId, onPlay }: RecordListProps) {
     if (error) {
         return (
             <div className="p-10 text-center">
-                <div className="text-red-500 mb-2 text-xs font-bold">{error}</div>
+                <div className="text-red-500 mb-2 text-xs font-bold">{error instanceof Error ? error.message : '加载失败'}</div>
                 <button
                     onClick={() => window.location.reload()}
                     className="px-4 py-2 bg-[#8eb69b] text-white rounded-lg hover:bg-[#7da58a] transition-colors text-xs font-bold"

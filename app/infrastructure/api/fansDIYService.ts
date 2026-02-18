@@ -1,5 +1,5 @@
 // 粉丝二创服务 - 适配 Next.js Server Components
-import { get } from './base';
+import { get, getFullCoverUrl } from './base';
 import { FanCollection, FanWork } from '@/app/domain/types';
 import { PaginatedResult, GetWorksParams } from './apiTypes';
 
@@ -120,8 +120,8 @@ function transformWork(item: any): FanWork {
         id: item.id?.toString() || '',
         title: item.title || '',
         author: item.author || '',
-        cover: item.cover || '',
-        coverThumbnailUrl: item.cover_thumbnail_url,
+        cover: getFullCoverUrl(item.cover),
+        coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url),
         videoUrl: item.video_url || '',
         note: item.note || '',
         collectionId: item.collection?.toString() || '',

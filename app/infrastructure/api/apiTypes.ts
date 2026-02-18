@@ -1,8 +1,14 @@
-// API 类型定义
+// API 类型定义 - 基于原项目
 
-export interface ApiError {
-    code: number;
-    message: string;
+export class ApiError extends Error {
+    constructor(
+        public status: number,
+        message: string,
+        public code?: string
+    ) {
+        super(message);
+        this.name = 'ApiError';
+    }
 }
 
 export interface ApiResult<T> {
@@ -16,10 +22,6 @@ export interface PaginatedResult<T> {
     page: number;
     page_size: number;
     results: T[];
-    // 兼容性字段
-    count?: number;
-    next?: string | null;
-    previous?: string | null;
 }
 
 // 查询参数类型
@@ -39,22 +41,29 @@ export interface GetRecordsParams {
 }
 
 export interface GetTopSongsParams {
-    timeRange?: string;
+    range?: string;
     limit?: number;
 }
 
 export interface GetWorksParams {
-    collectionId?: string;
     page?: number;
+    limit?: number;
     page_size?: number;
+    collection?: number;
 }
 
-export class ApiErrorClass extends Error {
-    constructor(
-        public code: number,
-        message: string
-    ) {
-        super(message);
-        this.name = 'ApiError';
-    }
+// ==================== API 响应类型 ====================
+
+/** API 统一响应格式 */
+export interface ApiResponse<T = any> {
+    code: number;
+    message: string;
+    data: T;
+}
+
+/** API 错误响应 */
+export interface ApiErrorResponse {
+    code: number;
+    message: string;
+    data: null;
 }

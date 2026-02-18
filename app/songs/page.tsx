@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart } from 'lucide-react';
-import SongTable from './components/SongTable';
+import { SongTable } from '@/app/presentation/components/songs';
 import RankingChart from './components/RankingChart';
 import OriginalsList from './components/OriginalsList';
 import TimelineChart from './components/TimelineChart';
