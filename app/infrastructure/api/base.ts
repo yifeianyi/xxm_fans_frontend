@@ -129,5 +129,13 @@ export function getFullCoverUrl(coverPath: string | null | undefined): string {
     }
     // 确保路径以 / 开头
     const normalizedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
-    return `${getMediaBaseURL()}${normalizedPath}`;
+    const mediaBaseURL = getMediaBaseURL();
+    const fullUrl = `${mediaBaseURL}${normalizedPath}`;
+    
+    // 调试日志（开发环境）
+    if (typeof window !== 'undefined') {
+        console.log('[getFullCoverUrl]', { coverPath, mediaBaseURL, fullUrl });
+    }
+    
+    return fullUrl;
 }
