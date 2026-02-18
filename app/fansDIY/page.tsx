@@ -83,9 +83,9 @@ function FansDIYContent() {
     const handleCollectionChange = (newCol: string) => {
         setSelectedCol(newCol);
         if (newCol !== 'all') {
-            router.push(`/fans-diy?collection=${newCol}`, { scroll: false });
+            router.push(`/fansDIY?collection=${newCol}`, { scroll: false });
         } else {
-            router.push('/fans-diy', { scroll: false });
+            router.push('/fansDIY', { scroll: false });
         }
     };
 
