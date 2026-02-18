@@ -2,10 +2,22 @@
 import { config } from '../config/config';
 import { ApiResult, ApiErrorClass } from './apiTypes';
 
-const BASE_URL = config.api.baseURL;
-
 interface FetchOptions extends RequestInit {
     revalidate?: number;
+}
+
+/**
+ * 获取基础 URL
+ */
+function getBaseURL(): string {
+    // Server-side: 使用完整 URL
+    if (typeof window === 'undefined') {
+        return process.env.API_BASE_URL || 
+               process.env.NEXT_PUBLIC_API_BASE_URL || 
+               'http://localhost:8000/api';
+    }
+    // Client-side: 使用相对路径
+    return '/api';
 }
 
 /**
@@ -16,7 +28,10 @@ export async function request<T>(
     options?: FetchOptions
 ): Promise<ApiResult<T>> {
     try {
-        const url = `${BASE_URL}${endpoint}`;
+        const baseURL = getBaseURL();
+        const url = `${baseURL}${endpoint}`;
+        
+        console.log(`[API Request] ${url}`); // 调试日志
         
         // Next.js fetch 选项
         const fetchOptions: any = {
@@ -39,6 +54,8 @@ export async function request<T>(
         }
 
         const responseData = await response.json();
+        
+        console.log(`[API Response] ${endpoint}:`, responseData ? 'OK' : 'Empty'); // 调试日志
 
         // 处理后端的统一响应格式: { code, message, data }
         if (responseData && typeof responseData === 'object' && 'code' in responseData) {
@@ -52,6 +69,7 @@ export async function request<T>(
         // 如果不是统一格式，直接返回数据
         return { data: responseData as T };
     } catch (error) {
+        console.error(`[API Error] ${endpoint}:`, error); // 调试日志
         if (error instanceof ApiErrorClass) {
             return { error };
         }

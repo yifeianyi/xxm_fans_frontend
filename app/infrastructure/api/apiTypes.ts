@@ -10,11 +10,16 @@ export interface ApiResult<T> {
     error?: ApiError;
 }
 
+// 后端实际返回的分页格式
 export interface PaginatedResult<T> {
-    count: number;
-    next: string | null;
-    previous: string | null;
+    total: number;
+    page: number;
+    page_size: number;
     results: T[];
+    // 兼容性字段
+    count?: number;
+    next?: string | null;
+    previous?: string | null;
 }
 
 // 查询参数类型
