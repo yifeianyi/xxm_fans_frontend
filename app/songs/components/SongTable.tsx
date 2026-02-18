@@ -5,6 +5,7 @@ import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check
 import { getSongsClient } from '@/app/infrastructure/api/clientApi';
 import { Song, FilterState } from '@/app/domain/types';
 import RecordList from './RecordList';
+import VideoModal from './VideoModal';
 
 // 常量和类型
 const GENRES = ['流行', '古风', '摇滚', '民谣', '电子', '爵士', 'R&B', '说唱', '戏腔'];
@@ -24,6 +25,7 @@ export default function SongTable() {
     const [copyStatus, setCopyStatus] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<string>('last_performed');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
     // 加载数据
     useEffect(() => {
@@ -363,7 +365,7 @@ export default function SongTable() {
                                 {expandedId === song.id && (
                                     <tr className="bg-white/30">
                                         <td colSpan={9} className="p-2">
-                                            <RecordList songId={song.id} />
+                                            <RecordList songId={song.id} onPlay={setVideoUrl} />
                                         </td>
                                     </tr>
                                 )}
@@ -414,6 +416,13 @@ export default function SongTable() {
                     </div>
                 )}
             </div>
+            
+            {/* 视频弹框 - 放在最外层确保全局显示 */}
+            <VideoModal 
+                isOpen={!!videoUrl} 
+                onClose={() => setVideoUrl(null)} 
+                videoUrl={videoUrl || ''} 
+            />
         </div>
     );
 }
