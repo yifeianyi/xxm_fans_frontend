@@ -118,15 +118,25 @@ function transformCollection(item: any): FanCollection {
 }
 
 function transformWork(item: any): FanWork {
+    // 后端返回的 collection 可能是对象 { id, name } 或 ID
+    let collectionId = '';
+    if (item.collection) {
+        if (typeof item.collection === 'object') {
+            collectionId = item.collection.id?.toString() || '';
+        } else {
+            collectionId = item.collection.toString();
+        }
+    }
+    
     return {
         id: item.id?.toString() || '',
         title: item.title || '',
         author: item.author || '',
-        cover: getFullCoverUrl(item.cover),
-        coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url),
-        videoUrl: item.video_url || '',
-        note: item.note || '',
-        collectionId: item.collection?.toString() || '',
+        cover: getFullCoverUrl(item.cover_url || item.cover),
+        coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url || item.cover_thumbnail),
+        videoUrl: item.video_url || item.view_url || '',
+        note: item.note || item.notes || '',
+        collectionId: collectionId,
         position: item.position || 0,
     };
 }
