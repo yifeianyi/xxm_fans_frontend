@@ -36,7 +36,7 @@ export class LivestreamRepository implements ILivestreamRepository {
         if (params.year) queryParams.set('year', params.year.toString());
         if (params.month) queryParams.set('month', params.month.toString());
 
-        const result = await this.apiClient.get<any>(`/livestream/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any>(`/livestreams/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
@@ -59,7 +59,7 @@ export class LivestreamRepository implements ILivestreamRepository {
     }
 
     async getLivestreamById(id: string): Promise<Livestream> {
-        const result = await this.apiClient.get<any>(`/livestream/${id}/`);
+        const result = await this.apiClient.get<any>(`/livestreams/${id}/`);
 
         if (result.error) {
             throw result.error;
@@ -70,7 +70,7 @@ export class LivestreamRepository implements ILivestreamRepository {
 
     async getCalendar(year: number, month: number): Promise<CalendarItem[]> {
         const result = await this.apiClient.get<any[]>(
-            `/livestream/calendar/?year=${year}&month=${month}`
+            `/livestreams/calendar/?year=${year}&month=${month}`
         );
 
         if (result.error) {
@@ -81,7 +81,7 @@ export class LivestreamRepository implements ILivestreamRepository {
     }
 
     async getSegments(livestreamId: string): Promise<LivestreamSegment[]> {
-        const result = await this.apiClient.get<any[]>(`/livestream/${livestreamId}/segments/`);
+        const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/segments/`);
 
         if (result.error) {
             throw result.error;
@@ -91,7 +91,7 @@ export class LivestreamRepository implements ILivestreamRepository {
     }
 
     async getSongCuts(livestreamId: string): Promise<SongCut[]> {
-        const result = await this.apiClient.get<any[]>(`/livestream/${livestreamId}/song-cuts/`);
+        const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/song-cuts/`);
 
         if (result.error) {
             throw result.error;
@@ -101,7 +101,7 @@ export class LivestreamRepository implements ILivestreamRepository {
     }
 
     async getScreenshots(livestreamId: string): Promise<Screenshot[]> {
-        const result = await this.apiClient.get<any[]>(`/livestream/${livestreamId}/screenshots/`);
+        const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/screenshots/`);
 
         if (result.error) {
             throw result.error;
@@ -111,7 +111,7 @@ export class LivestreamRepository implements ILivestreamRepository {
     }
 
     async getRecentLivestreams(limit: number = 5): Promise<Livestream[]> {
-        const result = await this.apiClient.get<any>(`/livestream/?limit=${limit}&ordering=-date`);
+        const result = await this.apiClient.get<any>(`/livestreams/?limit=${limit}&ordering=-date`);
 
         if (result.error) {
             throw result.error;
