@@ -66,3 +66,16 @@ export async function getOriginalsClient() {
     const response = await fetch(url);
     return handleResponse<any[]>(response);
 }
+
+// 获取歌曲演唱记录
+export async function getSongRecords(songId: string, params: { page?: number; page_size?: number } = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.set('page', params.page.toString());
+    if (params.page_size) queryParams.set('page_size', params.page_size.toString());
+    
+    const url = `${API_BASE_URL}/songs/${songId}/records/?${queryParams.toString()}`;
+    console.log('[ClientAPI] Fetching records:', url);
+    
+    const response = await fetch(url);
+    return handleResponse<{ total: number; results: any[] }>(response);
+}
