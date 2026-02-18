@@ -37,8 +37,12 @@ export async function request<T>(
     options?: FetchOptions
 ): Promise<ApiResult<T>> {
     const baseURL = getBaseURL();
-    const url = `${baseURL}${endpoint}`;
     const isServerSide = typeof window === 'undefined';
+    
+    // 确保 URL 正确拼接（处理斜杠）
+    const normalizedBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`;
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    const url = `${normalizedBaseURL}${normalizedEndpoint}`;
     
     try {
         console.log(`[API Request] ${isServerSide ? '[SSR]' : '[CSR]'} ${url}`);
