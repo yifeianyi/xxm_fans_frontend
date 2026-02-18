@@ -36,11 +36,12 @@ export async function request<T>(
     endpoint: string,
     options?: FetchOptions
 ): Promise<ApiResult<T>> {
+    const baseURL = getBaseURL();
+    const url = `${baseURL}${endpoint}`;
+    const isServerSide = typeof window === 'undefined';
+    
     try {
-        const baseURL = getBaseURL();
-        const url = `${baseURL}${endpoint}`;
-        
-        console.log(`[API Request] ${url}`); // 调试日志
+        console.log(`[API Request] ${isServerSide ? '[SSR]' : '[CSR]'} ${url}`);
         
         // Next.js fetch 选项
         const fetchOptions: any = {
@@ -64,7 +65,7 @@ export async function request<T>(
 
         const responseData = await response.json();
         
-        console.log(`[API Response] ${endpoint}:`, responseData ? 'OK' : 'Empty'); // 调试日志
+        console.log(`[API Response] ${endpoint}:`, responseData ? 'OK' : 'Empty');
 
         // 处理后端的统一响应格式: { code, message, data }
         if (responseData && typeof responseData === 'object' && 'code' in responseData) {
@@ -78,10 +79,17 @@ export async function request<T>(
         // 如果不是统一格式，直接返回数据
         return { data: responseData as T };
     } catch (error) {
-        console.error(`[API Error] ${endpoint}:`, error); // 调试日志
+        // 详细错误日志
         if (error instanceof ApiError) {
+            console.error(`[API Error] ${endpoint}:`, {
+                status: error.status,
+                message: error.message,
+                url: url,
+                isServerSide: isServerSide
+            });
             return { error };
         }
+        console.error(`[API Network Error] ${endpoint}:`, error);
         return { error: new ApiError(500, 'Network error') };
     }
 }

@@ -45,6 +45,11 @@ export interface Milestone {
 export async function getSiteSettings(): Promise<SiteSettings | null> {
     const result = await get<any>('site-settings/settings/', CACHE_TIMES.SETTINGS);
     
+    if (result.error) {
+        console.warn('[SiteSettings] Failed to fetch settings:', result.error);
+        return null;
+    }
+    
     if (result.data) {
         return {
             ...result.data,
@@ -60,6 +65,11 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
  */
 export async function getMilestones(): Promise<Milestone[]> {
     const result = await get<any[]>('site-settings/milestones/', CACHE_TIMES.MILESTONES);
+    
+    if (result.error) {
+        console.warn('[SiteSettings] Failed to fetch milestones:', result.error);
+        return [];
+    }
     
     if (result.data) {
         return result.data.map((item: any) => ({
