@@ -3,71 +3,19 @@
 
 import { Song, SongRecord, OriginalWork, Recommendation } from '@/app/domain/types';
 import {
-    ApiResult,
+    ApiResult, ApiError,
     PaginatedResult,
     GetSongsParams,
     GetRecordsParams,
     GetTopSongsParams,
-    ApiError
 } from './apiTypes';
-import { getFullCoverUrl } from './base';
+import { ApiClient, getFullCoverUrl } from './base';
 
 // API 基础 URL - 从环境变量获取
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
-/**
- * API 客户端 - 内部类
- */
-class ApiClient {
-    private baseURL = API_BASE_URL;
-
-    private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
-        try {
-            // 确保 URL 正确拼接（处理斜杠）
-            const normalizedBaseURL = this.baseURL.endsWith('/') ? this.baseURL : `${this.baseURL}/`;
-            const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-            const url = `${normalizedBaseURL}${normalizedEndpoint}`;
-
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options?.headers
-                }
-            });
-
-            if (!response.ok) {
-                throw new ApiError(response.status, `Request failed: ${response.statusText}`);
-            }
-
-            const responseData = await response.json();
-
-            // 处理后端的统一响应格式: { code, message, data }
-            if (responseData && typeof responseData === 'object' && 'code' in responseData) {
-                if (responseData.code === 200) {
-                    return { data: responseData.data as T };
-                } else {
-                    throw new ApiError(responseData.code, responseData.message || 'Request failed');
-                }
-            }
-
-            // 如果不是统一格式，直接返回数据
-            return { data: responseData as T };
-        } catch (error) {
-            console.error(`[API Error] ${endpoint}:`, error);
-            if (error instanceof ApiError) {
-                return { error };
-            }
-            return { error: new ApiError(500, 'Network error') };
-        }
-    }
-
-    async get<T>(endpoint: string): Promise<ApiResult<T>> {
-        return this.request<T>(endpoint, { method: 'GET' });
-    }
-}
-
-const apiClient = new ApiClient();
+// 使用共享的 ApiClient
+const apiClient = new ApiClient(API_BASE_URL);
 
 /**
  * 歌曲服务类

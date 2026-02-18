@@ -1,9 +1,82 @@
 // 基础 API 客户端 - 适配 Next.js Server/Client Components
-import { config } from '../config/config';
 import { ApiResult, ApiError } from './apiTypes';
 
 interface FetchOptions extends RequestInit {
     revalidate?: number;
+}
+
+/**
+ * 共享 API 客户端类
+ * 可被各个 Service 复用，避免代码重复
+ */
+export class ApiClient {
+    private baseURL: string;
+
+    constructor(baseURL?: string) {
+        this.baseURL = baseURL || getBaseURL();
+    }
+
+    private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
+        try {
+            // 确保 URL 正确拼接（处理斜杠）
+            const normalizedBaseURL = this.baseURL.endsWith('/') ? this.baseURL : `${this.baseURL}/`;
+            const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+            const url = `${normalizedBaseURL}${normalizedEndpoint}`;
+
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options?.headers,
+                },
+            });
+
+            if (!response.ok) {
+                throw new ApiError(response.status, `Request failed: ${response.statusText}`);
+            }
+
+            const responseData = await response.json();
+
+            // 处理后端的统一响应格式: { code, message, data }
+            if (responseData && typeof responseData === 'object' && 'code' in responseData) {
+                if (responseData.code === 200) {
+                    return { data: responseData.data as T };
+                } else {
+                    throw new ApiError(responseData.code, responseData.message || 'Request failed');
+                }
+            }
+
+            // 如果不是统一格式，直接返回数据
+            return { data: responseData as T };
+        } catch (error) {
+            if (error instanceof ApiError) {
+                return { error };
+            }
+            return { error: new ApiError(500, 'Network error') };
+        }
+    }
+
+    async get<T>(endpoint: string): Promise<ApiResult<T>> {
+        return this.request<T>(endpoint, { method: 'GET' });
+    }
+
+    async post<T>(endpoint: string, data: unknown): Promise<ApiResult<T>> {
+        return this.request<T>(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async put<T>(endpoint: string, data: unknown): Promise<ApiResult<T>> {
+        return this.request<T>(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async delete<T>(endpoint: string): Promise<ApiResult<T>> {
+        return this.request<T>(endpoint, { method: 'DELETE' });
+    }
 }
 
 /**
