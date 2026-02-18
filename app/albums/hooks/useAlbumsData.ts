@@ -146,8 +146,6 @@ export function useAlbumsData(): UseAlbumsDataReturn {
     
     // 处理图集点击
     const handleGalleryClick = useCallback(async (gallery: Gallery) => {
-        setCurrentGallery(gallery);
-        
         // 展开当前节点
         setExpandedNodes(prev => {
             const newSet = new Set(prev);
@@ -158,14 +156,18 @@ export function useAlbumsData(): UseAlbumsDataReturn {
         // 加载图片
         setLoadingImages(true);
         try {
-            if (gallery.isLeaf) {
+            // 获取图集详情（包含 children）
+            const detail = await galleryRepository.getGalleryById(gallery.id);
+            setCurrentGallery(detail);
+            
+            if (detail.isLeaf) {
                 // 叶子节点 - 加载自己的图片
-                const result = await galleryRepository.getGalleryImages(gallery.id);
+                const result = await galleryRepository.getGalleryImages(detail.id);
                 setImages(result.images);
                 setChildrenImagesGroups([]);
             } else {
                 // 非叶子节点 - 加载子图集图片聚合
-                const result = await galleryRepository.getChildrenImages(gallery.id);
+                const result = await galleryRepository.getChildrenImages(detail.id);
                 setChildrenImagesGroups(result.children);
                 // 合并所有图片用于查看器
                 const allImages = result.children.flatMap(child => child.images);
@@ -174,6 +176,7 @@ export function useAlbumsData(): UseAlbumsDataReturn {
             setCurrentImageIndex(0);
         } catch (error) {
             console.error('Failed to fetch images:', error);
+            setCurrentGallery(gallery);
             setImages([]);
             setChildrenImagesGroups([]);
         } finally {
