@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Flame, Music, Rocket, Crown, Star, Heart } from 'lucide-react';
 import { SongTable } from '@/app/presentation/components/songs';
+import { ErrorBoundary } from '@/app/shared/components';
 import RankingChart from './components/RankingChart';
 import OriginalsList from './components/OriginalsList';
 import TimelineChart from './components/TimelineChart';
@@ -147,10 +148,26 @@ function SongsPageContent() {
 
             {/* 内容区域 */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {activeTab === 'hot' && <RankingChart />}
-                {activeTab === 'all' && <SongTable />}
-                {activeTab === 'originals' && <OriginalsList />}
-                {activeTab === 'submit' && <TimelineChart />}
+                {activeTab === 'hot' && (
+                    <ErrorBoundary>
+                        <RankingChart />
+                    </ErrorBoundary>
+                )}
+                {activeTab === 'all' && (
+                    <ErrorBoundary>
+                        <SongTable />
+                    </ErrorBoundary>
+                )}
+                {activeTab === 'originals' && (
+                    <ErrorBoundary>
+                        <OriginalsList />
+                    </ErrorBoundary>
+                )}
+                {activeTab === 'submit' && (
+                    <ErrorBoundary>
+                        <TimelineChart />
+                    </ErrorBoundary>
+                )}
             </div>
         </div>
     );
