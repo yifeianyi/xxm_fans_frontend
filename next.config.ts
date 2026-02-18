@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     experimental: {
         optimizePackageImports: ['lucide-react'],
     },
-    typedRoutes: true,
+    // typedRoutes: true,
 };
 
 export default nextConfig;
