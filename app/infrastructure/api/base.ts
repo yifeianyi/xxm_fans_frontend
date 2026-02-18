@@ -11,11 +11,16 @@ interface FetchOptions extends RequestInit {
  * 
  * 注意：Client-side 和 Server-side 都使用完整 URL 直接访问后端
  * 避免 Next.js rewrite 配置的复杂性
+ * 
+ * Server-side 需要使用宿主机的 IP 或 Docker 网络地址来访问后端
  */
 function getBaseURL(): string {
-    // Server-side: 使用环境变量
+    // Server-side: 使用环境变量，优先使用 INTERNAL_API_BASE_URL（容器内部访问）
     if (typeof window === 'undefined') {
-        return process.env.API_BASE_URL || 
+        // 在 Docker/容器环境中，需要使用宿主机 IP 或 docker 网络名来访问后端
+        // INTERNAL_API_BASE_URL: http://host.docker.internal:8000/api 或 http://django:8000/api
+        return process.env.INTERNAL_API_BASE_URL || 
+               process.env.API_BASE_URL || 
                process.env.NEXT_PUBLIC_API_BASE_URL || 
                'http://localhost:8000/api';
     }
@@ -88,8 +93,17 @@ export async function get<T>(endpoint: string, revalidate?: number): Promise<Api
     return request<T>(endpoint, { method: 'GET', revalidate });
 }
 
-// 媒体文件基础 URL（去掉 /api 后缀）
-const MEDIA_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+/**
+ * 获取媒体文件基础 URL
+ * Server-side 和 Client-side 使用不同的地址
+ */
+function getMediaBaseURL(): string {
+    const apiUrl = typeof window === 'undefined'
+        ? process.env.INTERNAL_API_BASE_URL || process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
+        : process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    
+    return apiUrl.replace(/\/api\/?$/, '');
+}
 
 /**
  * 转换封面 URL 为完整路径
@@ -103,5 +117,5 @@ export function getFullCoverUrl(coverPath: string | null | undefined): string {
     }
     // 确保路径以 / 开头
     const normalizedPath = coverPath.startsWith('/') ? coverPath : `/${coverPath}`;
-    return `${MEDIA_BASE_URL}${normalizedPath}`;
+    return `${getMediaBaseURL()}${normalizedPath}`;
 }
