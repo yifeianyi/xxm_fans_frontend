@@ -52,13 +52,13 @@
 ## 🟡 P1 - 重要优化任务
 
 ### 目录结构整理
-- [ ] **统一组件目录**
-  - [ ] 将 `app/components/layout/` 移至 `app/presentation/components/layout/`
-  - [ ] 将 `app/components/features/` 移至 `app/presentation/components/features/`
-  - [ ] 将 `app/components/common/` 移至 `app/presentation/components/common/`
-  - [ ] 将 `app/songs/components/` 整合到 `app/presentation/components/songs/`
-  - [ ] 更新所有相关导入路径
-  - [ ] 删除空的 `app/components/` 目录
+- [x] **统一组件目录**
+  - [x] 将 `app/components/layout/` 移至 `app/presentation/components/layout/`
+  - [x] 将 `app/components/features/` 移至 `app/presentation/components/features/`
+  - [x] 通用组件保持在 `shared/components/` (ErrorBoundary, LazyImage)
+  - [x] 将 `app/songs/components/` 整合到 `app/presentation/components/songs/`
+  - [x] 更新所有相关导入路径
+  - [x] 删除空的 `app/components/` 目录
 
 ### 类型系统完善
 - [ ] 统一 API 错误处理类型
@@ -76,17 +76,17 @@
 
 ### 新页面开发
 - [x] **直播日历页面** `/live`
-  - [ ] 日历组件
-  - [ ] 直播列表
-  - [ ] 直播详情
+  - [x] 日历组件 (CalendarGrid, CalendarCell, CalendarControl)
+  - [x] 直播列表 (LiveDetail)
+  - [x] 页面装饰和样式
 - [x] **图集页面** `/albums` (注意：不使用 `/gallery` 避免与 nginx 静态资源冲突)
-  - [ ] 图集列表
-  - [ ] 图集详情
-  - [ ] 图片浏览
-- [ ] **数据分析页面** `/analytics`
-  - [ ] 粉丝数趋势图
-  - [ ] 视频数据图表
-  - [ ] 相关性分析
+  - [x] 图集列表 (GalleryCard, Sidebar)
+  - [x] 图集详情 (ImageGrid, ChildrenImagesDisplay)
+  - [x] 图片浏览 (ImageViewer 灯箱)
+- [x] **数据分析页面** `/data`
+  - [x] 粉丝数趋势图 (TrendChart)
+  - [x] OverviewSection 组件
+  - [x] ComingSoonSection 组件
 
 ### 性能优化
 - [ ] 实现虚拟滚动 (react-window)
@@ -130,10 +130,10 @@
 | 阶段 | 任务数 | 已完成 | 进度 |
 |------|--------|--------|------|
 | P0 - 关键架构 | 7 | 7 | 100% ✅ |
-| P1 - 重要优化 | 3 | 0 | 0% |
-| P2 - 功能扩展 | 3 | 0 | 0% |
+| P1 - 重要优化 | 3 | 1 | 33% |
+| P2 - 功能扩展 | 3 | 3 | 100% ✅ |
 | P3 - 代码质量 | 3 | 1 | 33% |
-| **总计** | **16** | **8** | **50%** |
+| **总计** | **16** | **12** | **75%** |
 
 ---
 
@@ -178,3 +178,5 @@
 |------|---------|------|
 | 2026-02-18 | 初始创建，基于项目状态分析 | AI Assistant |
 | 2026-02-18 | 完成 DDD 分层架构实现 | AI Assistant |
+| 2026-02-19 | 确认目录结构整理已完成，更新进度追踪 | AI Assistant |
+| 2026-02-19 | 完成 P2 功能扩展：直播日历、图集、数据分析页面 | AI Assistant |

@@ -36,6 +36,7 @@ export class LivestreamRepository implements ILivestreamRepository {
         if (params.year) queryParams.set('year', params.year.toString());
         if (params.month) queryParams.set('month', params.month.toString());
 
+        // 使用正确的后端 API 端点：/livestreams/ (复数)
         const result = await this.apiClient.get<any>(`/livestreams/?${queryParams.toString()}`);
 
         if (result.error) {
@@ -44,17 +45,24 @@ export class LivestreamRepository implements ILivestreamRepository {
 
         const data = result.data;
 
+        // 处理后端统一响应格式: { code, message, data }
+        // data 可能是数组或 { results: [...], total: N }
+        let actualData = data;
+        if (data && typeof data === 'object' && 'code' in data) {
+            actualData = data.data;
+        }
+
         // 处理可能的数组或分页格式
-        if (Array.isArray(data)) {
+        if (Array.isArray(actualData)) {
             return {
-                livestreams: LivestreamMapper.fromBackendList(data),
-                total: data.length,
+                livestreams: LivestreamMapper.fromBackendList(actualData),
+                total: actualData.length,
             };
         }
 
         return {
-            livestreams: LivestreamMapper.fromBackendList(data.results || []),
-            total: data.total || data.results?.length || 0,
+            livestreams: LivestreamMapper.fromBackendList(actualData?.results || []),
+            total: actualData?.total || actualData?.results?.length || 0,
         };
     }
 
@@ -65,46 +73,79 @@ export class LivestreamRepository implements ILivestreamRepository {
             throw result.error;
         }
 
-        return LivestreamMapper.fromBackend(result.data);
+        // 处理后端统一响应格式
+        const data = result.data?.data || result.data;
+        return LivestreamMapper.fromBackend(data);
     }
 
-    async getCalendar(year: number, month: number): Promise<CalendarItem[]> {
-        const result = await this.apiClient.get<any[]>(
-            `/livestreams/calendar/?year=${year}&month=${month}`
-        );
+    /**
+     * 根据日期获取直播详情（包含截图、歌切等）
+     * 后端 API: GET /livestreams/{date}/ 返回完整详情
+     */
+    async getLivestreamByDate(dateStr: string): Promise<Livestream | null> {
+        const result = await this.apiClient.get<any>(`/livestreams/${dateStr}/`);
 
         if (result.error) {
+            if (result.error.message?.includes('404')) {
+                return null;
+            }
             throw result.error;
         }
 
-        return LivestreamMapper.calendarFromBackend(result.data || []);
+        // 处理后端统一响应格式: { code, message, data }
+        const data = result.data?.data !== undefined ? result.data.data : result.data;
+        
+        // 后端返回 null 表示该日期无直播记录
+        if (!data) {
+            return null;
+        }
+
+        return LivestreamMapper.fromBackend(data);
+    }
+
+    async getCalendar(year: number, month: number): Promise<CalendarItem[]> {
+        // 后端暂无专门的 calendar 端点，使用 getLivestreams 获取
+        const result = await this.getLivestreams({ year, month });
+        return result.livestreams.map(live => ({
+            date: live.date,
+            hasLivestream: true,
+            livestreamId: live.id,
+            title: live.title,
+        }));
     }
 
     async getSegments(livestreamId: string): Promise<LivestreamSegment[]> {
+        // 后端暂无独立的 segments 端点，segments 包含在详情中
+        // 这个方法可以保留用于未来扩展
         const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/segments/`);
 
         if (result.error) {
-            throw result.error;
+            // 如果端点不存在，返回空数组
+            return [];
         }
 
         return LivestreamMapper.segmentsFromBackend(result.data || []);
     }
 
     async getSongCuts(livestreamId: string): Promise<SongCut[]> {
+        // 后端暂无独立的 song-cuts 端点，songCuts 包含在详情中
+        // 这个方法可以保留用于未来扩展
         const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/song-cuts/`);
 
         if (result.error) {
-            throw result.error;
+            return [];
         }
 
         return LivestreamMapper.songCutsFromBackend(result.data || []);
     }
 
     async getScreenshots(livestreamId: string): Promise<Screenshot[]> {
+        // 后端暂无独立的 screenshots 端点，screenshots 包含在详情中
+        // 这个方法可以保留用于未来扩展
         const result = await this.apiClient.get<any[]>(`/livestreams/${livestreamId}/screenshots/`);
 
         if (result.error) {
-            throw result.error;
+            return [];
         }
 
         return LivestreamMapper.screenshotsFromBackend(result.data || []);
@@ -117,13 +158,30 @@ export class LivestreamRepository implements ILivestreamRepository {
             throw result.error;
         }
 
-        const data = result.data;
+        // 处理后端统一响应格式
+        const data = result.data?.data !== undefined ? result.data.data : result.data;
 
         if (Array.isArray(data)) {
             return LivestreamMapper.fromBackendList(data);
         }
 
-        return LivestreamMapper.fromBackendList(data.results || []);
+        return LivestreamMapper.fromBackendList(data?.results || []);
+    }
+
+    async getConfig(): Promise<{ minYear: number }> {
+        const result = await this.apiClient.get<any>('/livestreams/config/');
+
+        if (result.error) {
+            // 如果获取失败，返回默认值
+            return { minYear: 2019 };
+        }
+
+        // 处理后端统一响应格式
+        const data = result.data?.data !== undefined ? result.data.data : result.data;
+        
+        return {
+            minYear: data?.minYear || 2019
+        };
     }
 }
 

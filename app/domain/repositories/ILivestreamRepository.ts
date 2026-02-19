@@ -36,10 +36,22 @@ export interface LivestreamSegment {
     duration?: string;
 }
 
+/** 直播配置 */
+export interface LivestreamConfig {
+    /** 最小年份 */
+    minYear: number;
+}
+
 /**
  * 直播仓储接口
  */
 export interface ILivestreamRepository {
+    /**
+     * 获取直播配置（最小年份等）
+     * @returns 直播配置
+     */
+    getConfig(): Promise<LivestreamConfig>;
+
     /**
      * 获取直播列表
      * @param params 查询参数

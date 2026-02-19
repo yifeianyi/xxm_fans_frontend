@@ -12,23 +12,36 @@ import { CalendarItem, LivestreamSegment } from '@/app/domain/repositories/ILive
 
 /**
  * 后端直播数据结构（原始）
+ * 注意：后端可能返回 camelCase 或 snake_case 字段，需要兼容处理
  */
 interface BackendLivestreamItem {
     id?: number | string;
     date?: string;
     title?: string | null;
     summary?: string | null;
+    // 支持两种命名格式
+    viewCount?: string | number;
     view_count?: string | number;
+    danmakuCount?: string | number;
     danmaku_count?: string | number;
+    startTime?: string;
     start_time?: string;
+    endTime?: string;
     end_time?: string;
     duration?: string;
     bvid?: string;
     parts?: number;
+    // 支持两种命名格式
+    coverUrl?: string;
     cover_url?: string;
     recordings?: BackendRecordingItem[];
+    // 支持两种命名格式
+    songCuts?: BackendSongCutItem[];
     song_cuts?: BackendSongCutItem[];
+    // 支持两种命名格式
     screenshots?: BackendScreenshotItem[];
+    // 支持两种命名格式
+    danmakuCloudUrl?: string;
     danmaku_cloud_url?: string;
 }
 
@@ -42,19 +55,23 @@ interface BackendRecordingItem {
 
 /**
  * 后端歌切数据结构
+ * 支持两种命名格式
  */
 interface BackendSongCutItem {
     performed_at?: string;
     song_name?: string;
     url?: string;
     cover_thumbnail_url?: string;
+    coverThumbnailUrl?: string;
 }
 
 /**
  * 后端截图数据结构
+ * 后端返回的是 camelCase 格式
  */
 interface BackendScreenshotItem {
     url?: string;
+    thumbnailUrl?: string;
     thumbnail_url?: string;
 }
 
@@ -84,7 +101,7 @@ interface BackendSegmentItem {
 export class LivestreamMapper {
     /**
      * 将后端直播数据转换为领域模型
-     * @param item 后端返回的原始数据
+     * @param item 后端返回的原始数据（支持 camelCase 和 snake_case）
      * @returns 领域模型 Livestream
      */
     static fromBackend(item: BackendLivestreamItem): Livestream {
@@ -93,18 +110,23 @@ export class LivestreamMapper {
             date: item.date || '',
             title: item.title || undefined,
             summary: item.summary || undefined,
-            viewCount: item.view_count?.toString(),
-            danmakuCount: item.danmaku_count?.toString(),
-            startTime: item.start_time,
-            endTime: item.end_time,
+            // 兼容 camelCase 和 snake_case
+            viewCount: (item.viewCount ?? item.view_count)?.toString(),
+            danmakuCount: (item.danmakuCount ?? item.danmaku_count)?.toString(),
+            startTime: item.startTime ?? item.start_time,
+            endTime: item.endTime ?? item.end_time,
             duration: item.duration,
             bvid: item.bvid,
             parts: item.parts,
-            coverUrl: getFullCoverUrl(item.cover_url),
+            // 兼容 camelCase 和 snake_case
+            coverUrl: getFullCoverUrl(item.coverUrl ?? item.cover_url),
             recordings: item.recordings ? this.recordingsFromBackend(item.recordings) : undefined,
-            songCuts: item.song_cuts ? this.songCutsFromBackend(item.song_cuts) : undefined,
+            // 兼容 camelCase 和 snake_case
+            songCuts: this.songCutsFromBackend(item.songCuts ?? item.song_cuts),
+            // screenshots 字段已经是 camelCase，直接使用
             screenshots: item.screenshots ? this.screenshotsFromBackend(item.screenshots) : undefined,
-            danmakuCloudUrl: item.danmaku_cloud_url,
+            // 兼容 camelCase 和 snake_case
+            danmakuCloudUrl: item.danmakuCloudUrl ?? item.danmaku_cloud_url,
         };
     }
 
@@ -138,33 +160,34 @@ export class LivestreamMapper {
 
     /**
      * 将后端歌切数据转换为领域模型
-     * @param items 后端返回的原始数据数组
+     * @param items 后端返回的原始数据数组（支持 camelCase 和 snake_case）
      * @returns 歌切数组
      */
-    static songCutsFromBackend(items: BackendSongCutItem[]): SongCut[] {
-        if (!Array.isArray(items)) {
+    static songCutsFromBackend(items?: BackendSongCutItem[] | null): SongCut[] {
+        if (!items || !Array.isArray(items)) {
             return [];
         }
         return items.map(item => ({
             performed_at: item.performed_at || '',
             song_name: item.song_name || '',
             url: item.url || '',
-            coverThumbnailUrl: getFullCoverUrl(item.cover_thumbnail_url),
+            // 兼容 camelCase 和 snake_case
+            coverThumbnailUrl: getFullCoverUrl(item.coverThumbnailUrl ?? item.cover_thumbnail_url),
         }));
     }
 
     /**
      * 将后端截图数据转换为领域模型
-     * @param items 后端返回的原始数据数组
+     * @param items 后端返回的原始数据数组（已是 camelCase 格式）
      * @returns 截图数组
      */
-    static screenshotsFromBackend(items: BackendScreenshotItem[]): Screenshot[] {
-        if (!Array.isArray(items)) {
+    static screenshotsFromBackend(items?: BackendScreenshotItem[] | null): Screenshot[] {
+        if (!items || !Array.isArray(items)) {
             return [];
         }
         return items.map(item => ({
             url: getFullCoverUrl(item.url),
-            thumbnailUrl: getFullCoverUrl(item.thumbnail_url || item.url),
+            thumbnailUrl: getFullCoverUrl(item.thumbnailUrl ?? item.thumbnail_url ?? item.url),
         }));
     }
 
