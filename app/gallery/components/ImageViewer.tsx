@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * ImageViewer - 图片查看器组件
+ * ImageViewer - 图片/视频查看器组件
  * 
  * @module app/gallery/components
- * @description Lightbox 图片查看器
+ * @description Lightbox 图片/视频/GIF查看器
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { GalleryImage } from '@/app/domain/types';
 
 interface ImageViewerProps {
@@ -31,6 +31,9 @@ export default function ImageViewer({
     onIndexChange,
 }: ImageViewerProps) {
     const currentImage = images[currentIndex];
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isMuted, setIsMuted] = useState(true);
 
     // 键盘导航
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -44,8 +47,20 @@ export default function ImageViewer({
             case 'ArrowRight':
                 onNext();
                 break;
+            case ' ':
+                e.preventDefault();
+                if (currentImage?.isVideo && videoRef.current) {
+                    if (videoRef.current.paused) {
+                        videoRef.current.play();
+                        setIsPlaying(true);
+                    } else {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                    }
+                }
+                break;
         }
-    }, [onClose, onPrevious, onNext]);
+    }, [onClose, onPrevious, onNext, currentImage]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -57,7 +72,35 @@ export default function ImageViewer({
         };
     }, [handleKeyDown]);
 
+    // 切换图片时重置视频状态
+    useEffect(() => {
+        setIsPlaying(true);
+        setIsMuted(true);
+    }, [currentIndex]);
+
     if (!currentImage) return null;
+
+    const isVideo = currentImage.isVideo;
+    const isGif = currentImage.isGif;
+
+    const togglePlay = () => {
+        if (videoRef.current) {
+            if (videoRef.current.paused) {
+                videoRef.current.play();
+                setIsPlaying(true);
+            } else {
+                videoRef.current.pause();
+                setIsPlaying(false);
+            }
+        }
+    };
+
+    const toggleMute = () => {
+        if (videoRef.current) {
+            videoRef.current.muted = !videoRef.current.muted;
+            setIsMuted(!isMuted);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
@@ -70,9 +113,11 @@ export default function ImageViewer({
                 <X className="w-6 h-6 text-white" />
             </button>
 
-            {/* 图片计数 */}
+            {/* 媒体计数 */}
             <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-white/10 text-white text-sm">
                 {currentIndex + 1} / {images.length}
+                {isVideo && ' · 视频'}
+                {isGif && ' · GIF'}
             </div>
 
             {/* 上一张 */}
@@ -86,16 +131,69 @@ export default function ImageViewer({
                 </button>
             )}
 
-            {/* 图片 */}
+            {/* 媒体内容 */}
             <div className="relative w-full h-full flex items-center justify-center p-4 md:p-16">
-                <Image
-                    src={currentImage.url}
-                    alt={currentImage.title || currentImage.filename}
-                    fill
-                    className="object-contain"
-                    sizes="100vw"
-                    priority
-                />
+                {isVideo ? (
+                    // 视频播放
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        <video
+                            ref={videoRef}
+                            src={currentImage.url}
+                            className="max-w-full max-h-full object-contain"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            onClick={togglePlay}
+                        />
+                        {/* 视频控制栏 */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm">
+                            <button
+                                onClick={togglePlay}
+                                className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                aria-label={isPlaying ? '暂停' : '播放'}
+                            >
+                                {isPlaying ? (
+                                    <Pause className="w-5 h-5 text-white" />
+                                ) : (
+                                    <Play className="w-5 h-5 text-white" />
+                                )}
+                            </button>
+                            <button
+                                onClick={toggleMute}
+                                className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                aria-label={isMuted ? '取消静音' : '静音'}
+                            >
+                                {isMuted ? (
+                                    <VolumeX className="w-5 h-5 text-white" />
+                                ) : (
+                                    <Volume2 className="w-5 h-5 text-white" />
+                                )}
+                            </button>
+                            <span className="text-white text-sm">
+                                点击视频播放/暂停
+                            </span>
+                        </div>
+                    </div>
+                ) : isGif ? (
+                    // GIF 使用原生 img 标签以支持动画
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={currentImage.url}
+                        alt={currentImage.title || currentImage.filename}
+                        className="max-w-full max-h-full object-contain"
+                    />
+                ) : (
+                    // 普通图片使用 Next.js Image
+                    <Image
+                        src={currentImage.url}
+                        alt={currentImage.title || currentImage.filename}
+                        fill
+                        className="object-contain"
+                        sizes="100vw"
+                        priority
+                    />
+                )}
             </div>
 
             {/* 下一张 */}
@@ -116,19 +214,36 @@ export default function ImageViewer({
                         <button
                             key={img.id}
                             onClick={() => onIndexChange(index)}
-                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
                                 index === currentIndex
                                     ? 'border-[#f8b195] scale-110'
                                     : 'border-transparent opacity-60 hover:opacity-100'
                             }`}
                         >
-                            <Image
-                                src={img.thumbnailUrl || img.url}
-                                alt={img.title || img.filename}
-                                width={64}
-                                height={64}
-                                className="w-full h-full object-cover"
-                            />
+                            {/* 缩略图 */}
+                            {img.isVideo || img.isGif ? (
+                                // 视频/GIF 缩略图使用原生 img
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={img.thumbnailUrl || img.url}
+                                    alt={img.title || img.filename}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <Image
+                                    src={img.thumbnailUrl || img.url}
+                                    alt={img.title || img.filename}
+                                    width={64}
+                                    height={64}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                            {/* 视频/GIF 标识 */}
+                            {(img.isVideo || img.isGif) && (
+                                <div className="absolute top-0.5 right-0.5 px-1 py-0.5 bg-[#f67280] rounded text-[8px] text-white font-medium leading-none">
+                                    {img.isVideo ? '视频' : 'GIF'}
+                                </div>
+                            )}
                         </button>
                     ))}
                 </div>
