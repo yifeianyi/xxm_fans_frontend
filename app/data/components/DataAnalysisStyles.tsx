@@ -26,6 +26,22 @@ export const DataAnalysisStyles: React.FC = () => {
         stroke-dasharray: 1000;
         animation: draw 2s ease-out forwards;
       }
+      
+      /* 自定义滚动条样式 */
+      .custom-scrollbar::-webkit-scrollbar { 
+        height: 6px; 
+        width: 6px; 
+      }
+      .custom-scrollbar::-webkit-scrollbar-track { 
+        background: transparent; 
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb { 
+        background: #8eb69b33; 
+        border-radius: 10px; 
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+        background: #8eb69b66; 
+      }
     `}</style>
   );
 };

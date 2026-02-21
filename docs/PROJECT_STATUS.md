@@ -50,7 +50,7 @@
 |------|------|------|
 | SongService | ✅ | 歌曲相关 API 封装 |
 | SubmissionService | ✅ | 投稿数据 API |
-| GalleryService | ✅ | 图集 API |
+| GalleryService | ❌ | 图集 API |
 | LivestreamService | ✅ | 直播 API |
 | AnalyticsService | ✅ | 数据分析 API |
 | FansDIYService | ✅ | 粉丝二创 API |

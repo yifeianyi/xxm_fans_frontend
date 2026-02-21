@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Eye, Zap, BarChart2 } from 'lucide-react';
+import { Eye, Zap, BarChart2, Activity } from 'lucide-react';
 
 interface ComingSoonSectionProps {
   title: string;
@@ -17,6 +17,7 @@ const iconMap = {
 
 /**
  * 即将推出区块组件
+ * 样式与原项目保持一致
  */
 export const ComingSoonSection: React.FC<ComingSoonSectionProps> = ({
   title,
@@ -26,20 +27,21 @@ export const ComingSoonSection: React.FC<ComingSoonSectionProps> = ({
   const IconComponent = iconMap[icon];
 
   return (
-    <div className="bg-white/30 backdrop-blur-sm rounded-[3rem] border-2 border-white/50 shadow-lg p-10 flex flex-col md:flex-row items-center gap-8">
-      <div className="w-20 h-20 bg-gradient-to-br from-[#f8b195]/20 to-[#f67280]/20 rounded-[2rem] flex items-center justify-center flex-shrink-0">
-        <IconComponent size={32} className="text-[#8eb69b]" />
+    <section className="glass-card rounded-[4rem] border-4 border-white shadow-2xl p-12 space-y-6 bg-white/60">
+      <div className="text-center space-y-4">
+        <div className="flex justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#8eb69b] to-[#f8b195] flex items-center justify-center animate-pulse">
+            <IconComponent size={32} className="text-white" />
+          </div>
+        </div>
+        <h2 className="text-3xl font-black text-[#4a3728] tracking-tighter">{title}</h2>
+        <p className="text-lg font-bold text-[#8eb69b]">{description}</p>
+        <div className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#4a3728]/10 rounded-full border-2 border-[#4a3728]/20">
+          <Activity size={18} className="text-[#4a3728]" />
+          <span className="text-sm font-black text-[#4a3728]">更多数据展示，敬请期待~</span>
+        </div>
       </div>
-      
-      <div className="flex-1 text-center md:text-left">
-        <h3 className="text-xl font-black text-[#4a3728] mb-2">{title}</h3>
-        <p className="text-[#8eb69b] font-bold text-sm">{description}</p>
-      </div>
-      
-      <div className="px-6 py-3 bg-[#f8b195]/10 rounded-full text-[#f8b195] text-xs font-black uppercase tracking-widest">
-        Coming Soon
-      </div>
-    </div>
+    </section>
   );
 };
 
