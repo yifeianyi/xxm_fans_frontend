@@ -141,7 +141,7 @@ export class AnalyticsMapper {
         return {
             id: item.id?.toString() || '',
             name: item.name || '',
-            totalFollowers: item.total_followers || 0,
+            totalFollowers: item.total_followers || item.totalFollowers || 0,
             history: this.historyFromBackend(item.history),
         };
     }
