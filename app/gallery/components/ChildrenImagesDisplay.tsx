@@ -31,8 +31,7 @@ export default function ChildrenImagesDisplay({
         );
     }
 
-    // 获取所有图片的扁平列表，用于计算索引
-    const flatImages = childrenGroups.flatMap(group => group.images);
+    // 使用 allChildrenImages 计算全局索引（确保和 ImageViewer 使用的列表一致）
 
     return (
         <div className="space-y-12">
@@ -49,8 +48,8 @@ export default function ChildrenImagesDisplay({
                     {/* 图片网格 */}
                     <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
                         {group.images.map((image) => {
-                            // 计算该图片在所有图片中的索引
-                            const globalIndex = flatImages.findIndex(img => img.id === image.id);
+                            // 计算该图片在所有图片中的索引（使用 allChildrenImages 确保一致）
+                            const globalIndex = allChildrenImages.findIndex(img => img.id === image.id);
                             
                             return (
                                 <button

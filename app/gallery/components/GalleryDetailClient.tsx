@@ -200,7 +200,7 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                 {/* 图片网格 - 叶子节点 */}
                 {!loading && displayMode === 'images' && images.length > 0 && (
                     <div className="max-w-7xl mx-auto">
-                        <ImageGrid images={images} onImageClick={(img, idx) => handleImageClick(img, idx)} />
+                        <ImageGrid images={images} onImageClick={(img, idx) => handleImageClick(img, idx, images)} />
                     </div>
                 )}
 
