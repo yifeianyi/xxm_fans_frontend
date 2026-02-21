@@ -26,6 +26,7 @@ interface BackendAccountData {
     id?: number | string;
     name?: string;
     total_followers?: number;
+    totalFollowers?: number;
     history?: Record<string, BackendDataPoint[]>;
 }
 
@@ -141,7 +142,7 @@ export class AnalyticsMapper {
         return {
             id: item.id?.toString() || '',
             name: item.name || '',
-            totalFollowers: item.total_followers || 0,
+            totalFollowers: item.totalFollowers || item.total_followers || 0,
             history: this.historyFromBackend(item.history),
         };
     }
