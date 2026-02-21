@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
         { name: '热歌榜', to: '/songs?tab=hot', icon: Trophy },
         { name: '原唱作品', to: '/songs?tab=originals', icon: Music },
         { name: '二创展厅', to: '/fansDIY', icon: Heart },
-        { name: '图集', to: '/gallery', icon: Image },
+        { name: '图集', to: '/albums', icon: Image },
         { name: '直播日历', to: '/live', icon: Calendar },
     ];
 

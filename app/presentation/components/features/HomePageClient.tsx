@@ -216,7 +216,7 @@ const HomePageClient: React.FC = () => {
 
                         {/* Card 2 - Gallery */}
                         <div
-                            onClick={() => router.push('/gallery')}
+                            onClick={() => router.push('/albums')}
                             className="group cursor-pointer relative bg-white/60 p-8 md:p-12 rounded-[3rem] border-4 border-white shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-40 h-40 bg-[#f6d365]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#f6d365]/20 transition-colors"></div>
