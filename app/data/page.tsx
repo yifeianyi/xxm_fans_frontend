@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { PageDecorations } from '@/app/presentation/components/common/PageDecorations';
 import DataAnalysisWrapper from './DataAnalysisWrapper';
 import { analyticsRepository } from '@/app/infrastructure/repositories';
-import { AccountData } from '@/app/domain/types';
+import { AccountData, TimeGranularity } from '@/app/domain/types';
 
 export const metadata: Metadata = {
     title: '咻咻满数据分析 - 粉丝趋势、作品数据 | 小满虫之家',
@@ -11,20 +11,45 @@ export const metadata: Metadata = {
     keywords: ['咻咻满', '数据分析', '粉丝趋势', '作品数据', 'B站数据'],
 };
 
-// 服务端数据获取
+// 服务端数据获取 - 获取所有粒度的数据
 async function getAccountsData(): Promise<AccountData[]> {
     try {
         // 获取账号列表
         const accountList = await analyticsRepository.getAccounts();
         
-        // 获取每个账号的详细数据
+        // 获取每个账号的详细数据（所有粒度）
         const accountData = await Promise.all(
             accountList.slice(0, 2).map(async acc => {
                 try {
-                    return await analyticsRepository.getAccountData({
-                        accountId: acc.id,
-                        granularity: 'DAY'
-                    });
+                    // 并行获取三种粒度的数据
+                    const [dayData, weekData, monthData] = await Promise.all([
+                        analyticsRepository.getAccountData({
+                            accountId: acc.id,
+                            granularity: 'DAY',
+                        }).catch(() => null),
+                        analyticsRepository.getAccountData({
+                            accountId: acc.id,
+                            granularity: 'WEEK',
+                        }).catch(() => null),
+                        analyticsRepository.getAccountData({
+                            accountId: acc.id,
+                            granularity: 'MONTH',
+                        }).catch(() => null),
+                    ]);
+
+                    // 合并数据
+                    const mergedData: AccountData = {
+                        id: acc.id,
+                        name: acc.name,
+                        totalFollowers: dayData?.totalFollowers || weekData?.totalFollowers || monthData?.totalFollowers || 0,
+                        history: {
+                            DAY: dayData?.history?.DAY || [],
+                            WEEK: weekData?.history?.WEEK || [],
+                            MONTH: monthData?.history?.MONTH || [],
+                        },
+                    };
+
+                    return mergedData;
                 } catch (err) {
                     console.error(`获取账号 ${acc.id} 数据失败:`, err);
                     return null;
