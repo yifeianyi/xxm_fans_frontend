@@ -27,9 +27,7 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
   const [tempYear, setTempYear] = useState(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
   
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
-  const [selectorPosition, setSelectorPosition] = useState({ top: 0, left: 0 });
 
   const actualMaxYear = maxYear || new Date().getFullYear();
 
@@ -63,49 +61,15 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
     };
   }, [showYearSelector]);
 
-  // 计算选择器位置，确保不超出屏幕边界
-  useEffect(() => {
-    if (showYearSelector && buttonRef.current && selectorRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const selectorRect = selectorRef.current.getBoundingClientRect();
-      
-      // 默认位置在按钮下方
-      let top = buttonRect.bottom + 8;
-      let left = buttonRect.left;
-      
-      // 检查右边界
-      const rightEdge = left + selectorRect.width;
-      const viewportWidth = window.innerWidth;
-      if (rightEdge > viewportWidth - 16) {
-        left = viewportWidth - selectorRect.width - 16;
-      }
-      
-      // 检查左边界
-      if (left < 16) {
-        left = 16;
-      }
-      
-      // 检查下边界
-      const bottomEdge = top + selectorRect.height;
-      const viewportHeight = window.innerHeight;
-      if (bottomEdge > viewportHeight - 16) {
-        // 如果下方空间不够，显示在按钮上方
-        top = buttonRect.top - selectorRect.height - 8;
-      }
-      
-      setSelectorPosition({ top, left });
-    }
-  }, [showYearSelector]);
-
-  // 选择年份
+  // 选择年份 - 立即更新日期但不关闭选择器
   const handleYearSelect = (year: number) => {
     setTempYear(year);
+    onDateChange(new Date(year, tempMonth, 1));
   };
 
-  // 选择月份
+  // 选择月份 - 更新日期并关闭选择器
   const handleMonthSelect = (month: number) => {
     setTempMonth(month);
-    // 选择月份后更新日期并关闭选择器
     onDateChange(new Date(tempYear, month, 1));
     setShowYearSelector(false);
   };
@@ -129,7 +93,6 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
         </button>
 
         <button
-          ref={buttonRef}
           onClick={() => setShowYearSelector(!showYearSelector)}
           className="px-4 py-2 hover:bg-white rounded-2xl text-[#4a3728] font-black tabular-nums transition-all flex items-center gap-2"
           aria-label="选择年月"
@@ -158,34 +121,41 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
         </button>
       </div>
 
-      {/* 年月选择器弹窗 */}
+      {/* 年月选择器弹窗 - 屏幕居中 */}
       {showYearSelector && (
         <>
           {/* 背景蒙层 */}
           <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+            style={{ zIndex: 2147483647 }}
             onClick={() => setShowYearSelector(false)} 
           />
           
-          {/* 选择器容器 - 使用fixed定位 */}
+          {/* 选择器容器 - 屏幕居中 */}
           <div
             ref={selectorRef}
-            className="fixed z-[60] bg-white/98 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-[#f2f9f1] p-5 min-w-[320px] max-w-[90vw]"
+            className="fixed bg-white rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-[#f2f9f1] p-5 w-[320px] max-w-[calc(100vw-40px)]"
             style={{
-              top: `${selectorPosition.top}px`,
-              left: `${selectorPosition.left}px`
+              zIndex: 2147483647,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* 年份选择 */}
             <div className="mb-4">
               <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Year</div>
-              <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto">
+              {/* 使用自适应网格：大屏幕4列，小屏幕3列 */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {yearRange.map(year => (
                   <button
                     key={year}
-                    onClick={() => handleYearSelect(year)}
-                    className={`h-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleYearSelect(year);
+                    }}
+                    className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
                       tempYear === year
                         ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
                         : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
@@ -200,18 +170,22 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
             {/* 月份选择 */}
             <div>
               <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Month</div>
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: 12 }, (_, i) => i).map(month => (
+              {/* 使用3列网格，12个月份将显示为4行3列 */}
+              <div className="grid grid-cols-3 gap-3">
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
                   <button
                     key={month}
-                    onClick={() => handleMonthSelect(month)}
-                    className={`h-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
-                      tempMonth === month
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMonthSelect(month - 1);
+                    }}
+                    className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                      tempMonth === month - 1
                         ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
                         : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                     }`}
                   >
-                    {month + 1}
+                    {month}
                   </button>
                 ))}
               </div>
