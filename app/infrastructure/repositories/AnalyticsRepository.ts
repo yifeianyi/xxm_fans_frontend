@@ -27,7 +27,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
 
     async getAccounts(): Promise<Array<{ id: string; name: string; platform: string }>> {
-        const result = await this.apiClient.get<any[]>('/analytics/accounts/');
+        const result = await this.apiClient.get<any[]>('/data-analytics/followers/accounts/');
 
         if (result.error) {
             throw result.error;
@@ -43,7 +43,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         if (params.startDate) queryParams.set('start_date', params.startDate);
         if (params.endDate) queryParams.set('end_date', params.endDate);
 
-        const result = await this.apiClient.get<any>(`/analytics/accounts/${params.accountId}/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any>(`/data-analytics/followers/accounts/${params.accountId}/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
@@ -53,7 +53,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
 
     async getFollowerOverview(): Promise<FollowerOverview> {
-        const result = await this.apiClient.get<any>('/analytics/follower-overview/');
+        const result = await this.apiClient.get<any>('/data-analytics/followers/overview/');
 
         if (result.error) {
             throw result.error;
@@ -66,7 +66,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         const queryParams = new URLSearchParams();
         if (params.granularity) queryParams.set('granularity', params.granularity);
 
-        const result = await this.apiClient.get<any>(`/analytics/videos/${params.videoId}/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any>(`/data-analytics/works/bilibili/${params.videoId}/metrics/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
@@ -88,7 +88,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         if (params?.limit) queryParams.set('limit', params.limit.toString());
         if (params?.sortBy) queryParams.set('sort_by', params.sortBy);
 
-        const result = await this.apiClient.get<any>(`/analytics/videos/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any>(`/data-analytics/works/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
@@ -117,7 +117,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         if (params?.startDate) queryParams.set('start_date', params.startDate);
         if (params?.endDate) queryParams.set('end_date', params.endDate);
 
-        const result = await this.apiClient.get<any[]>(`/analytics/correlation/?${queryParams.toString()}`);
+        const result = await this.apiClient.get<any[]>(`/data-analytics/platform/bilibili/correlation/?${queryParams.toString()}`);
 
         if (result.error) {
             throw result.error;
