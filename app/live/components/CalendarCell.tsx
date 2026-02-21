@@ -48,7 +48,7 @@ export const CalendarCell: React.FC<CalendarCellProps> = ({ cell, todayStr, isSe
     <div
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className={`aspect-video flex items-center justify-center relative rounded-2xl transition-all ${
+      className={`aspect-video flex items-center justify-center relative z-0 rounded-2xl transition-all ${
         cell.day ? 'bg-white/60' : 'bg-transparent'
       } ${hasLive ? 'cursor-pointer hover:bg-[#fef5f0] shadow-sm' : ''} ${
         isSelected ? 'bg-[#fef5f0] ring-4 ring-[#f8b195]/20' : ''
