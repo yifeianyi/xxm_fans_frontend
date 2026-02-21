@@ -4,7 +4,12 @@
  * GalleryDetailClient - 图集详情页客户端组件
  * 
  * @module app/gallery/components
- * @description 处理特定图集的详情展示，支持叶子节点图片展示和父节点子图集聚合展示
+ * @description 处理特定图集的详情展示
+ * 
+ * 显示逻辑：
+ * 1. 叶子节点：直接显示自己的图片
+ * 2. 倒数第二层父节点（子节点都是叶子节点）：聚合显示所有子节点的图片
+ * 3. 中间层级父节点：显示子图集网格列表
  */
 
 import React, { useEffect, useState } from 'react';
@@ -32,6 +37,7 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
     const [loading, setLoading] = useState(true);
     const [lightboxImage, setLightboxImage] = useState<GalleryImage | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [displayMode, setDisplayMode] = useState<'images' | 'children' | 'grid'>('grid');
 
     useEffect(() => {
         const loadGallery = async () => {
@@ -45,32 +51,42 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                 const isLeaf = !galleryData.children || galleryData.children.length === 0;
 
                 if (isLeaf) {
-                    // 叶子节点：直接加载图片
+                    // 叶子节点：直接加载自己的图片
                     const imagesResult = await galleryRepository.getGalleryImages(galleryId);
                     setImages(imagesResult.images);
-                    setChildrenImagesGroups([]);
-                    setAllChildrenImages([]);
+                    setDisplayMode('images');
                 } else {
-                    // 父节点：加载子图集列表和子图集图片聚合
-                    setChildren(galleryData.children || []);
+                    // 父节点：检查子节点是否都是叶子节点
+                    const childGalleries = galleryData.children || [];
+                    setChildren(childGalleries);
                     
-                    try {
-                        // @ts-ignore - getChildrenImages 是扩展方法
-                        const childrenData = await galleryRepository.getChildrenImages(galleryId);
-                        setChildrenImagesGroups(childrenData.children || []);
-                        
-                        // 聚合所有子图集图片
-                        const allImages = (childrenData.children || []).flatMap(
-                            (group: { gallery: Gallery; images: GalleryImage[] }) => group.images
-                        );
-                        setAllChildrenImages(allImages);
-                    } catch (error) {
-                        console.error('Failed to load children images:', error);
-                        setChildrenImagesGroups([]);
-                        setAllChildrenImages([]);
+                    // 判断是否是倒数第二层（所有子节点都是叶子节点）
+                    const allChildrenAreLeaves = childGalleries.every(
+                        child => !child.children || child.children.length === 0
+                    );
+                    
+                    if (allChildrenAreLeaves) {
+                        // 倒数第二层：聚合显示所有子节点图片
+                        try {
+                            // @ts-ignore - getChildrenImages 是扩展方法
+                            const childrenData = await galleryRepository.getChildrenImages(galleryId);
+                            const groups = childrenData.children || [];
+                            setChildrenImagesGroups(groups);
+                            
+                            // 聚合所有子图集图片
+                            const allImages = groups.flatMap(
+                                (group: { gallery: Gallery; images: GalleryImage[] }) => group.images
+                            );
+                            setAllChildrenImages(allImages);
+                            setDisplayMode('children');
+                        } catch (error) {
+                            console.error('Failed to load children images:', error);
+                            setDisplayMode('grid');
+                        }
+                    } else {
+                        // 中间层级：显示子图集网格
+                        setDisplayMode('grid');
                     }
-                    
-                    setImages([]);
                 }
             } catch (error) {
                 console.error('Failed to load gallery:', error);
@@ -85,7 +101,6 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
     const handleImageClick = (img: GalleryImage, index: number, allImages?: GalleryImage[]) => {
         setLightboxImage(img);
         setCurrentImageIndex(index);
-        // 如果有提供所有图片列表，更新当前查看的图片列表
         if (allImages && allImages.length > 0) {
             setAllChildrenImages(allImages);
         }
@@ -111,8 +126,12 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
         router.push(`/gallery/${childGallery.id}`);
     };
 
-    const isLeafGallery = !gallery?.children || gallery.children.length === 0;
-    const hasChildrenImages = childrenImagesGroups.length > 0;
+    // 计算总图片数
+    const totalImageCount = displayMode === 'children' 
+        ? allChildrenImages.length 
+        : displayMode === 'images' 
+            ? images.length 
+            : gallery?.imageCount || 0;
 
     return (
         <>
@@ -142,7 +161,7 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
             </div>
 
             <div className="min-h-screen bg-[#fef5f0] p-6">
-                {/* 返回按钮和面包屑 */}
+                {/* 返回按钮 */}
                 <div className="max-w-7xl mx-auto mb-6">
                     <button
                         onClick={() => router.push('/gallery')}
@@ -163,9 +182,9 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                             <p className="text-[#8eb69b] font-bold">{gallery.description}</p>
                         )}
                         <p className="text-sm text-[#8eb69b]/70 mt-2">
-                            共 {gallery.imageCount} 张图片
-                            {!isLeafGallery && hasChildrenImages && (
-                                <span className="ml-2">（已聚合 {allChildrenImages.length} 张）</span>
+                            共 {totalImageCount} 张图片
+                            {displayMode === 'children' && children.length > 0 && (
+                                <span className="ml-2">（来自 {children.length} 个子图集）</span>
                             )}
                         </p>
                     </div>
@@ -179,15 +198,15 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                     </div>
                 )}
 
-                {/* 图片网格 - 叶子图集 */}
-                {!loading && isLeafGallery && images.length > 0 && (
+                {/* 图片网格 - 叶子节点 */}
+                {!loading && displayMode === 'images' && images.length > 0 && (
                     <div className="max-w-7xl mx-auto">
                         <ImageGrid images={images} onImageClick={(img, idx) => handleImageClick(img, idx)} />
                     </div>
                 )}
 
-                {/* 子图集图片聚合展示 - 父图集且有子图集图片数据 */}
-                {!loading && !isLeafGallery && hasChildrenImages && (
+                {/* 子图集图片聚合 - 倒数第二层父节点 */}
+                {!loading && displayMode === 'children' && childrenImagesGroups.length > 0 && (
                     <div className="max-w-7xl mx-auto">
                         <ChildrenImagesDisplay
                             childrenGroups={childrenImagesGroups}
@@ -197,15 +216,15 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                     </div>
                 )}
 
-                {/* 子图集网格 - 父图集但没有子图集图片数据 */}
-                {!loading && !isLeafGallery && !hasChildrenImages && children.length > 0 && (
+                {/* 子图集网格 - 中间层级父节点 */}
+                {!loading && displayMode === 'grid' && children.length > 0 && (
                     <div className="max-w-7xl mx-auto">
                         <GalleryGrid galleries={children} onGalleryClick={handleGalleryClick} />
                     </div>
                 )}
 
                 {/* 空状态 */}
-                {!loading && isLeafGallery && images.length === 0 && (
+                {!loading && displayMode === 'images' && images.length === 0 && (
                     <div className="py-48 text-center">
                         <p className="text-[#8eb69b] font-bold">暂无图片</p>
                     </div>
