@@ -1,0 +1,17 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/about/page": "app/about/page.js",
+  "/albums/[id]/page": "app/albums/[id]/page.js",
+  "/albums/page": "app/albums/page.js",
+  "/contact/page": "app/contact/page.js",
+  "/data/page": "app/data/page.js",
+  "/fansDIY/page": "app/fansDIY/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/gallery/[id]/page": "app/gallery/[id]/page.js",
+  "/gallery/page": "app/gallery/page.js",
+  "/live/page": "app/live/page.js",
+  "/originals/page": "app/originals/page.js",
+  "/page": "app/page.js",
+  "/songs/page": "app/songs/page.js"
+}
