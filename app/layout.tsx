@@ -4,6 +4,7 @@ import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
 
 export const metadata: Metadata = {
+    metadataBase: new URL('https://www.xxm8777.cn'),
     title: '小满虫之家 - 咻咻满粉丝站',
     description: '咻咻满歌曲列表、二创作品、直播日历、图集展示',
     keywords: ['咻咻满', '小满虫之家', '歌曲', '翻唱', '直播'],
