@@ -124,9 +124,9 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
       {/* 年月选择器弹窗 - 屏幕居中 */}
       {showYearSelector && (
         <>
-          {/* 背景蒙层 */}
+          {/* 全屏黑色遮罩 - 防止误触底层日历 */}
           <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/90"
             style={{ zIndex: 2147483647 }}
             onClick={() => setShowYearSelector(false)} 
           />
