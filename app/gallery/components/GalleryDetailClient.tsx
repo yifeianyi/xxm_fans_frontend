@@ -61,9 +61,8 @@ export default function GalleryDetailClient({ galleryId }: GalleryDetailClientPr
                     setChildren(childGalleries);
                     
                     // 判断是否是倒数第二层（所有子节点都是叶子节点）
-                    const allChildrenAreLeaves = childGalleries.every(
-                        child => !child.children || child.children.length === 0
-                    );
+                    // 注意：后端返回的子节点数据中只有 isLeaf 字段，没有 children 字段
+                    const allChildrenAreLeaves = childGalleries.every(child => child.isLeaf);
                     
                     if (allChildrenAreLeaves) {
                         // 倒数第二层：聚合显示所有子节点图片
