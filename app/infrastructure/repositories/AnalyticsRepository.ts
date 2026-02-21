@@ -40,6 +40,15 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         const queryParams = new URLSearchParams();
         queryParams.set('account_id', params.accountId);
         if (params.granularity) queryParams.set('granularity', params.granularity);
+        
+        // 根据粒度设置合适的 days 参数
+        // 注意：后端对于 DAY 粒度使用 hours 计算，所以需要传 720 (30天) 而不是 30
+        let days = 30;
+        if (params.granularity === 'DAY') {
+            days = 720; // 30 天 * 24 小时
+        }
+        queryParams.set('days', days.toString());
+        
         if (params.startDate) queryParams.set('start_date', params.startDate);
         if (params.endDate) queryParams.set('end_date', params.endDate);
 
