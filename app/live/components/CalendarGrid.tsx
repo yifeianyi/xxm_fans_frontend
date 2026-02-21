@@ -26,7 +26,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   selectedDate
 }) => {
   return (
-    <div className="grid grid-cols-7 gap-1 bg-white/30 p-2 rounded-[2.5rem] border border-white/50 shadow-inner">
+    <div className="relative z-0 grid grid-cols-7 gap-1 bg-white/30 p-2 rounded-[2.5rem] border border-white/50 shadow-inner">
       {/* 星期标题 */}
       {WEEKDAYS.map((day, idx) => (
         <div

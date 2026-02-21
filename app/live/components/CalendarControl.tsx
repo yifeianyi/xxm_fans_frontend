@@ -126,7 +126,7 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
         <>
           {/* 全屏遮罩 - 防止误触底层日历 */}
           <div 
-            className="fixed inset-0 w-screen h-screen bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 w-screen h-screen bg-black/20 backdrop-blur-sm isolate"
             style={{ zIndex: 2147483647 }}
             onClick={() => setShowYearSelector(false)} 
           />
