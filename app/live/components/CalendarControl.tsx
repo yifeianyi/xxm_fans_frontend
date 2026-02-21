@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface CalendarControlProps {
   /** 当前显示的日期 */
@@ -26,6 +27,7 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
   const [showYearSelector, setShowYearSelector] = useState(false);
   const [tempYear, setTempYear] = useState(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
+  const [mounted, setMounted] = useState(false);
   
   const selectorRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +37,11 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
   const yearRange = useMemo(() => {
     return Array.from({ length: actualMaxYear - minYear + 1 }, (_, i) => minYear + i);
   }, [minYear, actualMaxYear]);
+
+  // 客户端挂载后才渲染 Portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 当选择器打开时，同步当前日期到临时状态
   useEffect(() => {
@@ -81,6 +88,80 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
     setShowYearSelector(false);
   };
 
+  // 选择器弹窗（使用 Portal 渲染到 body）
+  const selectorModal = showYearSelector && mounted ? (
+    createPortal(
+      <>
+        {/* 全屏遮罩 */}
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+          style={{ zIndex: 9999 }}
+          onClick={() => setShowYearSelector(false)} 
+        />
+        
+        {/* 选择器容器 - 屏幕居中 */}
+        <div
+          ref={selectorRef}
+          className="fixed bg-white rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-[#f2f9f1] p-5 w-[320px] max-w-[calc(100vw-40px)]"
+          style={{
+            zIndex: 10000,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 年份选择 */}
+          <div className="mb-4">
+            <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Year</div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {yearRange.map(year => (
+                <button
+                  key={year}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleYearSelect(year);
+                  }}
+                  className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                    tempYear === year
+                      ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* 月份选择 */}
+          <div>
+            <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Month</div>
+            <div className="grid grid-cols-3 gap-3">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                <button
+                  key={month}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMonthSelect(month - 1);
+                  }}
+                  className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
+                    tempMonth === month - 1
+                      ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                  }`}
+                >
+                  {month}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>,
+      document.body
+    )
+  ) : null;
+
   return (
     <>
       <div className="flex items-center gap-3 bg-white/60 p-2 rounded-3xl border border-white">
@@ -121,78 +202,8 @@ export const CalendarControl: React.FC<CalendarControlProps> = ({
         </button>
       </div>
 
-      {/* 年月选择器弹窗 - 屏幕居中 */}
-      {showYearSelector && (
-        <>
-          {/* 全屏遮罩 - 防止误触底层日历 */}
-          <div 
-            className="fixed inset-0 w-screen h-screen bg-black/20 backdrop-blur-sm isolate"
-            style={{ zIndex: 2147483647 }}
-            onClick={() => setShowYearSelector(false)} 
-          />
-          
-          {/* 选择器容器 - 屏幕居中 */}
-          <div
-            ref={selectorRef}
-            className="fixed bg-white rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-[#f2f9f1] p-5 w-[320px] max-w-[calc(100vw-40px)]"
-            style={{
-              zIndex: 2147483647,
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 年份选择 */}
-            <div className="mb-4">
-              <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Year</div>
-              {/* 使用自适应网格：大屏幕4列，小屏幕3列 */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {yearRange.map(year => (
-                  <button
-                    key={year}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleYearSelect(year);
-                    }}
-                    className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
-                      tempYear === year
-                        ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* 月份选择 */}
-            <div>
-              <div className="text-xs font-black text-[#8eb69b] uppercase tracking-[0.2em] mb-2">Month</div>
-              {/* 使用3列网格，12个月份将显示为4行3列 */}
-              <div className="grid grid-cols-3 gap-3">
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                  <button
-                    key={month}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMonthSelect(month - 1);
-                    }}
-                    className={`h-12 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
-                      tempMonth === month - 1
-                        ? 'bg-[#d97706] text-white shadow-lg shadow-[#d97706]/30'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800'
-                    }`}
-                  >
-                    {month}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {/* 选择器弹窗（Portal 渲染到 body） */}
+      {selectorModal}
     </>
   );
 };
