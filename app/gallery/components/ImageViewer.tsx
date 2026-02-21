@@ -123,25 +123,26 @@ export default function ImageViewer({
                 </button>
             </div>
 
-            {/* 主内容区域 - 使用 flex 布局让内容自适应 */}
-            <div className="flex-1 flex items-center justify-center min-h-0">
-                {/* 左侧切换按钮 - 紧贴内容 */}
-                {images.length > 1 && (
-                    <button
-                        onClick={onPrevious}
-                        className="flex-shrink-0 p-2 md:p-3 mx-1 md:mx-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
-                        aria-label="上一张"
-                    >
-                        <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </button>
-                )}
+            {/* 主内容区域 */}
+            <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
+                {/* 按钮+内容 在同一个 flex 容器中 */}
+                <div className="flex items-center justify-center">
+                    {/* 左侧切换按钮 - 紧贴内容 */}
+                    {images.length > 1 && (
+                        <button
+                            onClick={onPrevious}
+                            className="flex-shrink-0 p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors mr-2"
+                            aria-label="上一张"
+                        >
+                            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        </button>
+                    )}
 
-                {/* 媒体内容容器 - 占据剩余空间 */}
-                <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
-                    <div className="relative max-w-full max-h-full">
+                    {/* 媒体内容 */}
+                    <div className="relative">
                         {isVideo ? (
                             // 视频播放
-                            <div className="relative flex flex-col items-center">
+                            <div className="flex flex-col items-center">
                                 <video
                                     ref={videoRef}
                                     src={currentImage.url}
@@ -191,31 +192,26 @@ export default function ImageViewer({
                             />
                         ) : (
                             // 普通图片使用 Next.js Image
-                            <div className="relative max-w-full max-h-[calc(100vh-140px)]">
-                                <Image
-                                    src={currentImage.url}
-                                    alt={currentImage.title || currentImage.filename}
-                                    width={1200}
-                                    height={800}
-                                    className="max-w-full max-h-[calc(100vh-140px)] object-contain"
-                                    sizes="100vw"
-                                    priority
-                                />
-                            </div>
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={currentImage.url}
+                                alt={currentImage.title || currentImage.filename}
+                                className="max-w-full max-h-[calc(100vh-140px)] object-contain"
+                            />
                         )}
                     </div>
-                </div>
 
-                {/* 右侧切换按钮 - 紧贴内容 */}
-                {images.length > 1 && (
-                    <button
-                        onClick={onNext}
-                        className="flex-shrink-0 p-2 md:p-3 mx-1 md:mx-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
-                        aria-label="下一张"
-                    >
-                        <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </button>
-                )}
+                    {/* 右侧切换按钮 - 紧贴内容 */}
+                    {images.length > 1 && (
+                        <button
+                            onClick={onNext}
+                            className="flex-shrink-0 p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors ml-2"
+                            aria-label="下一张"
+                        >
+                            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* 底部缩略图导航 */}
@@ -233,23 +229,12 @@ export default function ImageViewer({
                                 }`}
                             >
                                 {/* 缩略图 */}
-                                {img.isVideo || img.isGif ? (
-                                    // 视频/GIF 缩略图使用原生 img
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                        src={img.thumbnailUrl || img.url}
-                                        alt={img.title || img.filename}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <Image
-                                        src={img.thumbnailUrl || img.url}
-                                        alt={img.title || img.filename}
-                                        width={64}
-                                        height={64}
-                                        className="w-full h-full object-cover"
-                                    />
-                                )}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={img.thumbnailUrl || img.url}
+                                    alt={img.title || img.filename}
+                                    className="w-full h-full object-cover"
+                                />
                                 {/* 视频/GIF 标识 */}
                                 {(img.isVideo || img.isGif) && (
                                     <div className="absolute top-0.5 right-0.5 px-1 py-0.5 bg-[#f67280] rounded text-[8px] text-white font-medium leading-none">
