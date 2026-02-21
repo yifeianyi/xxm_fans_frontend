@@ -36,6 +36,20 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         return (result.data || []).map(item => AnalyticsMapper.accountItemFromBackend(item));
     }
 
+    async getAllAccountsData(granularity: TimeGranularity = 'WEEK', days: number = 30): Promise<AccountData[]> {
+        const queryParams = new URLSearchParams();
+        queryParams.set('granularity', granularity);
+        queryParams.set('days', days.toString());
+
+        const result = await this.apiClient.get<any>(`/data-analytics/followers/accounts/data/?${queryParams.toString()}`);
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        return AnalyticsMapper.accountDataListFromBackend(result.data || []);
+    }
+
     async getAccountData(params: GetAccountDataParams): Promise<AccountData> {
         const queryParams = new URLSearchParams();
         queryParams.set('account_id', params.accountId);

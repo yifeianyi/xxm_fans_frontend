@@ -147,6 +147,18 @@ export class AnalyticsMapper {
     }
 
     /**
+     * 批量转换后端账号数据
+     * @param items 后端返回的原始数据数组
+     * @returns 领域模型数组
+     */
+    static accountDataListFromBackend(items: BackendAccountData[]): AccountData[] {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        return items.map(item => this.accountDataFromBackend(item));
+    }
+
+    /**
      * 将后端视频数据转换为领域模型
      * @param item 后端返回的原始数据
      * @returns 领域模型 VideoStats

@@ -14,52 +14,33 @@ export const metadata: Metadata = {
 // 服务端数据获取 - 获取所有粒度的数据
 async function getAccountsData(): Promise<AccountData[]> {
     try {
-        // 获取账号列表
-        const accountList = await analyticsRepository.getAccounts();
-        
-        // 获取每个账号的详细数据（所有粒度）
-        const accountData = await Promise.all(
-            accountList.slice(0, 2).map(async acc => {
-                try {
-                    // 并行获取三种粒度的数据
-                    const [dayData, weekData, monthData] = await Promise.all([
-                        analyticsRepository.getAccountData({
-                            accountId: acc.id,
-                            granularity: 'DAY',
-                        }).catch(() => null),
-                        analyticsRepository.getAccountData({
-                            accountId: acc.id,
-                            granularity: 'WEEK',
-                        }).catch(() => null),
-                        analyticsRepository.getAccountData({
-                            accountId: acc.id,
-                            granularity: 'MONTH',
-                        }).catch(() => null),
-                    ]);
+        // 分别获取三种粒度的数据
+        const [dayData, weekData, monthData] = await Promise.all([
+            analyticsRepository.getAllAccountsData('DAY', 30).catch(() => []),
+            analyticsRepository.getAllAccountsData('WEEK', 30).catch(() => []),
+            analyticsRepository.getAllAccountsData('MONTH', 30).catch(() => []),
+        ]);
 
-                    // 合并数据
-                    const mergedData: AccountData = {
-                        id: acc.id,
-                        name: acc.name,
-                        totalFollowers: dayData?.totalFollowers || weekData?.totalFollowers || monthData?.totalFollowers || 0,
-                        history: {
-                            DAY: dayData?.history?.DAY || [],
-                            WEEK: weekData?.history?.WEEK || [],
-                            MONTH: monthData?.history?.MONTH || [],
-                        },
-                    };
+        // 合并数据 - 以 DAY 数据为基础，合并其他粒度的 history
+        const mergedData = dayData.map((dayAccount, index) => {
+            const weekAccount = weekData.find(w => w.id === dayAccount.id);
+            const monthAccount = monthData.find(m => m.id === dayAccount.id);
 
-                    return mergedData;
-                } catch (err) {
-                    console.error(`获取账号 ${acc.id} 数据失败:`, err);
-                    return null;
-                }
-            })
-        );
-        
-        return accountData.filter(Boolean) as AccountData[];
+            return {
+                id: dayAccount.id,
+                name: dayAccount.name,
+                totalFollowers: dayAccount.totalFollowers,
+                history: {
+                    DAY: dayAccount.history?.DAY || [],
+                    WEEK: weekAccount?.history?.WEEK || [],
+                    MONTH: monthAccount?.history?.MONTH || [],
+                },
+            };
+        });
+
+        return mergedData;
     } catch (err) {
-        console.error('获取账号列表失败:', err);
+        console.error('获取账号数据失败:', err);
         return [];
     }
 }
