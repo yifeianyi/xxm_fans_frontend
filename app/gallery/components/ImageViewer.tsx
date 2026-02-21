@@ -105,7 +105,7 @@ export default function ImageViewer({
     return (
         <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
             {/* 顶部工具栏 */}
-            <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
                 {/* 媒体计数 */}
                 <div className="px-3 py-1 rounded-full bg-white/10 text-white text-sm">
                     {currentIndex + 1} / {images.length}
@@ -123,92 +123,94 @@ export default function ImageViewer({
                 </button>
             </div>
 
-            {/* 媒体内容区域（带左右切换按钮） */}
-            <div className="flex-1 flex items-center justify-center px-4 md:px-2 relative">
-                {/* 上一张按钮 - 紧贴内容左侧 */}
+            {/* 主内容区域 - 使用 flex 布局让内容自适应 */}
+            <div className="flex-1 flex items-center justify-center min-h-0">
+                {/* 左侧切换按钮 - 紧贴内容 */}
                 {images.length > 1 && (
                     <button
                         onClick={onPrevious}
-                        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                        className="flex-shrink-0 p-2 md:p-3 mx-1 md:mx-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
                         aria-label="上一张"
                     >
                         <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </button>
                 )}
 
-                {/* 媒体内容容器 */}
-                <div className="relative max-w-full max-h-full mx-10 md:mx-14">
-                    {isVideo ? (
-                        // 视频播放
-                        <div className="relative">
-                            <video
-                                ref={videoRef}
-                                src={currentImage.url}
-                                className="max-w-full max-h-[calc(100vh-140px)] object-contain"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                onClick={togglePlay}
-                            />
-                            {/* 视频控制栏 */}
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm">
-                                <button
+                {/* 媒体内容容器 - 占据剩余空间 */}
+                <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
+                    <div className="relative max-w-full max-h-full">
+                        {isVideo ? (
+                            // 视频播放
+                            <div className="relative flex flex-col items-center">
+                                <video
+                                    ref={videoRef}
+                                    src={currentImage.url}
+                                    className="max-w-full max-h-[calc(100vh-180px)] object-contain"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
                                     onClick={togglePlay}
-                                    className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                                    aria-label={isPlaying ? '暂停' : '播放'}
-                                >
-                                    {isPlaying ? (
-                                        <Pause className="w-5 h-5 text-white" />
-                                    ) : (
-                                        <Play className="w-5 h-5 text-white" />
-                                    )}
-                                </button>
-                                <button
-                                    onClick={toggleMute}
-                                    className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                                    aria-label={isMuted ? '取消静音' : '静音'}
-                                >
-                                    {isMuted ? (
-                                        <VolumeX className="w-5 h-5 text-white" />
-                                    ) : (
-                                        <Volume2 className="w-5 h-5 text-white" />
-                                    )}
-                                </button>
-                                <span className="text-white text-sm hidden sm:inline">
-                                    空格键播放/暂停
-                                </span>
+                                />
+                                {/* 视频控制栏 */}
+                                <div className="mt-3 flex items-center gap-4 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm">
+                                    <button
+                                        onClick={togglePlay}
+                                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                        aria-label={isPlaying ? '暂停' : '播放'}
+                                    >
+                                        {isPlaying ? (
+                                            <Pause className="w-5 h-5 text-white" />
+                                        ) : (
+                                            <Play className="w-5 h-5 text-white" />
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={toggleMute}
+                                        className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                        aria-label={isMuted ? '取消静音' : '静音'}
+                                    >
+                                        {isMuted ? (
+                                            <VolumeX className="w-5 h-5 text-white" />
+                                        ) : (
+                                            <Volume2 className="w-5 h-5 text-white" />
+                                        )}
+                                    </button>
+                                    <span className="text-white text-sm hidden sm:inline">
+                                        空格键播放/暂停
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    ) : isGif ? (
-                        // GIF 使用原生 img 标签以支持动画
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={currentImage.url}
-                            alt={currentImage.title || currentImage.filename}
-                            className="max-w-full max-h-[calc(100vh-140px)] object-contain"
-                        />
-                    ) : (
-                        // 普通图片使用 Next.js Image
-                        <div className="relative max-w-full max-h-[calc(100vh-140px)]">
-                            <Image
+                        ) : isGif ? (
+                            // GIF 使用原生 img 标签以支持动画
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
                                 src={currentImage.url}
                                 alt={currentImage.title || currentImage.filename}
-                                width={1200}
-                                height={800}
                                 className="max-w-full max-h-[calc(100vh-140px)] object-contain"
-                                sizes="100vw"
-                                priority
                             />
-                        </div>
-                    )}
+                        ) : (
+                            // 普通图片使用 Next.js Image
+                            <div className="relative max-w-full max-h-[calc(100vh-140px)]">
+                                <Image
+                                    src={currentImage.url}
+                                    alt={currentImage.title || currentImage.filename}
+                                    width={1200}
+                                    height={800}
+                                    className="max-w-full max-h-[calc(100vh-140px)] object-contain"
+                                    sizes="100vw"
+                                    priority
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* 下一张按钮 - 紧贴内容右侧 */}
+                {/* 右侧切换按钮 - 紧贴内容 */}
                 {images.length > 1 && (
                     <button
                         onClick={onNext}
-                        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                        className="flex-shrink-0 p-2 md:p-3 mx-1 md:mx-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
                         aria-label="下一张"
                     >
                         <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -218,7 +220,7 @@ export default function ImageViewer({
 
             {/* 底部缩略图导航 */}
             {images.length > 1 && (
-                <div className="px-4 py-3">
+                <div className="px-4 py-3 flex-shrink-0">
                     <div className="flex gap-2 overflow-x-auto max-w-full mx-auto p-2 rounded-xl bg-black/50 backdrop-blur-sm justify-center">
                         {images.map((img, index) => (
                             <button
