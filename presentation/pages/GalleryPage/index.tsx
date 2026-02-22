@@ -63,6 +63,17 @@ const GalleryPage: React.FC = () => {
     return !gallery.children || gallery.children.length === 0;
   };
 
+  /**
+   * 判断是否应该聚合显示子图集图片
+   * 只有所有子节点都是叶子节点时，才聚合显示
+   */
+  const shouldAggregateChildren = (gallery: any): boolean => {
+    if (!gallery.children || gallery.children.length === 0) {
+      return false;
+    }
+    return gallery.children.every((child: any) => isLeafGallery(child));
+  };
+
   return (
     <>
       <Helmet>
@@ -148,7 +159,7 @@ const GalleryPage: React.FC = () => {
               <ImageGrid images={images} onImageClick={handleImageClick} />
             )}
 
-            {!loading && currentGallery && !isLeafGallery(currentGallery) && childrenImagesGroups.length > 0 && (
+            {!loading && currentGallery && shouldAggregateChildren(currentGallery) && childrenImagesGroups.length > 0 && (
               <ChildrenImagesDisplay
                 childrenGroups={childrenImagesGroups}
                 allChildrenImages={allChildrenImages}
@@ -156,7 +167,7 @@ const GalleryPage: React.FC = () => {
               />
             )}
 
-            {!loading && currentGallery && !isLeafGallery(currentGallery) && childrenImagesGroups.length === 0 && currentGallery.children && (
+            {!loading && currentGallery && !isLeafGallery(currentGallery) && !shouldAggregateChildren(currentGallery) && currentGallery.children && (
               <GalleryGrid galleries={currentGallery.children} onGalleryClick={handleGalleryClick} />
             )}
 

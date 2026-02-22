@@ -104,6 +104,20 @@ export const useGalleryData = (): UseGalleryDataReturn => {
     return !gallery.children || gallery.children.length === 0;
   }, []);
 
+  /**
+   * 判断是否应该聚合显示子图集图片
+   * 只有所有子节点都是叶子节点时，才聚合显示
+   * @param gallery 当前图集
+   * @returns 是否应该聚合
+   */
+  const shouldAggregateChildren = useCallback((gallery: Gallery): boolean => {
+    if (!gallery.children || gallery.children.length === 0) {
+      return false; // 本身就是叶子节点，不需要聚合
+    }
+    // 检查所有子节点是否都是叶子节点
+    return gallery.children.every(child => isLeafGallery(child));
+  }, [isLeafGallery]);
+
   const loadImages = useCallback(async (galleryId: string) => {
     if (loadingRef.current === galleryId) return;
     loadingRef.current = galleryId;
@@ -151,13 +165,19 @@ export const useGalleryData = (): UseGalleryDataReturn => {
     await updateBreadcrumbs(gallery);
 
     if (isLeafGallery(gallery)) {
+      // 叶子节点：直接加载图片
       await loadImages(gallery.id);
       setChildrenImagesGroups([]);
-    } else {
+    } else if (shouldAggregateChildren(gallery)) {
+      // 所有子节点都是叶子节点：聚合显示子图集图片
       await loadChildrenImages(gallery.id);
       setImages([]);
+    } else {
+      // 有非叶子子节点：不聚合，显示子图集列表
+      setImages([]);
+      setChildrenImagesGroups([]);
     }
-  }, [currentGallery, isLeafGallery, loadImages, loadChildrenImages, updateBreadcrumbs]);
+  }, [currentGallery, isLeafGallery, shouldAggregateChildren, loadImages, loadChildrenImages, updateBreadcrumbs]);
 
   const handleBreadcrumbClick = useCallback((breadcrumb: Breadcrumb) => {
     if (breadcrumb.id === currentGallery?.id) return;
