@@ -48,29 +48,7 @@ export default defineConfig({
                 main: './index.html'
             },
             output: {
-                manualChunks: (id) => {
-                    // React 核心库
-                    if (id.includes('node_modules/react') || 
-                        id.includes('node_modules/react-dom') ||
-                        id.includes('node_modules/react-router-dom')) {
-                        return 'react-vendor';
-                    }
-                    // UI 组件库
-                    if (id.includes('node_modules/lucide-react')) {
-                        return 'lucide';
-                    }
-                    // 页面组件 - 按页面分割
-                    if (id.includes('/presentation/pages/')) {
-                        const match = id.match(/pages\/([^/]+)/);
-                        if (match) {
-                            return `page-${match[1].toLowerCase()}`;
-                        }
-                    }
-                    // 基础设施层
-                    if (id.includes('/infrastructure/')) {
-                        return 'infrastructure';
-                    }
-                },
+                // 让 Vite 自动处理代码分割，避免手动配置导致的循环依赖问题
                 chunkFileNames: 'assets/[name]-[hash:8].js',
                 entryFileNames: 'assets/[name]-[hash:8].js',
                 assetFileNames: (assetInfo) => {
@@ -93,7 +71,6 @@ export default defineConfig({
             compress: {
                 drop_console: true,
                 drop_debugger: true,
-                drop_comments: true,
             },
             format: {
                 comments: false,
