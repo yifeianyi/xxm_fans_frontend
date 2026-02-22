@@ -2,7 +2,13 @@
  * ImageViewer - 图片/视频查看器（灯箱）组件
  *
  * @module GalleryPage/components
- * @description 全屏查看图片/视频/GIF，支持切换、缩略图导航和键盘控制
+ * @description 全屏查看图片/视频/GIF，支持切换、缩略图导航、键盘控制和触摸滑动
+ *
+ * 功能特性：
+ * - 键盘导航：左右箭头切换，ESC 关闭，空格播放/暂停视频
+ * - 触摸滑动：手机端左右滑动切换图片
+ * - 视频控制：播放/暂停、静音/取消静音
+ * - 缩略图导航：底部缩略图快速跳转
  *
  * @component
  * @example
@@ -21,7 +27,7 @@
  * @category Components
  * @subcategory GalleryPage
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @since 2024-01-31
  */
 
@@ -50,8 +56,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 }) => {
   const currentImage = images[currentIndex];
   const videoRef = useRef<HTMLVideoElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+
+  // 触摸滑动阈值（像素）
+  const SWIPE_THRESHOLD = 50;
 
   // 键盘导航
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -120,6 +131,37 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     }
   };
 
+  // 触摸事件处理 - 手机滑动切换
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (images.length <= 1) return;
+    
+    const diff = touchStartX.current - touchEndX.current;
+    const absDiff = Math.abs(diff);
+    
+    // 滑动距离超过阈值才触发切换
+    if (absDiff > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        // 向左滑动 -> 下一张
+        onNext();
+      } else {
+        // 向右滑动 -> 上一张
+        onPrevious();
+      }
+    }
+    
+    // 重置触摸位置
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
   return (
     <div className="fixed inset-0 z-[200] bg-black/95 flex flex-col">
       {/* 顶部工具栏 */}
@@ -142,7 +184,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       </div>
 
       {/* 主内容区域 */}
-      <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden">
+      <div 
+        className="flex-1 flex items-center justify-center min-h-0 overflow-hidden touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* 按钮+内容 在同一个 flex 容器中 */}
         <div className="flex items-center justify-center">
           {/* 左侧切换按钮 - 紧贴内容 */}
