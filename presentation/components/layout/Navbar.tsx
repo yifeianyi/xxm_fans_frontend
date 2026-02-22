@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
 
     const isSongs = location.pathname.startsWith('/songs');
     const isFans = location.pathname.startsWith('/fansDIY');
-    const isGallery = location.pathname.startsWith('/gallery');
+    const isGallery = location.pathname.startsWith('/gallery') || location.pathname.startsWith('/albums');
     const isLive = location.pathname.startsWith('/live');
     const isData = location.pathname.startsWith('/data');
     const isAbout = location.pathname.startsWith('/about');
@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
     // 导航项配置 - 带图标
     const leftNavItems = [
         { path: '/songs', label: '满の歌声', active: isSongs, icon: Music },
-        { path: '/gallery', label: '满の图册', active: isGallery, icon: Image },
+        { path: '/albums', label: '满の图册', active: isGallery, icon: Image },
         { path: '/live', label: '直播日历', active: isLive, icon: Calendar },
     ];
 
