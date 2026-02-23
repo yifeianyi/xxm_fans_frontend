@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* 指定扫描路径 - Tailwind v4 需要手动指定 */
+@source "../**/*.{js,ts,jsx,tsx}";
+@source "../*.html";
+
 /* Tailwind CSS 4.x 使用 CSS-first 配置 */
 @theme {
   --color-sage-bg: #f2f9f1;

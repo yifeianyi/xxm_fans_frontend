@@ -29,7 +29,7 @@ const routes = [
     { path: '/originals', element: <OriginalsPage /> },
     { path: '/gallery', element: <GalleryPage /> },
     { path: '/albums', element: <GalleryPage /> },
-    { path: '/albums/*', element: <GalleryPage /> },
+    { path: '/albums/:galleryId', element: <GalleryPage /> },
     { path: '/live', element: <LivestreamPage /> },
     { path: '/data', element: <DataAnalysisPage /> },
     { path: '/fansDIY', element: <FansDIYPage /> },

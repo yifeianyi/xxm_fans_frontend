@@ -42,6 +42,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { galleryService } from '../../../../infrastructure/api/RealGalleryService';
 import { Gallery, GalleryImage, Breadcrumb } from '../../../domain/types';
 
@@ -71,9 +72,13 @@ interface UseGalleryDataReturn {
   setLightboxImage: (image: GalleryImage | null) => void;
   setSidebarOpen: (open: boolean) => void;
   setSearchTerm: (term: string) => void;
+  setCurrentImageIndex: (index: number) => void;
 }
 
 export const useGalleryData = (): UseGalleryDataReturn => {
+  const { galleryId } = useParams<{ galleryId: string }>();
+  const navigate = useNavigate();
+  
   const [galleryTree, setGalleryTree] = useState<Gallery[]>([]);
   const [currentGallery, setCurrentGallery] = useState<Gallery | null>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -156,13 +161,32 @@ export const useGalleryData = (): UseGalleryDataReturn => {
     }
   }, []);
 
-  const handleGalleryClick = useCallback(async (gallery: Gallery) => {
+  /**
+   * 在图集树中根据 ID 查找图集
+   */
+  const findGalleryById = useCallback((tree: Gallery[], id: string): Gallery | null => {
+    for (const gallery of tree) {
+      if (gallery.id === id) return gallery;
+      if (gallery.children) {
+        const found = findGalleryById(gallery.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
+
+  const handleGalleryClick = useCallback(async (gallery: Gallery, updateUrl: boolean = true) => {
     if (currentGallery?.id === gallery.id) return;
 
     setSearchTerm('');
     setShowSearchResults(false);
     setCurrentGallery(gallery);
     await updateBreadcrumbs(gallery);
+
+    // 更新 URL 路由
+    if (updateUrl) {
+      navigate(`/albums/${gallery.id}`);
+    }
 
     if (isLeafGallery(gallery)) {
       // 叶子节点：直接加载图片
@@ -177,7 +201,7 @@ export const useGalleryData = (): UseGalleryDataReturn => {
       setImages([]);
       setChildrenImagesGroups([]);
     }
-  }, [currentGallery, isLeafGallery, shouldAggregateChildren, loadImages, loadChildrenImages, updateBreadcrumbs]);
+  }, [currentGallery, isLeafGallery, shouldAggregateChildren, loadImages, loadChildrenImages, updateBreadcrumbs, navigate]);
 
   const handleBreadcrumbClick = useCallback((breadcrumb: Breadcrumb) => {
     if (breadcrumb.id === currentGallery?.id) return;
@@ -186,22 +210,12 @@ export const useGalleryData = (): UseGalleryDataReturn => {
       setCurrentGallery(null);
       setBreadcrumbs([]);
       setImages([]);
+      navigate('/albums');
     } else {
-      const findGallery = (tree: Gallery[], id: string): Gallery | null => {
-        for (const gallery of tree) {
-          if (gallery.id === id) return gallery;
-          if (gallery.children) {
-            const found = findGallery(gallery.children, id);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const gallery = findGallery(galleryTree, breadcrumb.id);
+      const gallery = findGalleryById(galleryTree, breadcrumb.id);
       if (gallery) handleGalleryClick(gallery);
     }
-  }, [currentGallery, galleryTree, handleGalleryClick]);
+  }, [currentGallery, galleryTree, handleGalleryClick, navigate, findGalleryById]);
 
   const handleImageClick = useCallback((img: GalleryImage, index: number, allImages?: GalleryImage[]) => {
     setLightboxImage(img);
@@ -247,6 +261,28 @@ export const useGalleryData = (): UseGalleryDataReturn => {
       loadGalleryTree();
     }
   }, [loadGalleryTree]);
+
+  // 监听 URL 参数变化，自动加载对应图集
+  useEffect(() => {
+    if (galleryTree.length === 0) return;
+    
+    if (galleryId) {
+      // URL 中有 galleryId，加载对应图集
+      const gallery = findGalleryById(galleryTree, galleryId);
+      if (gallery && gallery.id !== currentGallery?.id) {
+        // 使用 updateUrl=false 避免重复更新 URL
+        handleGalleryClick(gallery, false);
+      }
+    } else {
+      // URL 中没有 galleryId，重置到根节点
+      if (currentGallery !== null) {
+        setCurrentGallery(null);
+        setBreadcrumbs([]);
+        setImages([]);
+        setChildrenImagesGroups([]);
+      }
+    }
+  }, [galleryId, galleryTree, currentGallery, findGalleryById, handleGalleryClick]);
 
   useEffect(() => {
     if (currentGallery) {
@@ -321,7 +357,8 @@ export const useGalleryData = (): UseGalleryDataReturn => {
     handleNextImage,
     setLightboxImage,
     setSidebarOpen,
-    setSearchTerm
+    setSearchTerm,
+    setCurrentImageIndex
   };
 };
 
