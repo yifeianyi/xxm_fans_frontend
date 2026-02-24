@@ -76,7 +76,7 @@ const SongTable: React.FC = () => {
   const toggleFilter = (type: keyof FilterState, value: string) => {
     setFilters(prev => ({
       ...prev,
-      [type]: prev[type].includes(value) ? prev[type].filter(v => v !== value) : [...prev[type], value]
+      [type]: prev[type].includes(value) ? [] : [value]
     }));
     setPage(1);
   };
