@@ -164,10 +164,10 @@ const SongTable: React.FC = () => {
               { title: '语种', type: 'languages' as const, data: LANGUAGES }
             ].map(group => (
               <div key={group.type}>
-                <h4 className="font-bold text-[#4a3728] mb-3 flex items-center gap-2 text-[10px] uppercase tracking-wider"><div className="w-1 h-3 bg-[#f8b195] rounded-full"></div>{group.title}</h4>
+                <h4 className="font-bold text-[#4a3728] mb-3 flex items-center gap-2 text-[15px] uppercase tracking-wider"><div className="w-1 h-3 bg-[#f8b195] rounded-full"></div>{group.title}</h4>
                 <div className="flex flex-wrap gap-1">
                   {group.data.map(item => (
-                    <button key={item} onClick={() => toggleFilter(group.type, item)} className={`px-3 py-1 rounded-full text-[9px] font-bold border transition-all ${filters[group.type].includes(item) ? 'bg-[#f8b195] text-white border-[#f8b195]' : 'bg-white/50 text-[#8eb69b] border-[#8eb69b]/20 hover:border-[#f8b195]'}`}>{item}</button>
+                    <button key={item} onClick={() => toggleFilter(group.type, item)} className={`px-3 py-1 rounded-full text-[14px] font-bold border transition-all ${filters[group.type].includes(item) ? 'bg-[#f8b195] text-white border-[#f8b195]' : 'bg-white/50 text-[#8eb69b] border-[#8eb69b]/20 hover:border-[#f8b195]'}`}>{item}</button>
                   ))}
                 </div>
               </div>
