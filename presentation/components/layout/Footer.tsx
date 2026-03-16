@@ -129,7 +129,7 @@ const Footer: React.FC = () => {
                             rel="noreferrer"
                             className="hover:text-[#f8b195] transition-colors underline underline-offset-4 decoration-[#f8b195]/30"
                         >
-                            鄂ICP备2025100707号-2
+                            粤ICP备2025439819号
                         </a>
                         <span className="hidden md:inline text-[#a5c9b1]">|</span>
                         <span>© {currentYear} 小满虫之家</span>
