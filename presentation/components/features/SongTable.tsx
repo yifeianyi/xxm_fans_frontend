@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft, ChevronRight as ChevronRightIcon, MoreHorizontal } from 'lucide-react';
+import { Search, Gift, SlidersHorizontal, ChevronDown, ChevronRight, Copy, Check, ChevronLeft, ChevronRight as ChevronRightIcon, MoreHorizontal, Wand2 } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { Song, FilterState } from '../../../domain/types';
 import { GENRES, TAGS, LANGUAGES } from '../../../infrastructure/config/constants';
@@ -8,6 +8,7 @@ import { Loading } from '../common/Loading';
 import { formatDate, copyToClipboard } from '../../../shared/utils';
 import RecordList from './RecordList';
 import MysteryBoxModal from '../common/MysteryBoxModal';
+import CustomWheelModal from '../common/CustomWheelModal';
 import VideoModal from '../common/VideoModal';
 
 const SongTable: React.FC = () => {
@@ -24,6 +25,7 @@ const SongTable: React.FC = () => {
   const [sortBy, setSortBy] = useState<string | null>('last_performed');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [mysterySong, setMysterySong] = useState<Song | null>(null);
+  const [customWheelOpen, setCustomWheelOpen] = useState(false);
 
   const fetchSongs = useCallback(async (targetPage: number = 1) => {
     setLoading(true);
@@ -145,8 +147,11 @@ const SongTable: React.FC = () => {
             if (result.data) {
               setMysterySong(result.data);
             }
-          }} className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white rounded-full hover:brightness-105 transition-all font-bold shadow-md shadow-[#f8b195]/10 text-xs">
+          }} className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-4 bg-gradient-to-r from-[#f8b195] to-[#f67280] text-white rounded-full hover:brightness-105 transition-all font-bold shadow-md shadow-[#f8b195]/10 text-xs">
             <Gift size={16} /> <span>盲盒</span>
+          </button>
+          <button onClick={() => setCustomWheelOpen(true)} className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-4 bg-gradient-to-r from-[#8eb69b] to-[#6fa57d] text-white rounded-full hover:brightness-105 transition-all font-bold shadow-md shadow-[#8eb69b]/10 text-xs">
+            <Wand2 size={16} /> <span>自定义盲盒</span>
           </button>
           <button onClick={() => setShowFilters(!showFilters)} className={`flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 rounded-full transition-all font-bold border-2 text-xs ${showFilters ? 'bg-[#4a3728] text-white border-[#4a3728]' : 'bg-white text-[#f8b195] border-[#f8b195]/20'}`}>
             <SlidersHorizontal size={16} /> <span>筛选</span>
@@ -307,6 +312,14 @@ const SongTable: React.FC = () => {
         )}
       </div>
       <MysteryBoxModal isOpen={!!mysterySong} onClose={() => setMysterySong(null)} song={mysterySong} onPlay={setVideoUrl} />
+      <CustomWheelModal
+        isOpen={customWheelOpen}
+        onClose={() => setCustomWheelOpen(false)}
+        onSelectSong={(song) => {
+          setCustomWheelOpen(false);
+          setMysterySong(song);
+        }}
+      />
       <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
     </div>
   );
