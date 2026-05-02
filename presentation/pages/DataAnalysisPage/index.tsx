@@ -22,8 +22,13 @@ const DataAnalysisPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const accs = await songService.getAccountsWithGranularity(granularity);
-        setAccounts(accs);
+        const result = await songService.getAccountsWithGranularity(granularity);
+        if (result.error) {
+          setError(result.error.message);
+          console.error('获取账号数据失败:', result.error);
+        } else {
+          setAccounts(result.data || []);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取数据失败');
         console.error('获取账号数据失败:', err);

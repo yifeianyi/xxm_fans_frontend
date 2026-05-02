@@ -1,3 +1,4 @@
+import { ApiResult } from './apiTypes';
 import {
     AccountData, VideoStats, TimeGranularity, DataPoint, CorrelationData,
     Gallery, GalleryImage, Livestream, SongRecord, OriginalWork
@@ -396,9 +397,9 @@ const MOCK_MONTHLY_RECORDS: SongRecord[] = Array.from({ length: 12 }, (_, i) => 
 
 export const mockApi = {
     // 数据分析相关
-    getAccounts: async (): Promise<AccountData[]> => {
+    getAccounts: async (): Promise<ApiResult<AccountData[]>> => {
         await new Promise(r => setTimeout(r, 400));
-        return [
+        return { data: [
             {
                 id: 'main',
                 song_name: '咻咻满 (主站)',
@@ -419,7 +420,7 @@ export const mockApi = {
                     MONTH: generatePoints(12, 100000, 15000)
                 }
             }
-        ];
+        ] };
     },
 
     getVideos: async (): Promise<VideoStats[]> => {

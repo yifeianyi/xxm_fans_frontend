@@ -295,59 +295,38 @@ export class RealSongService implements ISongService {
 
   // ==================== 粉丝数数据分析相关 API ====================
 
-  async getAccounts(): Promise<AccountData[]> {
+  async getAccounts(): Promise<ApiResult<AccountData[]>> {
     const endpoint = '/data-analytics/followers/accounts/data/';
     const params = new URLSearchParams({
       granularity: 'DAY',
       days: '30'
     });
-
-    const result = await apiClient.get<AccountData[]>(`${endpoint}?${params}`);
-
-    if (result.error) {
-      throw new Error(`获取账号数据失败: ${result.error.message}`);
-    }
-
-    return result.data || [];
+    return apiClient.get<AccountData[]>(`${endpoint}?${params}`);
   }
 
   async getAccountsWithGranularity(
     granularity: TimeGranularity,
     days: number = 30
-  ): Promise<AccountData[]> {
+  ): Promise<ApiResult<AccountData[]>> {
     const endpoint = '/data-analytics/followers/accounts/data/';
     const params = new URLSearchParams({
       granularity: granularity,
       days: days.toString()
     });
-
-    const result = await apiClient.get<AccountData[]>(`${endpoint}?${params}`);
-
-    if (result.error) {
-      throw new Error(`获取账号数据失败: ${result.error.message}`);
-    }
-
-    return result.data || [];
+    return apiClient.get<AccountData[]>(`${endpoint}?${params}`);
   }
 
   async getAccountDetail(
     accountId: string,
     granularity: TimeGranularity,
     days: number = 30
-  ): Promise<AccountData> {
+  ): Promise<ApiResult<AccountData>> {
     const endpoint = `/data-analytics/followers/accounts/${accountId}/`;
     const params = new URLSearchParams({
       granularity: granularity,
       days: days.toString()
     });
-
-    const result = await apiClient.get<AccountData>(`${endpoint}?${params}`);
-
-    if (result.error) {
-      throw new Error(`获取账号详情失败: ${result.error.message}`);
-    }
-
-    return result.data!;
+    return apiClient.get<AccountData>(`${endpoint}?${params}`);
   }
 }
 

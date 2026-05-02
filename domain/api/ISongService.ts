@@ -20,9 +20,9 @@ export interface ISongService {
   getLivestreamConfig(): Promise<ApiResult<LivestreamConfig>>;
   
   // 粉丝数数据分析相关接口
-  getAccounts(): Promise<AccountData[]>;
-  getAccountsWithGranularity(granularity: TimeGranularity, days?: number): Promise<AccountData[]>;
-  getAccountDetail(accountId: string, granularity: TimeGranularity, days?: number): Promise<AccountData>;
+  getAccounts(): Promise<ApiResult<AccountData[]>>;
+  getAccountsWithGranularity(granularity: TimeGranularity, days?: number): Promise<ApiResult<AccountData[]>>;
+  getAccountDetail(accountId: string, granularity: TimeGranularity, days?: number): Promise<ApiResult<AccountData>>;
 }
 
 export interface IFanDIYService {
