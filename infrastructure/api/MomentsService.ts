@@ -37,7 +37,7 @@ class ApiClient {
 const apiClient = new ApiClient();
 
 export interface GetMomentsParams {
-  source?: 'weibo' | 'bilibili';
+  source?: string;
   page?: number;
   limit?: number;
 }
