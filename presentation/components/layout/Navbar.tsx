@@ -87,7 +87,6 @@ const Navbar: React.FC = () => {
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
                         <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
                     </div>
-                    <span className="text-lg md:text-xl font-black text-[#8eb69b]">满</span>
                     </ReactRouterDOM.Link>
 
                     {/* 右侧导航项（桌面端显示） */}
