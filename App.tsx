@@ -18,6 +18,7 @@ const GalleryPage = lazy(() => import('./presentation/pages/GalleryPage'));
 const LivestreamPage = lazy(() => import('./presentation/pages/LivestreamPage'));
 const DataAnalysisPage = lazy(() => import('./presentation/pages/DataAnalysisPage'));
 const ContactPage = lazy(() => import('./presentation/pages/ContactPage'));
+const MomentsPage = lazy(() => import('./presentation/pages/MomentsPage'));
 
 // 路由配置
 const routes = [
@@ -36,6 +37,7 @@ const routes = [
     { path: '/fansDIY/:collectionId', element: <FansDIYPage /> },
     { path: '/about', element: <AboutPage /> },
     { path: '/contact', element: <ContactPage /> },
+    { path: '/moments', element: <MomentsPage /> },
 ];
 
 // 页面加载 fallback 组件

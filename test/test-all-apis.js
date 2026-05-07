@@ -168,6 +168,30 @@ const testCases = {
       url: '/api/fansDIY/works/1/', 
       params: {} 
     }
+  ],
+
+  // 满の动态 API测试用例
+  moments: [
+    {
+      name: '获取动态列表',
+      url: '/api/moments/',
+      params: {}
+    },
+    {
+      name: '动态列表分页',
+      url: '/api/moments/',
+      params: { page: 1, limit: 10 }
+    },
+    {
+      name: '按微博来源筛选',
+      url: '/api/moments/',
+      params: { source: 'weibo' }
+    },
+    {
+      name: '按B站来源筛选',
+      url: '/api/moments/',
+      params: { source: 'bilibili' }
+    }
   ]
 };
 

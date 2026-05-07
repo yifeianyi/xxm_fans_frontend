@@ -9,5 +9,6 @@ export const routes = [
   { path: '/live', label: '直播日历' },
   { path: '/data', label: '数据分析' },
   { path: '/about', label: '关于' },
-  { path: '/contact', label: '联系我们' }
+  { path: '/contact', label: '联系我们' },
+  { path: '/moments', label: '满の动态' },
 ] as const;

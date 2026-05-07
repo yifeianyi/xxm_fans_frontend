@@ -321,3 +321,25 @@ export interface WorkTimelineResponse {
     weekSeries: TimelinePoint[];
     dailySeries: TimelinePoint[];
 }
+
+// ==================== 满の动态相关类型 ====================
+
+export interface MomentImage {
+    original_url: string;
+    thumbnail_url: string;
+}
+
+export interface Moment {
+    id: number;
+    source: 'weibo' | 'bilibili';
+    source_id: string;
+    content: string;
+    images: MomentImage[];
+    publish_time: string;
+    like_count: number;
+    comment_count: number;
+    share_count: number;
+    source_url: string;
+    video_bvid: string;
+    created_at: string;
+}
