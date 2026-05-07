@@ -238,6 +238,23 @@ const MomentsPage: React.FC = () => {
                                     </div>
                                 )}
 
+                                {moment.images.length === 0 && moment.video_url && !moment.video_bvid && (
+                                    <div className="mb-4">
+                                        <button onClick={() => {
+                                            if (moment.video_url.includes('.mp4') || moment.video_url.includes('sinaimg.cn')) {
+                                                setVideoUrl(moment.video_url);
+                                            } else {
+                                                window.open(moment.video_url, '_blank');
+                                            }
+                                        }} className="w-full aspect-video rounded-2xl bg-gradient-to-br from-red-100/40 to-orange-50/40 border-2 border-dashed border-red-200/50 flex items-center justify-center gap-3 hover:bg-red-50/50 transition-all group">
+                                            <div className="w-14 h-14 bg-red-400 rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                                <Play fill="currentColor" size={24} className="ml-1" />
+                                            </div>
+                                            <span className="text-red-400 font-black text-sm">播放微博视频</span>
+                                        </button>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center gap-5 text-[#8eb69b]/60">
                                     <span className="inline-flex items-center gap-1 text-xs font-bold"><Heart className="w-3.5 h-3.5" />{formatCount(moment.like_count)}</span>
                                     <span className="inline-flex items-center gap-1 text-xs font-bold"><MessageCircle className="w-3.5 h-3.5" />{formatCount(moment.comment_count)}</span>
