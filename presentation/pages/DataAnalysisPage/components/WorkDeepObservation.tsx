@@ -166,10 +166,10 @@ export const WorkDeepObservation: React.FC = () => {
           </div>
 
           {/* 图表卡片 */}
-          <div className="glass-card rounded-[3rem] p-6 md:p-8 space-y-6 border-4 border-white shadow-xl relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row gap-6">
+          <div className="glass-card rounded-[3rem] p-6 md:p-8 border-4 border-white shadow-xl relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row items-center gap-6">
               {/* 左侧：封面 */}
-              <div className="lg:w-56 shrink-0">
+              <div className="lg:w-44 shrink-0 text-center">
                 {selectedWork?.coverUrl ? (
                   <img
                     src={selectedWork.coverUrl}
@@ -179,11 +179,11 @@ export const WorkDeepObservation: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full aspect-[4/3] rounded-2xl bg-[#8eb69b]/10 border-2 border-white/60 flex items-center justify-center">
-                    <Image size={40} className="text-[#8eb69b]/40" />
+                    <Image size={36} className="text-[#8eb69b]/40" />
                   </div>
                 )}
-                <div className="mt-3 space-y-1">
-                  <p className="text-xs font-black text-[#4a3728] leading-snug line-clamp-2">{selectedWork?.title}</p>
+                <div className="mt-2 space-y-0.5">
+                  <p className="text-[10px] font-black text-[#4a3728] leading-snug line-clamp-2">{selectedWork?.title}</p>
                   <p className="text-[10px] font-bold text-[#8eb69b]">{selectedWork?.publishTime?.split('T')[0]}</p>
                 </div>
               </div>
