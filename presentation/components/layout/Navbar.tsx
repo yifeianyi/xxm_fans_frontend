@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
-import { Menu, X, Music, Image, Calendar, Heart, BarChart3, Info } from 'lucide-react';
+import { Menu, X, Music, Image, Calendar, Heart, BarChart3, Info, Newspaper } from 'lucide-react';
 
 const Navbar: React.FC = () => {
     const location = ReactRouterDOM.useLocation();
@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
     const isLive = location.pathname.startsWith('/live');
     const isData = location.pathname.startsWith('/data');
     const isAbout = location.pathname.startsWith('/about');
+    const isMoments = location.pathname.startsWith('/moments');
 
     // 监听路由变化，自动关闭菜单
     useEffect(() => {
@@ -22,6 +23,7 @@ const Navbar: React.FC = () => {
 
     // 导航项配置 - 带图标
     const leftNavItems = [
+        { path: '/moments', label: '满の动态', active: isMoments, icon: Newspaper },
         { path: '/songs', label: '满の歌声', active: isSongs, icon: Music },
         { path: '/albums', label: '满の图册', active: isGallery, icon: Image },
         { path: '/live', label: '直播日历', active: isLive, icon: Calendar },
@@ -80,9 +82,10 @@ const Navbar: React.FC = () => {
                         }}
                         aria-label="返回首页"
                     >
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
-                            <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
-                        </div>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
+                        <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
+                    </div>
+                    <span className="text-lg md:text-xl font-black text-[#8eb69b]">满</span>
                     </ReactRouterDOM.Link>
 
                     {/* 右侧导航项（桌面端显示） */}
