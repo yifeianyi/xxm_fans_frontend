@@ -341,6 +341,7 @@ export interface Moment {
     share_count: number;
     source_url: string;
     video_bvid: string;
+    video_url: string;
     created_at: string;
 }
 

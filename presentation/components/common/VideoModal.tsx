@@ -9,8 +9,12 @@ interface VideoModalProps {
   videoUrl: string;
 }
 
+const isMp4Url = (url: string) => /\.mp4(\?|$)/i.test(url) || url.includes('sinaimg.cn/');
+
 const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, videoUrl }) => {
   if (!isOpen) return null;
+
+  const useVideoTag = isMp4Url(videoUrl);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
@@ -23,13 +27,23 @@ const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, videoUrl }) =>
           <X size={24} />
         </button>
         <div className="aspect-video w-full">
-          <iframe 
-            src={VideoPlayerService.getEmbedUrl(videoUrl)} 
-            className="w-full h-full border-0" 
-            allowFullScreen 
-            allow="autoplay; fullscreen"
-            title="视频播放"
-          ></iframe>
+          {useVideoTag ? (
+            <video
+              src={videoUrl}
+              className="w-full h-full"
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <iframe 
+              src={VideoPlayerService.getEmbedUrl(videoUrl)} 
+              className="w-full h-full border-0" 
+              allowFullScreen 
+              allow="autoplay; fullscreen"
+              title="视频播放"
+            ></iframe>
+          )}
         </div>
       </div>
     </div>
