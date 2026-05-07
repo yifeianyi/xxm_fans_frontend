@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
-import { Menu, X, Music, Image, Calendar, Heart, BarChart3, Info, Newspaper } from 'lucide-react';
+import { Menu, X, Music, Image, Calendar, Heart, BarChart3, Info, Newspaper, Users } from 'lucide-react';
 
 const Navbar: React.FC = () => {
     const location = ReactRouterDOM.useLocation();
@@ -8,7 +8,8 @@ const Navbar: React.FC = () => {
     const [isRightMenuOpen, setIsRightMenuOpen] = useState(false);
 
     const isSongs = location.pathname.startsWith('/songs');
-    const isFans = location.pathname.startsWith('/fansDIY');
+    const isFansDIY = location.pathname.startsWith('/fansDIY');
+    const isFans = location.pathname.startsWith('/fans') && !location.pathname.startsWith('/fansDIY');
     const isGallery = location.pathname.startsWith('/gallery') || location.pathname.startsWith('/albums');
     const isLive = location.pathname.startsWith('/live');
     const isData = location.pathname.startsWith('/data');
@@ -30,9 +31,10 @@ const Navbar: React.FC = () => {
     ];
 
     const rightNavItems = [
-        { path: '/fansDIY', label: '精选二创', active: isFans, icon: Heart },
+        { path: '/fansDIY', label: '精选二创', active: isFansDIY, icon: Heart },
         { path: '/data', label: '满の数据', active: isData, icon: BarChart3 },
         { path: '/about', label: '关于满满', active: isAbout, icon: Info },
+        { path: '/fans', label: '满の粉丝', active: isFans, icon: Users },
     ];
 
     return (
@@ -82,9 +84,9 @@ const Navbar: React.FC = () => {
                         }}
                         aria-label="返回首页"
                     >
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
-                            <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
-                        </div>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-sm transition-transform hover:scale-110">
+                        <img src="/favicon-32x32.png" alt="咻咻满头像" className="w-full h-full object-cover" />
+                    </div>
                     </ReactRouterDOM.Link>
 
                     {/* 右侧导航项（桌面端显示） */}

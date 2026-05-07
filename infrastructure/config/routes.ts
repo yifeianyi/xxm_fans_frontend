@@ -11,4 +11,5 @@ export const routes = [
   { path: '/about', label: '关于' },
   { path: '/contact', label: '联系我们' },
   { path: '/moments', label: '满の动态' },
+  { path: '/fans', label: '满の粉丝' },
 ] as const;

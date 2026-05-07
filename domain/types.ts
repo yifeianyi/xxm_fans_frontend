@@ -343,3 +343,65 @@ export interface Moment {
     video_bvid: string;
     created_at: string;
 }
+
+// ==================== 满の粉丝相关类型 ====================
+
+export interface FanProfile {
+    uid: string;
+    username: string;
+    avatar_url: string;
+    first_seen_at: string | null;
+    attended_count: number;
+    total_livestreams: number;
+    attendance_rate: number;
+    total_danmaku: number;
+    records: FanAttendanceRecord[];
+}
+
+export interface FanAttendanceRecord {
+    date: string;
+    title: string;
+    is_attended: boolean;
+    has_danmaku: boolean;
+    danmaku_count: number;
+    has_gift: boolean;
+    has_sc: boolean;
+    has_guard: boolean;
+    watch_duration_minutes: number;
+}
+
+export interface FanRankingItem {
+    rank: number;
+    uid: string;
+    username: string;
+    avatar_url: string;
+    attendance_rate: number;
+    attended_count: number;
+    total_livestreams: number;
+    total_danmaku: number;
+}
+
+export interface DanmakuRankingItem {
+    rank: number;
+    uid: string;
+    username: string;
+    avatar_url: string;
+    danmaku_count: number;
+    percentage: number;
+}
+
+export interface FansSearchResult {
+    uid: string;
+    username: string;
+    avatar_url: string;
+    attended_count: number;
+    total_danmaku: number;
+}
+
+export interface FansStats {
+    total_fans: number;
+    total_livestreams: number;
+    total_attendances: number;
+    total_danmaku: number;
+    fans_label: string;
+}
