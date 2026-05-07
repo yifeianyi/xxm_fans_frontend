@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Crown, Star, Sparkles, Gem, Flame } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { AccountData, TimeGranularity } from '../../../domain/types';
-import { OverviewSection, ComingSoonSection, DataAnalysisStyles } from './components';
+import { OverviewSection, ComingSoonSection, DataAnalysisStyles, WorkDeepObservation } from './components';
 import { PageDecorations } from '../../components/common/PageDecorations';
 
 /**
@@ -90,12 +90,8 @@ const DataAnalysisPage: React.FC = () => {
           onAccountChange={setSelectedAccIdx}
         />
 
-        {/* 2. 作品深度观测 - 待展示 */}
-        <ComingSoonSection
-          title="作品深度观测"
-          description="对特定投稿的时序表现进行精细化拆解"
-          icon="eye"
-        />
+        {/* 2. 作品深度观测 */}
+        <WorkDeepObservation />
 
         {/* 3. 增长关联性实验室 - 待展示 */}
         <ComingSoonSection

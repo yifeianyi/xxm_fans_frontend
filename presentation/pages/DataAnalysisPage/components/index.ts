@@ -8,3 +8,5 @@ export { CorrelationChart } from './CorrelationChart';
 export { OverviewSection } from './OverviewSection';
 export { ComingSoonSection } from './ComingSoonSection';
 export { DataAnalysisStyles } from './DataAnalysisStyles';
+export { WorkSelector } from './WorkSelector';
+export { WorkDeepObservation } from './WorkDeepObservation';

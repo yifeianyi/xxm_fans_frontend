@@ -301,3 +301,23 @@ export interface YearsOverviewParams {
     startYear?: number;
     endYear?: number;
 }
+
+// ==================== 作品深度观测相关类型 ====================
+
+/** 时间线数据点 */
+export interface TimelinePoint {
+    time: string;
+    viewCount: number;
+    likeCount: number;
+    coinCount: number;
+    favoriteCount: number;
+    danmakuCount: number;
+    commentCount: number;
+}
+
+/** 作品时间线响应 */
+export interface WorkTimelineResponse {
+    hasWeekData: boolean;
+    weekSeries: TimelinePoint[];
+    dailySeries: TimelinePoint[];
+}

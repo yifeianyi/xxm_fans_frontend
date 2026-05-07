@@ -8,13 +8,14 @@ interface TrendChartProps {
   type: 'line' | 'bar';
   height?: number;
   granularity?: TimeGranularity;
+  xAxisFormatter?: (time: string) => string;
 }
 
 /**
  * 趋势图组件
  * 支持折线图和柱状图，带悬停交互
  */
-export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, height = 180, granularity = 'WEEK' }) => {
+export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, height = 180, granularity = 'WEEK', xAxisFormatter }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const chartRef = React.useRef<HTMLDivElement>(null);
@@ -23,6 +24,9 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, heigh
 
   // 根据粒度格式化横坐标标签
   const formatXAxisLabel = (time: string) => {
+    if (xAxisFormatter) {
+      return xAxisFormatter(time);
+    }
     if (granularity === 'DAY') {
       // DAY粒度：显示小时（如 "14:00"）
       return time;

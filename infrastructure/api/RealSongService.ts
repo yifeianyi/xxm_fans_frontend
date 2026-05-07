@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity } from '../../domain/types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse } from '../../domain/types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -327,6 +327,40 @@ export class RealSongService implements ISongService {
       days: days.toString()
     });
     return apiClient.get<AccountData>(`${endpoint}?${params}`);
+  }
+
+  // ==================== 作品深度观测相关 API ====================
+
+  async getAnalyticsWorks(limit: number = 100, platform?: string): Promise<ApiResult<any[]>> {
+    const params = new URLSearchParams();
+    params.set('limit', limit.toString());
+    if (platform) params.set('platform', platform);
+    return apiClient.get<any[]>(`/data-analytics/works/?${params.toString()}`);
+  }
+
+  async getWorkTimeline(
+    platform: string,
+    workId: string
+  ): Promise<ApiResult<WorkTimelineResponse>> {
+    const endpoint = `/data-analytics/works/${platform}/${workId}/timeline/`;
+    const result = await apiClient.get<any>(endpoint);
+    if (result.error || !result.data) return result;
+    const transformPoint = (p: any) => ({
+      time: p.time,
+      viewCount: p.view_count,
+      likeCount: p.like_count,
+      coinCount: p.coin_count,
+      favoriteCount: p.favorite_count,
+      danmakuCount: p.danmaku_count,
+      commentCount: p.comment_count,
+    });
+    return {
+      data: {
+        hasWeekData: result.data.has_week_data,
+        weekSeries: (result.data.week_series || []).map(transformPoint),
+        dailySeries: (result.data.daily_series || []).map(transformPoint),
+      },
+    };
   }
 }
 
