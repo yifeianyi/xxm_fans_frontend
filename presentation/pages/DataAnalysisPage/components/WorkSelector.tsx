@@ -11,8 +11,16 @@ interface WorkItem {
   coverUrl: string;
 }
 
+export interface SelectedWork {
+  platform: string;
+  workId: string;
+  title: string;
+  coverUrl: string;
+  publishTime: string;
+}
+
 interface WorkSelectorProps {
-  onSelect: (platform: string, workId: string) => void;
+  onSelect: (work: SelectedWork) => void;
 }
 
 /**
@@ -71,7 +79,13 @@ export const WorkSelector: React.FC<WorkSelectorProps> = ({ onSelect }) => {
     setSelected(item);
     setOpen(false);
     setSearch('');
-    onSelect(item.platform, item.workId);
+    onSelect({
+      platform: item.platform,
+      workId: item.workId,
+      title: item.title,
+      coverUrl: item.coverUrl,
+      publishTime: item.publishTime,
+    });
   }, [onSelect]);
 
   return (

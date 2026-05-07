@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Activity, Play, ThumbsUp, Coins, Bookmark, MessageSquare, Subtitles } from 'lucide-react';
+import { Activity, Play, ThumbsUp, Coins, Bookmark, MessageSquare, Subtitles, Image } from 'lucide-react';
 import { TimelinePoint, DataPoint } from '../../../../domain/types';
 import { songService } from '../../../../infrastructure/api';
-import { WorkSelector } from './WorkSelector';
+import { WorkSelector, SelectedWork } from './WorkSelector';
 import { TrendChart } from './TrendChart';
 
 type MetricKey = 'viewCount' | 'likeCount' | 'coinCount' | 'favoriteCount' | 'danmakuCount' | 'commentCount';
@@ -38,20 +38,20 @@ const toDataPoints = (series: TimelinePoint[], metricKey: MetricKey): DataPoint[
  * tag2: 按天显示作品数据点折线
  */
 export const WorkDeepObservation: React.FC = () => {
-  const [selectedWork, setSelectedWork] = useState<{ platform: string; workId: string } | null>(null);
+  const [selectedWork, setSelectedWork] = useState<SelectedWork | null>(null);
   const [timeline, setTimeline] = useState<{ hasWeekData: boolean; weekSeries: TimelinePoint[]; dailySeries: TimelinePoint[] } | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('daily');
   const [activeMetric, setActiveMetric] = useState<MetricKey>('viewCount');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSelectWork = useCallback(async (platform: string, workId: string) => {
-    setSelectedWork({ platform, workId });
+  const handleSelectWork = useCallback(async (work: SelectedWork) => {
+    setSelectedWork(work);
     setLoading(true);
     setError(null);
     setTimeline(null);
     try {
-      const result = await songService.getWorkTimeline(platform, workId);
+      const result = await songService.getWorkTimeline(work.platform, work.workId);
       if (result.error) {
         setError(result.error.message);
       } else if (result.data) {
@@ -166,60 +166,85 @@ export const WorkDeepObservation: React.FC = () => {
           </div>
 
           {/* 图表卡片 */}
-          <div className="glass-card rounded-[3rem] p-8 md:p-10 space-y-6 border-4 border-white shadow-xl relative overflow-hidden">
-            {/* 指标切换 */}
-            <div className="flex flex-wrap gap-2">
-              {METRICS.map(m => (
-                <button
-                  key={m.key}
-                  onClick={() => setActiveMetric(m.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider transition-all border ${
-                    activeMetric === m.key
-                      ? 'bg-[#4a3728] text-white border-[#4a3728] shadow-sm'
-                      : 'bg-white/60 text-[#8eb69b] border-white hover:border-[#f8b195]'
-                  }`}
-                >
-                  {m.icon}
-                  {m.label}
-                </button>
-              ))}
-            </div>
-
-            {/* 图表 */}
-            <div className="h-72 flex items-center justify-center">
-              {chartData.length > 0 ? (
-                <TrendChart
-                  data={chartData}
-                  color={currentMetric.color}
-                  type="line"
-                  height={260}
-                  xAxisFormatter={xAxisFormatter}
-                />
-              ) : (
-                <div className="text-center space-y-2">
-                  <div className="text-3xl">📊</div>
-                  <p className="text-xs font-bold text-[#8eb69b]/60">暂无{activeTab === 'week' ? '发布后一周' : '累计'}观测数据</p>
-                </div>
-              )}
-            </div>
-
-            {/* 数据摘要 */}
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 pt-4 border-t border-[#8eb69b]/10">
-              {METRICS.map(m => {
-                const latest = currentSeries[currentSeries.length - 1];
-                const first = currentSeries[0];
-                const total = latest ? latest[m.key] : 0;
-                const growth = latest && first ? latest[m.key] - first[m.key] : 0;
-                return (
-                  <div key={m.key} className="text-center p-3 bg-white/40 rounded-2xl">
-                    <div className="text-[10px] font-black text-[#8eb69b] uppercase">{m.label}</div>
-                    <div className="text-lg font-black text-[#4a3728] mt-1">{total.toLocaleString('zh-CN')}</div>
-                    <div className="text-[10px] font-black mt-0.5" style={{ color: growth >= 0 ? '#8eb69b' : '#e74c3c' }}>
-                      {growth >= 0 ? '+' : ''}{growth.toLocaleString('zh-CN')}
-                    </div>
+          <div className="glass-card rounded-[3rem] p-6 md:p-8 space-y-6 border-4 border-white shadow-xl relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* 左侧：封面 */}
+              <div className="lg:w-56 shrink-0">
+                {selectedWork?.coverUrl ? (
+                  <img
+                    src={selectedWork.coverUrl}
+                    alt={selectedWork.title}
+                    className="w-full aspect-[4/3] object-cover rounded-2xl border-2 border-white/60 shadow-md"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full aspect-[4/3] rounded-2xl bg-[#8eb69b]/10 border-2 border-white/60 flex items-center justify-center">
+                    <Image size={40} className="text-[#8eb69b]/40" />
                   </div>
-                );
-              })}
+                )}
+                <div className="mt-3 space-y-1">
+                  <p className="text-xs font-black text-[#4a3728] leading-snug line-clamp-2">{selectedWork?.title}</p>
+                  <p className="text-[10px] font-bold text-[#8eb69b]">{selectedWork?.publishTime?.split('T')[0]}</p>
+                </div>
+              </div>
+
+              {/* 右侧：图表 */}
+              <div className="flex-1 min-w-0 space-y-5">
+                {/* 指标切换 */}
+                <div className="flex flex-wrap gap-2">
+                  {METRICS.map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => setActiveMetric(m.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider transition-all border ${
+                        activeMetric === m.key
+                          ? 'bg-[#4a3728] text-white border-[#4a3728] shadow-sm'
+                          : 'bg-white/60 text-[#8eb69b] border-white hover:border-[#f8b195]'
+                      }`}
+                    >
+                      {m.icon}
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 图表区域 */}
+                <div className="h-64 lg:h-72 flex items-center justify-center">
+                  {chartData.length > 0 ? (
+                    <TrendChart
+                      data={chartData}
+                      color={currentMetric.color}
+                      type="line"
+                      height={240}
+                      xAxisFormatter={xAxisFormatter}
+                    />
+                  ) : (
+                    <div className="text-center space-y-2">
+                      <div className="text-3xl">📊</div>
+                      <p className="text-xs font-bold text-[#8eb69b]/60">暂无{activeTab === 'week' ? '发布后一周' : '累计'}观测数据</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 数据摘要 */}
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 pt-4 border-t border-[#8eb69b]/10">
+                  {METRICS.map(m => {
+                    const latest = currentSeries[currentSeries.length - 1];
+                    const first = currentSeries[0];
+                    const total = latest ? latest[m.key] : 0;
+                    const growth = latest && first ? latest[m.key] - first[m.key] : 0;
+                    return (
+                      <div key={m.key} className="text-center p-2 bg-white/40 rounded-2xl">
+                        <div className="text-[10px] font-black text-[#8eb69b] uppercase">{m.label}</div>
+                        <div className="text-sm font-black text-[#4a3728] mt-0.5">{total.toLocaleString('zh-CN')}</div>
+                        <div className="text-[10px] font-black mt-0.5" style={{ color: growth >= 0 ? '#8eb69b' : '#e74c3c' }}>
+                          {growth >= 0 ? '+' : ''}{growth.toLocaleString('zh-CN')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
