@@ -94,7 +94,7 @@ const DataAnalysisPage: React.FC = () => {
         <WorkDeepObservation />
 
         {/* 3. 增长关联性实验室 */}
-        <GrowthCorrelationPanel accountId={activeAcc?.id || ''} />
+        <GrowthCorrelationPanel accountId={activeAcc?.id || ''} accountName={activeAcc?.name || ''} />
 
         {/* 底部说明 */}
         <div className="text-center p-8 bg-white/20 rounded-[2rem] border border-white/40 flex flex-col items-center gap-3">

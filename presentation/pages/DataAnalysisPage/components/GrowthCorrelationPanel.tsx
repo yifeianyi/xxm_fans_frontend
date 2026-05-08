@@ -7,9 +7,10 @@ import VideoModal from '../../../components/common/VideoModal';
 
 interface GrowthCorrelationPanelProps {
   accountId: string;
+  accountName: string;
 }
 
-export const GrowthCorrelationPanel: React.FC<GrowthCorrelationPanelProps> = ({ accountId }) => {
+export const GrowthCorrelationPanel: React.FC<GrowthCorrelationPanelProps> = ({ accountId, accountName }) => {
   const [timeline, setTimeline] = useState<CorrelationData[]>([]);
   const [works, setWorks] = useState<CorrelationWork[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,10 @@ export const GrowthCorrelationPanel: React.FC<GrowthCorrelationPanelProps> = ({ 
             <Zap size={32} className="text-white" />
           </div>
         </div>
-        <h2 className="text-3xl font-black text-[#4a3728] tracking-tighter">增长关联性实验室</h2>
+        <h2 className="text-3xl font-black text-[#4a3728] tracking-tighter">
+          增长关联性实验室
+          {accountName && <span className="text-[#f8b195] ml-2">· {accountName}</span>}
+        </h2>
         <p className="text-sm font-bold text-[#8eb69b]">归因分析：全站视频热度脉冲对粉丝增长的即时驱动率</p>
         <p className="text-xs text-[#8eb69b]/60">基于近 3 个月发布的作品播放增量与粉丝数变化的关联分析</p>
       </div>
