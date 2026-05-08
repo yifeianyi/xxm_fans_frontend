@@ -34,6 +34,7 @@ export const WorkSelector: React.FC<WorkSelectorProps> = ({ onSelect }) => {
   const [selected, setSelected] = useState<WorkItem | null>(null);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoSelectedRef = useRef(false);
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -60,6 +61,26 @@ export const WorkSelector: React.FC<WorkSelectorProps> = ({ onSelect }) => {
     fetchWorks();
   }, []);
 
+  const handleSelect = useCallback((item: WorkItem) => {
+    setSelected(item);
+    setOpen(false);
+    setSearch('');
+    onSelect({
+      platform: item.platform,
+      workId: item.workId,
+      title: item.title,
+      coverUrl: item.coverUrl,
+      publishTime: item.publishTime,
+    });
+  }, [onSelect]);
+
+  useEffect(() => {
+    if (!autoSelectedRef.current && works.length > 0 && !selected) {
+      autoSelectedRef.current = true;
+      handleSelect(works[0]);
+    }
+  }, [works, selected, handleSelect]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -74,19 +95,6 @@ export const WorkSelector: React.FC<WorkSelectorProps> = ({ onSelect }) => {
     w.title.toLowerCase().includes(search.toLowerCase()) ||
     w.workId.toLowerCase().includes(search.toLowerCase())
   );
-
-  const handleSelect = useCallback((item: WorkItem) => {
-    setSelected(item);
-    setOpen(false);
-    setSearch('');
-    onSelect({
-      platform: item.platform,
-      workId: item.workId,
-      title: item.title,
-      coverUrl: item.coverUrl,
-      publishTime: item.publishTime,
-    });
-  }, [onSelect]);
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl">

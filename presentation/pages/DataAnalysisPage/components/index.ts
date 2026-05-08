@@ -10,3 +10,4 @@ export { ComingSoonSection } from './ComingSoonSection';
 export { DataAnalysisStyles } from './DataAnalysisStyles';
 export { WorkSelector } from './WorkSelector';
 export { WorkDeepObservation } from './WorkDeepObservation';
+export { GrowthCorrelationPanel } from './GrowthCorrelationPanel';

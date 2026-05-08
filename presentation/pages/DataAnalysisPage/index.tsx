@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Crown, Star, Sparkles, Gem, Flame } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { AccountData, TimeGranularity } from '../../../domain/types';
-import { OverviewSection, ComingSoonSection, DataAnalysisStyles, WorkDeepObservation } from './components';
+import { OverviewSection, ComingSoonSection, DataAnalysisStyles, WorkDeepObservation, GrowthCorrelationPanel } from './components';
 import { PageDecorations } from '../../components/common/PageDecorations';
 
 /**
@@ -93,12 +93,8 @@ const DataAnalysisPage: React.FC = () => {
         {/* 2. 作品深度观测 */}
         <WorkDeepObservation />
 
-        {/* 3. 增长关联性实验室 - 待展示 */}
-        <ComingSoonSection
-          title="增长关联性实验室"
-          description="归因分析：全站视频热度脉冲对粉丝增长的即时驱动率"
-          icon="zap"
-        />
+        {/* 3. 增长关联性实验室 */}
+        <GrowthCorrelationPanel accountId={activeAcc?.id || ''} />
 
         {/* 底部说明 */}
         <div className="text-center p-8 bg-white/20 rounded-[2rem] border border-white/40 flex flex-col items-center gap-3">

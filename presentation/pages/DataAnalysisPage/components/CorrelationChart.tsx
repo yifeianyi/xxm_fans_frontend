@@ -1,149 +1,167 @@
-import React, { useState } from 'react';
-import { CorrelationData } from '../../../../domain/types';
+import React, { useState, useMemo } from 'react';
+import { CorrelationData, CorrelationWork } from '../../../../domain/types';
 import { formatExactNumber } from '../utils';
 
 interface CorrelationChartProps {
-  data: CorrelationData[];
+  timeline: CorrelationData[];
+  works: CorrelationWork[];
   height?: number;
+  onWorkClick?: (work: CorrelationWork) => void;
 }
 
-/**
- * 关联归因图组件
- * 显示视频播放增量和粉丝净增的关联关系
- */
-export const CorrelationChart: React.FC<CorrelationChartProps> = ({ data, height = 240 }) => {
+const GRID_LINES = 4;
+
+const formatShort = (n: number): string => {
+  const abs = Math.abs(n);
+  if (abs >= 10000) return (n / 10000).toFixed(1) + 'w';
+  if (abs >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return String(n);
+};
+
+export const CorrelationChart: React.FC<CorrelationChartProps> = ({ timeline, works, height = 280, onWorkClick }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
-  const chartRef = React.useRef<HTMLDivElement>(null);
+  const svgRef = React.useRef<SVGSVGElement>(null);
 
-  if (data.length === 0) return null;
-  const viewMax = Math.max(...data.map(d => d.videoViewDelta));
-  const folMax = Math.max(...data.map(d => d.followerDelta));
+  const workDateIndex: Record<string, CorrelationWork> = useMemo(() => {
+    const map: Record<string, CorrelationWork> = {};
+    for (const w of works) {
+      if (w.publishTime && timeline.some(d => d.time === w.publishTime)) {
+        if (!map[w.publishTime]) map[w.publishTime] = w;
+      }
+    }
+    return map;
+  }, [works, timeline]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!chartRef.current) return;
-    
-    const rect = chartRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const paddingLeft = 4;
-    const chartWidth = rect.width - paddingLeft * 2;
-    const relativeX = Math.max(0, Math.min(x - paddingLeft, chartWidth));
-    const index = Math.round((relativeX / chartWidth) * (data.length - 1));
-    setHoveredIndex(index);
-    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  const { viewMax, viewMin, folMax, folMin, folRange } = useMemo(() => {
+    const vMax = Math.max(...timeline.map(d => d.videoViewDelta));
+    const vMin = Math.min(...timeline.map(d => d.videoViewDelta));
+    const fMax = Math.max(...timeline.map(d => d.followerDelta));
+    const fMin = Math.min(...timeline.map(d => d.followerDelta));
+    return { viewMax: vMax, viewMin: vMin, folMax: fMax, folMin: fMin, folRange: Math.max(fMax - fMin, 1) };
+  }, [timeline]);
+
+  const viewRange = Math.max(viewMax - viewMin, 1);
+  const toX = (i: number) => (i / Math.max(timeline.length - 1, 1)) * 100;
+  const toViewY = (v: number) => 100 - ((v - viewMin) / viewRange) * 100;
+  const toFolY = (f: number) => 100 - ((f - folMin) / folRange) * 100;
+
+  const viewPoints = timeline.map((d, i) => `${toX(i)},${toViewY(d.videoViewDelta)}`).join(' ');
+  const folPoints = timeline.map((d, i) => `${toX(i)},${toFolY(d.followerDelta)}`).join(' ');
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const idx = Math.round(x * (timeline.length - 1));
+    setHoveredIndex(Math.max(0, Math.min(idx, timeline.length - 1)));
   };
 
-  const handleMouseLeave = () => {
-    setHoveredIndex(null);
-    setMousePosition(null);
-  };
-
-  const getHoveredData = () => {
-    if (hoveredIndex === null || hoveredIndex < 0 || hoveredIndex >= data.length) return null;
-    return data[hoveredIndex];
-  };
-
-  const hoveredData = getHoveredData();
+  if (timeline.length === 0) return null;
 
   return (
-    <div className="flex flex-col w-full select-none" style={{ height: `${height}px` }}>
-      <div className="flex flex-1 min-h-0">
-        <div className="flex flex-col justify-between text-[9px] font-black text-[#8eb69b] text-right pr-2 w-[40px] shrink-0 leading-none py-1">
-          <span>{formatNumber(viewMax)}</span>
-          <span>{formatNumber(viewMax / 2)}</span>
-          <span>0</span>
-        </div>
-        <div 
-          ref={chartRef}
-          className="flex-1 relative border-l border-r border-[#8eb69b]/10"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+    <div className="relative w-full select-none" style={{ height }}>
+      <svg
+        ref={svgRef}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="w-full h-full"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
+        <defs>
+          <linearGradient id="viewGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f8b195" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#f8b195" stopOpacity="0.02" />
+          </linearGradient>
+          <linearGradient id="folGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3498db" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#3498db" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {Array.from({ length: GRID_LINES + 1 }).map((_, i) => {
+          const y = (i / GRID_LINES) * 100;
+          return (
+            <line
+              key={`g${i}`}
+              x1="0" y1={y} x2="100" y2={y}
+              stroke="#e8e4df"
+              strokeWidth="0.3"
+              strokeDasharray={i === 0 || i === GRID_LINES ? 'none' : '2,2'}
+            />
+          );
+        })}
+
+        <polygon fill="url(#viewGrad)" points={`0,100 ${viewPoints} 100,100`} />
+        <polygon fill="url(#folGrad)" points={`0,100 ${folPoints} 100,100`} />
+
+        <polyline fill="none" stroke="#f8b195" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" points={viewPoints} />
+        <polyline fill="none" stroke="#3498db" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" points={folPoints} />
+
+        {hoveredIndex !== null && (
+          <>
+            <line x1={toX(hoveredIndex)} y1="0" x2={toX(hoveredIndex)} y2="100"
+              stroke="#4a3728" strokeWidth="0.5" strokeDasharray="3,3" opacity="0.7" />
+            <circle cx={toX(hoveredIndex)} cy={toViewY(timeline[hoveredIndex].videoViewDelta)}
+              r="2" fill="#f8b195" stroke="#fff" strokeWidth="0.8" />
+            <circle cx={toX(hoveredIndex)} cy={toFolY(timeline[hoveredIndex].followerDelta)}
+              r="2" fill="#3498db" stroke="#fff" strokeWidth="0.8" />
+          </>
+        )}
+      </svg>
+
+      {timeline.map((d, ti) => {
+        const work = workDateIndex[d.time];
+        if (!work?.coverUrl) return null;
+        return (
+          <img
+            key={work.workId}
+            src={work.coverUrl}
+            alt={work.title}
+            title={work.title}
+            className="absolute bottom-0 w-5 h-5 rounded object-cover border border-white/60 shadow-sm hover:w-12 hover:h-12 hover:z-20 transition-all cursor-pointer"
+            style={{ left: `calc(${toX(ti)}% - 10px)` }}
+            loading="lazy"
+            onClick={() => onWorkClick?.(work)}
+          />
+        );
+      })}
+
+      {/* hover tooltip */}
+      {hoveredIndex !== null && (
+        <div
+          className="absolute z-30 bg-[#4a3728] text-white px-4 py-2.5 rounded-xl shadow-xl pointer-events-none text-xs font-medium whitespace-nowrap"
+          style={{
+            left: `${toX(hoveredIndex)}%`,
+            bottom: '100%',
+            transform: hoveredIndex / Math.max(timeline.length - 1, 1) < 0.15
+              ? 'translateX(0) translateY(-6px)'
+              : hoveredIndex / Math.max(timeline.length - 1, 1) > 0.85
+                ? 'translateX(-100%) translateY(-6px)'
+                : 'translateX(-50%) translateY(-6px)',
+          }}
         >
-          <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none z-0">
-             <div className="w-full h-px border-t border-dashed border-gray-200"></div>
-             <div className="w-full h-px border-t border-dashed border-gray-200"></div>
-             <div className="w-full h-px border-t border-dashed border-gray-200"></div>
-          </div>
-          {hoveredIndex !== null && chartRef.current && (
-             <div 
-               className="absolute top-0 bottom-0 w-px bg-[#8eb69b]/40 pointer-events-none z-20"
-               style={{ 
-                 left: `${4 + (hoveredIndex / (data.length - 1)) * (chartRef.current.offsetWidth - 8)}px`
-               }}
-             />
-          )}
-          <div className="relative z-10 w-full h-full px-0.5 py-1">
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-              <polyline fill="none" stroke="#8eb69b" strokeWidth="1" points={data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.videoViewDelta / viewMax) * 100}`).join(' ')} />
-              <polygon fill="#8eb69b" fillOpacity="0.1" points={`0,100 ${data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.videoViewDelta / viewMax) * 100}`).join(' ')} 100,100`} />
-              <polyline fill="none" stroke="#f8b195" strokeWidth="2.5" strokeLinecap="round" points={data.map((d, i) => `${(i / (data.length - 1)) * 100},${100 - (d.followerDelta / folMax) * 100}`).join(' ')} />
-              {hoveredIndex !== null && (
-                <>
-                  <circle
-                    cx={(hoveredIndex / (data.length - 1)) * 100}
-                    cy={100 - (data[hoveredIndex].videoViewDelta / viewMax) * 100}
-                    r="1.5"
-                    fill="#8eb69b"
-                    className="animate-pulse"
-                  />
-                  <circle
-                    cx={(hoveredIndex / (data.length - 1)) * 100}
-                    cy={100 - (data[hoveredIndex].followerDelta / folMax) * 100}
-                    r="1.5"
-                    fill="#f8b195"
-                    className="animate-pulse"
-                  />
-                </>
-              )}
-            </svg>
-          </div>
-          {hoveredData && mousePosition && (
-            <div 
-              className="absolute z-30 bg-[#4a3728] text-white px-4 py-3 rounded-xl shadow-2xl pointer-events-none text-[10px] font-black whitespace-nowrap"
-              style={{
-                left: `${Math.min(Math.max(mousePosition.x, 40), mousePosition.x + 120)}px`,
-                top: `${Math.max(mousePosition.y - 80, 0)}px`,
-                transform: 'translate(-50%, -100%)'
-              }}
-            >
-              <div className="text-[#8eb69b] mb-1">{hoveredData.time}</div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#8eb69b]"></div>
-                  <span>播放增量: {formatExactNumber(hoveredData.videoViewDelta)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 mt-1">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#f8b195]"></div>
-                  <span>粉丝净增: {(hoveredData.followerDelta >= 0 ? '+' : '') + formatExactNumber(hoveredData.followerDelta)}</span>
-                </div>
-              </div>
+          <div className="text-white/60 mb-1 text-[10px]">{timeline[hoveredIndex].time}</div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#f8b195]" />
+              <span>播放增量: {formatExactNumber(timeline[hoveredIndex].videoViewDelta)}</span>
             </div>
-          )}
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#3498db]" />
+              <span>粉丝: {(timeline[hoveredIndex].followerDelta >= 0 ? '+' : '') + formatExactNumber(timeline[hoveredIndex].followerDelta)}</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col justify-between text-[9px] font-black text-[#f8b195] text-left pl-2 w-[40px] shrink-0 leading-none py-1">
-          <span>{formatNumber(folMax)}</span>
-          <span>{formatNumber(folMax / 2)}</span>
-          <span>0</span>
-        </div>
-      </div>
-      <div className="flex h-5 items-end mt-1">
-         <div className="w-[40px] shrink-0"></div>
-         <div className="flex-1 flex justify-between text-[9px] font-black text-[#8eb69b]/60 px-0.5 leading-none">
-            <span>{data[0]?.time}</span>
-            <span>{data[Math.floor(data.length / 2)]?.time}</span>
-            <span>{data[data.length - 1]?.time}</span>
-         </div>
-         <div className="w-[40px] shrink-0"></div>
+      )}
+
+      {/* x-axis labels */}
+      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] font-bold text-[#8eb69b]/50 px-1 pointer-events-none translate-y-full pt-1">
+        <span>{timeline[0]?.time?.slice(5)}</span>
+        <span>{timeline[Math.floor(timeline.length / 2)]?.time?.slice(5)}</span>
+        <span>{timeline[timeline.length - 1]?.time?.slice(5)}</span>
       </div>
     </div>
   );
-};
-
-const formatNumber = (num: number) => {
-  if (num === 0) return '0';
-  if (Math.abs(num) >= 10000) return (num / 10000).toFixed(1) + 'w';
-  if (Math.abs(num) >= 1000) return (num / 1000).toFixed(1) + 'k';
-  return num.toString();
 };
