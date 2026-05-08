@@ -34,6 +34,7 @@ export interface GetSongsParams {
 export interface GetRecordsParams {
   page?: number;
   page_size?: number;
+  sort_by?: 'time' | 'likes';
 }
 
 export interface GetTopSongsParams {

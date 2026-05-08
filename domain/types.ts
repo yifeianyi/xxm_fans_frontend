@@ -2,12 +2,23 @@
 export interface SongRecord {
     id: string;
     songId: string;
-    songName: string;  // 歌曲名称
+    songName: string;
     date: string;
     cover: string;
-    coverThumbnailUrl?: string;  // 缩略图 URL
+    coverThumbnailUrl?: string;
     note: string;
     videoUrl: string;
+    like_count?: number;
+    user_liked?: boolean;
+}
+
+export type RecordSortBy = 'time' | 'likes';
+
+export interface LikeResult {
+    success: boolean;
+    liked: boolean;
+    like_count: number;
+    action: string;
 }
 
 export interface Song {

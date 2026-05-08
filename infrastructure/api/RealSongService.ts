@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse } from '../../domain/types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse, CorrelationData, LikeResult } from '../../domain/types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -97,28 +97,23 @@ export class RealSongService implements ISongService {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.set('page', params.page.toString());
     if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+    if (params?.sort_by) queryParams.set('sort_by', params.sort_by);
 
     const result = await apiClient.get<any>(
       `/songs/${songId}/records/?${queryParams.toString()}`
     );
 
     if (result.data) {
-      // 兼容处理两种数据格式：
-      // 1. 分页格式: { results: [...], total: N }
-      // 2. 数组格式: [...] (后端实际返回的格式)
       let recordsArray: any[];
       let totalCount: number;
 
       if (Array.isArray(result.data)) {
-        // 后端直接返回数组
         recordsArray = result.data;
         totalCount = result.data.length;
       } else if (result.data.results && Array.isArray(result.data.results)) {
-        // 标准分页格式
         recordsArray = result.data.results;
         totalCount = result.data.total || result.data.results.length;
       } else {
-        // 未知格式，返回空结果
         console.warn('⚠️ getRecords 返回未知数据格式:', result.data);
         return { data: { results: [], total: 0, page: 1, page_size: 10 } };
       }
@@ -132,7 +127,9 @@ export class RealSongService implements ISongService {
           cover: item.cover_url || '',
           coverThumbnailUrl: item.cover_thumbnail_url || item.cover_url || '',
           note: item.notes || '',
-          videoUrl: item.url || ''
+          videoUrl: item.url || '',
+          like_count: item.like_count || 0,
+          user_liked: item.user_liked || false
         })),
         total: totalCount,
         page: result.data.page || 1,
@@ -141,6 +138,24 @@ export class RealSongService implements ISongService {
       return { data: transformed };
     }
     return result;
+  }
+
+  async toggleLike(songRecordId: string): Promise<ApiResult<LikeResult>> {
+    try {
+      const url = `${config.api.baseURL}/songs/like/`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ song_record_id: parseInt(songRecordId) })
+      });
+      const data = await response.json();
+      if (data.success) {
+        return { data: data as LikeResult };
+      }
+      return { data: data as LikeResult };
+    } catch {
+      return { error: new ApiError(500, 'Network error') };
+    }
   }
 
   
@@ -361,6 +376,20 @@ export class RealSongService implements ISongService {
         dailySeries: (result.data.daily_series || []).map(transformPoint),
       },
     };
+  }
+
+  async getCorrelationData(
+    accountId: string,
+    days: number = 90,
+    workLimit: number = 5
+  ): Promise<ApiResult<CorrelationData[]>> {
+    const params = new URLSearchParams();
+    params.set('account_id', accountId);
+    params.set('days', days.toString());
+    params.set('work_limit', workLimit.toString());
+    return apiClient.get<CorrelationData[]>(
+      `/data-analytics/correlation/?${params.toString()}`
+    );
   }
 }
 
