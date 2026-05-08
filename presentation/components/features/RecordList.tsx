@@ -213,7 +213,7 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
                 </div>
                 <div className="p-3 flex flex-col flex-1">
                   <div className="text-xs font-medium text-[#8eb69b] mb-1">{rec.date}</div>
-                  <div className="text-xs text-gray-500 line-clamp-2 mb-2 flex-1" title={rec.note}>{rec.note || '-'}</div>
+                  <div className="text-xs text-gray-500 line-clamp-2 mb-2 flex-1" title={rec.note}>{rec.note}</div>
                   <div className="flex items-center justify-between mt-auto pt-1 border-t border-gray-100">
                     <button
                       onClick={(e) => handleToggleLike(rec.id, e)}
