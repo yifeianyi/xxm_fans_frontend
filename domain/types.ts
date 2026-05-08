@@ -395,8 +395,13 @@ export interface FansSearchResult {
     uid: string;
     username: string;
     avatar_url: string;
-    attended_count: number;
-    total_danmaku: number;
+    fan_badge_level: number;
+    year_attendance_rate: number;
+    year_attendance_rank: number | null;
+    year_danmaku_count: number;
+    year_danmaku_rank: number | null;
+    overall_attendance_rate: number;
+    overall_attendance_rank: number | null;
 }
 
 export interface FansStats {

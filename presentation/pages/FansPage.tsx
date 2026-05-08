@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Users, MessageCircle, Search, TrendingUp, ExternalLink } from 'lucide-react';
+import { Users, MessageCircle, Search, TrendingUp, ExternalLink, Star } from 'lucide-react';
 import { fansService } from '../../infrastructure/api';
 import { FanRankingItem, DanmakuRankingItem, FansSearchResult, FansStats } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
@@ -17,6 +17,48 @@ const getAvatarUrl = (avatarUrl: string): string => {
 const formatUsername = (name: string): string => {
     if (name.length > 12) return name.substring(0, 10) + '...';
     return name;
+};
+
+const CircularProgress: React.FC<{ pct: number; size?: number; strokeWidth?: number }> = ({
+    pct, size = 48, strokeWidth = 4
+}) => {
+    const r = (size - strokeWidth) / 2;
+    const c = 2 * Math.PI * r;
+    const offset = c - (Math.min(pct, 100) / 100) * c;
+    const hue = Math.min(120, (pct / 100) * 120);
+    const color = `hsl(${hue}, 70%, 55%)`;
+    return (
+        <svg width={size} height={size} className="shrink-0">
+            <circle cx={size/2} cy={size/2} r={r} fill="none"
+                stroke="currentColor" strokeWidth={strokeWidth}
+                className="text-[#8eb69b]/15" />
+            <circle cx={size/2} cy={size/2} r={r} fill="none"
+                stroke={color} strokeWidth={strokeWidth}
+                strokeLinecap="round"
+                strokeDasharray={c} strokeDashoffset={offset}
+                transform={`rotate(-90 ${size/2} ${size/2})`}
+                className="transition-all duration-500" />
+            <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
+                className="fill-[#8eb69b] text-[11px] font-black"
+                style={{ fontSize: size < 40 ? 9 : 11 }}>
+                {pct.toFixed(0)}%
+            </text>
+        </svg>
+    );
+};
+
+const BarProgress: React.FC<{ value: number; max: number }> = ({ value, max }) => {
+    const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+    const hue = Math.min(120, (pct / 100) * 120);
+    const color = `hsl(${hue}, 70%, 55%)`;
+    return (
+        <div className="w-full h-1.5 rounded-full bg-[#8eb69b]/15 overflow-hidden">
+            <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, backgroundColor: color }}
+            />
+        </div>
+    );
 };
 
 const FansPage: React.FC = () => {
@@ -291,28 +333,71 @@ const FansPage: React.FC = () => {
                                 </div>
                             ) : searchData.length > 0 ? (
                                 <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-3">
                                         {searchData.map((fan) => (
                                             <a
                                                 key={fan.uid}
                                                 href={`https://space.bilibili.com/${fan.uid}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-3 p-3 glass-card rounded-2xl hover:shadow-md transition-all group"
+                                                className="block glass-card rounded-2xl hover:shadow-md transition-all group p-4"
                                             >
-                                                <img
-                                                    src={getAvatarUrl(fan.avatar_url)}
-                                                    alt={fan.username}
-                                                    className="w-10 h-10 rounded-full border-2 border-white object-cover shrink-0"
-                                                    loading="lazy"
-                                                />
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="text-sm font-black text-[#8eb69b] truncate flex items-center gap-1">
-                                                        {fan.username}
-                                                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    </div>
-                                                    <div className="text-xs text-[#8eb69b]/60">
-                                                        出勤 {fan.attended_count} 次 · 弹幕 {fan.total_danmaku}
+                                                <div className="flex items-start gap-3">
+                                                    <img
+                                                        src={getAvatarUrl(fan.avatar_url)}
+                                                        alt={fan.username}
+                                                        className="w-12 h-12 rounded-full border-2 border-white object-cover shrink-0 mt-0.5"
+                                                        loading="lazy"
+                                                    />
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className="text-sm font-black text-[#8eb69b] truncate">
+                                                                {fan.username}
+                                                            </span>
+                                                            {fan.fan_badge_level > 0 && (
+                                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#f8b195]/15 text-[#f8b195] text-[10px] font-black shrink-0">
+                                                                    <Star className="w-2.5 h-2.5 fill-[#f8b195]" />
+                                                                    Lv.{fan.fan_badge_level}
+                                                                </span>
+                                                            )}
+                                                            <ExternalLink className="w-3 h-3 text-[#8eb69b]/30 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto" />
+                                                        </div>
+                                                        <div className="bg-[#8eb69b]/5 rounded-xl p-3">
+                                                            <div className="grid grid-cols-3 text-center gap-3">
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span className="text-[10px] text-[#8eb69b]/50 font-medium">年度出勤率</span>
+                                                                    <CircularProgress pct={fan.year_attendance_rate} size={44} strokeWidth={3.5} />
+                                                                    <span className="text-[11px] text-[#f8b195] font-black">
+                                                                        {fan.year_attendance_rate.toFixed(1)}%
+                                                                    </span>
+                                                                    {fan.year_attendance_rank != null && (
+                                                                        <span className="text-[10px] text-[#8eb69b]/60 font-medium">出勤排名 #{fan.year_attendance_rank}</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex flex-col items-center justify-center gap-1.5">
+                                                                    <span className="text-[10px] text-[#8eb69b]/50 font-medium">年度弹幕</span>
+                                                                    <span className="text-lg font-black text-[#f8b195]">{fan.year_danmaku_count}</span>
+                                                                    <span className="text-[10px] text-[#8eb69b]/50 -mt-1">条</span>
+                                                                    <BarProgress
+                                                                        value={fan.year_danmaku_count}
+                                                                        max={Math.max(...searchData.map(f => f.year_danmaku_count), 1)}
+                                                                    />
+                                                                    {fan.year_danmaku_rank != null && (
+                                                                        <span className="text-[10px] text-[#8eb69b]/60 font-medium">弹幕排名 #{fan.year_danmaku_rank}</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span className="text-[10px] text-[#8eb69b]/50 font-medium">综合出勤率</span>
+                                                                    <CircularProgress pct={fan.overall_attendance_rate} size={44} strokeWidth={3.5} />
+                                                                    <span className="text-[11px] text-[#f8b195] font-black">
+                                                                        {fan.overall_attendance_rate.toFixed(1)}%
+                                                                    </span>
+                                                                    {fan.overall_attendance_rank != null && (
+                                                                        <span className="text-[10px] text-[#8eb69b]/60 font-medium">出勤排名 #{fan.overall_attendance_rank}</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </a>
@@ -382,11 +467,8 @@ const renderAttendanceRanking = (data: FanRankingItem[]) => (
                     {item.attended_count} / {item.total_livestreams} 场
                 </div>
             </div>
-            <div className="text-right shrink-0">
-                <div className="text-lg md:text-xl font-black text-[#f8b195]">
-                    {item.attendance_rate.toFixed(2)}%
-                </div>
-                <div className="text-xs text-[#8eb69b]/60">出勤率</div>
+            <div className="flex items-center gap-2 shrink-0">
+                <CircularProgress pct={item.attendance_rate} size={38} strokeWidth={3} />
             </div>
         </a>
     ))
