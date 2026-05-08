@@ -53,6 +53,7 @@ const MomentsPage: React.FC = () => {
     const [hasMore, setHasMore] = useState(true);
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [videoType, setVideoType] = useState<'embed' | 'direct' | undefined>(undefined);
 
     const pageRef = useRef(1);
     const sentinelRef = useRef<HTMLDivElement>(null);
@@ -210,7 +211,7 @@ const MomentsPage: React.FC = () => {
                                                     href={isVideo ? undefined : img.original_url}
                                                     target={isVideo ? undefined : '_blank'}
                                                     rel={isVideo ? undefined : 'noopener noreferrer'}
-                                                    onClick={isVideo ? (e) => { e.preventDefault(); setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); } : undefined}
+                                                    onClick={isVideo ? (e) => { e.preventDefault(); setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); setVideoType(undefined); } : undefined}
                                                     className="block aspect-square rounded-2xl overflow-hidden bg-[#fef5f0] border border-white/50 relative group cursor-pointer"
                                                 >
                                                     <img src={img.thumbnail_url} alt={`图片 ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" />
@@ -229,7 +230,7 @@ const MomentsPage: React.FC = () => {
 
                                 {moment.images.length === 0 && moment.video_bvid && (
                                     <div className="mb-4">
-                                        <button onClick={() => setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`)} className="w-full aspect-video rounded-2xl bg-gradient-to-br from-[#f8b195]/20 to-[#f67280]/10 border-2 border-dashed border-[#f8b195]/30 flex items-center justify-center gap-3 hover:bg-[#f8b195]/10 transition-all group">
+                                        <button onClick={() => { setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); setVideoType(undefined); }} className="w-full aspect-video rounded-2xl bg-gradient-to-br from-[#f8b195]/20 to-[#f67280]/10 border-2 border-dashed border-[#f8b195]/30 flex items-center justify-center gap-3 hover:bg-[#f8b195]/10 transition-all group">
                                             <div className="w-14 h-14 bg-[#f8b195] rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
                                                 <Play fill="currentColor" size={24} className="ml-1" />
                                             </div>
@@ -243,6 +244,7 @@ const MomentsPage: React.FC = () => {
                                         <button onClick={() => {
                                             if (moment.video_url.includes('.mp4') || moment.video_url.includes('sinaimg.cn')) {
                                                 setVideoUrl(moment.video_url);
+                                                setVideoType('direct');
                                             } else {
                                                 window.open(moment.video_url, '_blank');
                                             }
@@ -275,7 +277,7 @@ const MomentsPage: React.FC = () => {
                     </div>
                 )}
 
-                <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} />
+                <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} videoType={videoType} />
             </div>
         </>
     );

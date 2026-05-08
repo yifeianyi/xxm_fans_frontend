@@ -20,7 +20,6 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef(1);
   const loadingRef = useRef(false);
-  const sortByRef = useRef<RecordSortBy>('time');
 
   const normalizeCoverPath = (coverPath: string): string => {
     if (!coverPath) return '';
@@ -39,7 +38,7 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
     }
 
     try {
-      const sort = currentSortBy || sortByRef.current;
+      const sort = currentSortBy || sortBy;
       const result = await songService.getRecords(songId, {
         page: pageNum,
         page_size: 20,
@@ -76,10 +75,9 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
       }
       loadingRef.current = false;
     }
-  }, [songId]);
+  }, [songId, sortBy]);
 
   useEffect(() => {
-    sortByRef.current = sortBy;
     pageRef.current = 1;
     setRecords([]);
     setHasMore(true);
@@ -99,9 +97,9 @@ const RecordList: React.FC<RecordListProps> = ({ songId, onPlay }) => {
     if (distanceToBottom < threshold) {
       const nextPage = pageRef.current + 1;
       pageRef.current = nextPage;
-      loadRecords(nextPage, true);
+      loadRecords(nextPage, true, sortBy);
     }
-  }, [hasMore, loadRecords]);
+  }, [hasMore, loadRecords, sortBy]);
 
   useEffect(() => {
     const container = containerRef.current;

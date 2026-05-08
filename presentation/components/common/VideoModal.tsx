@@ -3,18 +3,25 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { VideoPlayerService } from '../../../shared/services/VideoPlayerService';
 
+type VideoType = 'embed' | 'direct';
+
 interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   videoUrl: string;
+  videoType?: VideoType;
 }
 
-const isMp4Url = (url: string) => /\.mp4(\?|$)/i.test(url) || url.includes('sinaimg.cn/');
+const detectVideoType = (url: string): VideoType => {
+  if (/\.mp4(\?|$)/i.test(url)) return 'direct';
+  if (url.includes('sinaimg.cn/')) return 'direct';
+  return 'embed';
+};
 
-const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, videoUrl }) => {
+const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose, videoUrl, videoType }) => {
   if (!isOpen) return null;
 
-  const useVideoTag = isMp4Url(videoUrl);
+  const useVideoTag = videoType === 'direct' || (!videoType && detectVideoType(videoUrl) === 'direct');
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
