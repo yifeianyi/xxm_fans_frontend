@@ -93,7 +93,7 @@ export interface AccountData {
     id: string;
     name: string;
     totalFollowers: number;
-    history: Record<TimeGranularity, DataPoint[]>;
+    history: Partial<Record<TimeGranularity, DataPoint[]>>;
 }
 
 export interface VideoStats {
@@ -121,6 +121,30 @@ export interface CorrelationData {
     time: string;
     videoViewDelta: number;
     followerDelta: number;
+}
+
+export interface CorrelationWork {
+    title: string;
+    publishTime: string;
+    coverUrl: string;
+    platform: string;
+    workId: string;
+}
+
+export interface CorrelationResponse {
+    timeline: CorrelationData[];
+    works: CorrelationWork[];
+}
+
+export interface AnalyticsWork {
+    id: number;
+    platform: string;
+    work_id: string;
+    title: string;
+    author: string;
+    publish_time: string;
+    cover_url: string;
+    is_valid: boolean;
 }
 
 // 图集相关
@@ -326,7 +350,25 @@ export interface TimelinePoint {
     commentCount: number;
 }
 
-/** 作品时间线响应 */
+/** 作品时间线原始数据点（后端返回格式） */
+export interface TimelineRawPoint {
+    time: string;
+    view_count: number;
+    like_count: number;
+    coin_count: number;
+    favorite_count: number;
+    danmaku_count: number;
+    comment_count: number;
+}
+
+/** 作品时间线原始响应 */
+export interface WorkTimelineRawResponse {
+    has_week_data: boolean;
+    week_series: TimelineRawPoint[];
+    daily_series: TimelineRawPoint[];
+}
+
+/** 作品时间线响应（前端格式化后） */
 export interface WorkTimelineResponse {
     hasWeekData: boolean;
     weekSeries: TimelinePoint[];

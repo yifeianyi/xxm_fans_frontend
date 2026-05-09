@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, ChevronDown, Video } from 'lucide-react';
+import { AnalyticsWork } from '../../../../domain/types';
 import { songService } from '../../../../infrastructure/api';
 
 interface WorkItem {
@@ -40,9 +41,9 @@ export const WorkSelector: React.FC<WorkSelectorProps> = ({ onSelect }) => {
     const fetchWorks = async () => {
       setLoading(true);
       try {
-        const result = await songService.getAnalyticsWorks(1000);
+        const result = await songService.getAnalyticsWorks(200);
         if (result.data) {
-          const items: WorkItem[] = result.data.map((w: any) => ({
+          const items: WorkItem[] = result.data.map((w: AnalyticsWork) => ({
             platform: w.platform,
             workId: w.work_id,
             title: w.title,

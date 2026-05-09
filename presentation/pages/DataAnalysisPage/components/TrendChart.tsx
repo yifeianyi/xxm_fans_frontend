@@ -15,7 +15,7 @@ interface TrendChartProps {
  * 趋势图组件
  * 支持折线图和柱状图，带悬停交互
  */
-export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, height = 180, granularity = 'WEEK', xAxisFormatter }) => {
+const TrendChartComponent: React.FC<TrendChartProps> = ({ data, color, type, height = 180, granularity = 'WEEK', xAxisFormatter }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const chartRef = React.useRef<HTMLDivElement>(null);
@@ -221,6 +221,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, color, type, heigh
     </div>
   );
 };
+
+export const TrendChart = React.memo(TrendChartComponent);
 
 // 优化的数字格式化函数，根据数据范围自动调整精度
 const formatNumber = (num: number, maxValue: number, minValue: number) => {

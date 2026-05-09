@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Crown, Star, Sparkles, Gem, Flame } from 'lucide-react';
 import { songService } from '../../../infrastructure/api';
 import { AccountData, TimeGranularity } from '../../../domain/types';
-import { OverviewSection, ComingSoonSection, DataAnalysisStyles, WorkDeepObservation, GrowthCorrelationPanel } from './components';
+import { OverviewSection, DataAnalysisStyles, WorkDeepObservation, GrowthCorrelationPanel } from './components';
 import { PageDecorations } from '../../components/common/PageDecorations';
 
 /**

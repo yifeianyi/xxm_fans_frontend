@@ -10,7 +10,7 @@ import {
   ApiError
 } from '../../infrastructure/api/apiTypes';
 import { config } from '../../infrastructure/config/config';
-import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse, CorrelationData, LikeResult } from '../../domain/types';
+import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse, WorkTimelineRawResponse, CorrelationResponse, CorrelationWork, AnalyticsWork, LikeResult } from '../../domain/types';
 
 class ApiClient {
   private baseURL = config.api.baseURL;
@@ -346,11 +346,11 @@ export class RealSongService implements ISongService {
 
   // ==================== 作品深度观测相关 API ====================
 
-  async getAnalyticsWorks(limit: number = 100, platform?: string): Promise<ApiResult<any[]>> {
+  async getAnalyticsWorks(limit: number = 100, platform?: string): Promise<ApiResult<AnalyticsWork[]>> {
     const params = new URLSearchParams();
     params.set('limit', limit.toString());
     if (platform) params.set('platform', platform);
-    return apiClient.get<any[]>(`/data-analytics/works/?${params.toString()}`);
+    return apiClient.get<AnalyticsWork[]>(`/data-analytics/works/?${params.toString()}`);
   }
 
   async getWorkTimeline(
@@ -358,9 +358,9 @@ export class RealSongService implements ISongService {
     workId: string
   ): Promise<ApiResult<WorkTimelineResponse>> {
     const endpoint = `/data-analytics/works/${platform}/${workId}/timeline/`;
-    const result = await apiClient.get<any>(endpoint);
-    if (result.error || !result.data) return result;
-    const transformPoint = (p: any) => ({
+    const raw = await apiClient.get<WorkTimelineRawResponse>(endpoint);
+    if (raw.error || !raw.data) return { error: raw.error };
+    const transformPoint = (p: { time: string; view_count: number; like_count: number; coin_count: number; favorite_count: number; danmaku_count: number; comment_count: number }) => ({
       time: p.time,
       viewCount: p.view_count,
       likeCount: p.like_count,
@@ -371,9 +371,9 @@ export class RealSongService implements ISongService {
     });
     return {
       data: {
-        hasWeekData: result.data.has_week_data,
-        weekSeries: (result.data.week_series || []).map(transformPoint),
-        dailySeries: (result.data.daily_series || []).map(transformPoint),
+        hasWeekData: raw.data.has_week_data,
+        weekSeries: (raw.data.week_series || []).map(transformPoint),
+        dailySeries: (raw.data.daily_series || []).map(transformPoint),
       },
     };
   }
@@ -382,12 +382,12 @@ export class RealSongService implements ISongService {
     accountId: string,
     days: number = 90,
     workLimit: number = 5
-  ): Promise<ApiResult<CorrelationData[]>> {
+  ): Promise<ApiResult<CorrelationResponse>> {
     const params = new URLSearchParams();
     params.set('account_id', accountId);
     params.set('days', days.toString());
     params.set('work_limit', workLimit.toString());
-    return apiClient.get<CorrelationData[]>(
+    return apiClient.get<CorrelationResponse>(
       `/data-analytics/correlation/?${params.toString()}`
     );
   }
