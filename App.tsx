@@ -62,18 +62,22 @@ const App: React.FC = () => {
         }).catch(() => {});
     }, []);
 
-    const bgStyle = bgImage
-        ? { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
-        : {};
-
     return (
         <ReactRouterDOM.BrowserRouter>
             <Helmet>
                 <meta name="keywords" content="咻咻满, XXM, 小满虫, 唱见, 音乐主播, 独立音乐人, B站up主 , 戏腔, 治愈系" />
             </Helmet>
             <ErrorBoundary>
-                <div className="min-h-screen flex flex-col transition-all duration-500" style={bgStyle}>
+                <div className="min-h-screen flex flex-col transition-all duration-500">
                     <Navbar />
+                    {bgImage && (
+                        <img
+                            src={bgImage}
+                            alt=""
+                            className="w-full"
+                            style={{ display: 'block' }}
+                        />
+                    )}
                     <main className="flex-1">
                         <Suspense fallback={<PageLoading />}>
                             <ReactRouterDOM.Routes>
