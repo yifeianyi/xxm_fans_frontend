@@ -21,6 +21,9 @@ export interface SiteSettings {
   qq_music_url?: string;
   xiaohongshu_url?: string;
   douyin_url?: string;
+  background_image?: string;
+  background_image_url?: string;
+  background_active?: boolean;
   created_at: string;
   updated_at: string;
 }

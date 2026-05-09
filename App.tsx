@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import ErrorBoundary from './presentation/components/common/ErrorBoundary';
@@ -7,6 +7,7 @@ import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
 import { Loading } from './presentation/components/common/Loading';
 import BackToTop from './presentation/components/common/BackToTop';
+import { siteSettingsService } from './infrastructure/api/RealSiteSettingsService';
 
 // 使用 React.lazy 实现路由级代码分割
 // 将页面组件拆分为独立的 chunk，按需加载
@@ -51,13 +52,27 @@ const PageLoading: React.FC = () => (
 );
 
 const App: React.FC = () => {
+    const [bgImage, setBgImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        siteSettingsService.getSiteSettings().then(result => {
+            if (result.data?.background_active && result.data?.background_image_url) {
+                setBgImage(result.data.background_image_url);
+            }
+        }).catch(() => {});
+    }, []);
+
+    const bgStyle = bgImage
+        ? { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }
+        : {};
+
     return (
         <ReactRouterDOM.BrowserRouter>
             <Helmet>
                 <meta name="keywords" content="咻咻满, XXM, 小满虫, 唱见, 音乐主播, 独立音乐人, B站up主 , 戏腔, 治愈系" />
             </Helmet>
             <ErrorBoundary>
-                <div className="min-h-screen flex flex-col transition-all duration-500">
+                <div className="min-h-screen flex flex-col transition-all duration-500" style={bgStyle}>
                     <Navbar />
                     <main className="flex-1">
                         <Suspense fallback={<PageLoading />}>
