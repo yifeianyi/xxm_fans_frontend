@@ -1,4 +1,3 @@
-// 优化后的RealSongService.ts
 import { ISongService, IFanDIYService, LivestreamConfig } from '../../domain/api/ISongService';
 import {
   ApiResult,
@@ -7,56 +6,11 @@ import {
   GetRecordsParams,
   GetTopSongsParams,
   GetWorksParams,
-  ApiError
+  ApiError,
 } from '../../infrastructure/api/apiTypes';
+import { apiClient } from '../../shared/ApiClient';
 import { config } from '../../infrastructure/config/config';
 import { Song, SongRecord, Recommendation, FanCollection, FanWork, OriginalWork, Livestream, AccountData, TimeGranularity, WorkTimelineResponse, WorkTimelineRawResponse, CorrelationResponse, CorrelationWork, AnalyticsWork, LikeResult } from '../../domain/types';
-
-class ApiClient {
-  private baseURL = config.api.baseURL;
-
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResult<T>> {
-    try {
-      const url = `${this.baseURL}${endpoint}`;
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers
-        }
-      });
-
-      if (!response.ok) {
-        throw new ApiError(response.status, `Request failed: ${response.statusText}`);
-      }
-
-      const responseData = await response.json();
-
-      // 处理后端的统一响应格式: { code, message, data }
-      if (responseData && typeof responseData === 'object' && 'code' in responseData) {
-        if (responseData.code === 200) {
-          return { data: responseData.data as T };
-        } else {
-          throw new ApiError(responseData.code, responseData.message || 'Request failed');
-        }
-      }
-
-      // 如果不是统一格式，直接返回数据
-      return { data: responseData as T };
-    } catch (error) {
-      if (error instanceof ApiError) {
-        return { error };
-      }
-      return { error: new ApiError(500, 'Network error') };
-    }
-  }
-
-  async get<T>(endpoint: string): Promise<ApiResult<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
-  }
-}
-
-const apiClient = new ApiClient();
 
 export class RealSongService implements ISongService {
   async getSongs(params: GetSongsParams): Promise<ApiResult<PaginatedResult<Song>>> {

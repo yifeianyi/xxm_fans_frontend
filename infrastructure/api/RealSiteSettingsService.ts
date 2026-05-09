@@ -1,6 +1,6 @@
-import { ApiResult } from './apiTypes';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import { ApiResult, ApiError } from './apiTypes';
+import { apiClient } from '../../shared/ApiClient';
+import { config } from '../config/config';
 
 export interface SiteSettings {
   id: number;
@@ -41,47 +41,12 @@ export interface ApiResponse<T> {
 }
 
 class SiteSettingsService {
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResult<T>> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/site-settings/${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-        ...options,
-      });
-
-      const result: ApiResponse<T> = await response.json();
-
-      if (result.code === 200 || result.code === 201) {
-        return { data: result.data };
-      } else {
-        return {
-          error: {
-            status: response.status,
-            message: result.message || '请求失败',
-          },
-        };
-      }
-    } catch (error) {
-      return {
-        error: {
-          status: 0,
-          message: error instanceof Error ? error.message : '网络错误',
-        },
-      };
-    }
-  }
-
   async getSiteSettings(): Promise<ApiResult<SiteSettings | null>> {
-    return this.request<SiteSettings>('settings/');
+    return apiClient.get<SiteSettings>('/site-settings/settings/');
   }
 
   async getMilestones(): Promise<ApiResult<Milestone[]>> {
-    return this.request<Milestone[]>('milestones/');
+    return apiClient.get<Milestone[]>('/site-settings/milestones/');
   }
 
   async createMilestone(data: {
@@ -90,26 +55,43 @@ class SiteSettingsService {
     description: string;
     display_order?: number;
   }): Promise<ApiResult<Milestone>> {
-    return this.request<Milestone>('milestones/', {
+    const response = await fetch(`${config.api.baseURL}/site-settings/milestones/`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    const result = await response.json();
+    if (result.code === 200 || result.code === 201) {
+      return { data: result.data };
+    }
+    return { error: new ApiError(result.code, result.message || '请求失败') };
   }
 
   async updateMilestone(
     id: number,
     data: Partial<Milestone>
   ): Promise<ApiResult<Milestone>> {
-    return this.request<Milestone>(`milestones/${id}/`, {
+    const response = await fetch(`${config.api.baseURL}/site-settings/milestones/${id}/`, {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    const result = await response.json();
+    if (result.code === 200 || result.code === 201) {
+      return { data: result.data };
+    }
+    return { error: new ApiError(result.code, result.message || '请求失败') };
   }
 
   async deleteMilestone(id: number): Promise<ApiResult<void>> {
-    return this.request<void>(`milestones/${id}/`, {
+    const response = await fetch(`${config.api.baseURL}/site-settings/milestones/${id}/`, {
       method: 'DELETE',
     });
+    if (response.ok) {
+      return { data: undefined };
+    }
+    const result = await response.json();
+    return { error: new ApiError(result.code || response.status, result.message || '删除失败') };
   }
 }
 

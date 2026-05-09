@@ -18,7 +18,7 @@ const mergeConfig = (config?: SWRConfiguration): SWRConfiguration => ({
  */
 export const useSongs = (params: GetSongsParams, config?: SWRConfiguration) => {
     const key = cacheKeys.songs(params);
-    const { data, error, isLoading, mutate } = useSWR(
+    const { data, error, isLoading, isValidating, mutate } = useSWR(
         key,
         fetchers.songs(params),
         mergeConfig(config)
@@ -28,6 +28,7 @@ export const useSongs = (params: GetSongsParams, config?: SWRConfiguration) => {
         songs: data?.results || [],
         total: data?.total || 0,
         isLoading,
+        isValidating,
         error,
         refresh: mutate,
     };
@@ -42,7 +43,7 @@ export const useSongRecords = (
     config?: SWRConfiguration
 ) => {
     const key = songId ? cacheKeys.songRecords(songId, params) : null;
-    const { data, error, isLoading, mutate } = useSWR(
+    const { data, error, isLoading, isValidating, mutate } = useSWR(
         key,
         fetchers.songRecords(songId, params),
         mergeConfig(config)
@@ -52,6 +53,7 @@ export const useSongRecords = (
         records: data?.results || [],
         total: data?.total || 0,
         isLoading,
+        isValidating,
         error,
         refresh: mutate,
     };
@@ -62,12 +64,11 @@ export const useSongRecords = (
  */
 export const useTopSongs = (params?: GetTopSongsParams, config?: SWRConfiguration) => {
     const key = cacheKeys.topSongs(params);
-    const { data, error, isLoading, mutate } = useSWR(
+    const { data, error, isLoading, isValidating, mutate } = useSWR(
         key,
         fetchers.topSongs(params),
         mergeConfig({
             ...config,
-            // 排行榜数据缓存 10 分钟
             dedupingInterval: 600000,
         })
     );
@@ -75,6 +76,7 @@ export const useTopSongs = (params?: GetTopSongsParams, config?: SWRConfiguratio
     return {
         songs: data || [],
         isLoading,
+        isValidating,
         error,
         refresh: mutate,
     };

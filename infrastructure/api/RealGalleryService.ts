@@ -1,72 +1,48 @@
 import { Gallery, GalleryImage, Breadcrumb } from '../../domain/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import { apiClient } from '../../shared/ApiClient';
+import { ApiResult } from './apiTypes';
 
 export class RealGalleryService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = `${API_BASE_URL}/gallery`;
-  }
 
   /**
    * 获取图集树结构
    */
   async getGalleryTree(): Promise<Gallery[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/tree/`);
-      const result = await response.json();
-
-      if (result.code === 200 && result.data) {
-        return this.transformGalleryData(result.data);
-      } else {
-        console.error('获取图集树失败:', result.message);
-        return [];
-      }
-    } catch (error) {
-      console.error('获取图集树失败:', error);
+    const result = await apiClient.get<Gallery[]>('/gallery/tree/');
+    if (result.error) {
+      console.error('获取图集树失败:', result.error.message);
       return [];
     }
+    if (!result.data) return [];
+    return this.transformGalleryData(result.data);
   }
 
   /**
    * 获取图集详情
    */
   async getGalleryDetail(galleryId: string): Promise<Gallery | null> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${galleryId}/`);
-      const result = await response.json();
-
-      if (result.code === 200 && result.data) {
-        return this.transformGalleryDetail(result.data);
-      } else {
-        console.error('获取图集详情失败:', result.message);
-        return null;
-      }
-    } catch (error) {
-      console.error('获取图集详情失败:', error);
+    const result = await apiClient.get<Gallery>(`/gallery/${galleryId}/`);
+    if (result.error) {
+      console.error('获取图集详情失败:', result.error.message);
       return null;
     }
+    if (!result.data) return null;
+    return this.transformGalleryDetail(result.data);
   }
 
   /**
    * 获取图集图片列表
    */
   async getGalleryImages(galleryId: string): Promise<GalleryImage[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${galleryId}/images/`);
-      const result = await response.json();
-
-      if (result.code === 200 && result.data) {
-        return this.transformImageData(result.data.images);
-      } else {
-        console.error('获取图片列表失败:', result.message);
-        return [];
-      }
-    } catch (error) {
-      console.error('获取图片列表失败:', error);
+    const result = await apiClient.get<any>(`/gallery/${galleryId}/images/`);
+    if (result.error) {
+      console.error('获取图片列表失败:', result.error.message);
       return [];
     }
+    if (result.data?.images) {
+      return this.transformImageData(result.data.images);
+    }
+    return [];
   }
 
   /**
@@ -76,31 +52,26 @@ export class RealGalleryService {
     gallery: Gallery;
     images: GalleryImage[];
   }[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${galleryId}/children-images/`);
-      const result = await response.json();
-
-      if (result.code === 200 && result.data) {
-        // 如果是叶子节点，返回单个图集的图片
-        if (result.data.gallery) {
-          return [{
-            gallery: this.transformGalleryDetail(result.data.gallery),
-            images: this.transformImageData(result.data.images)
-          }];
-        }
-        // 如果是父节点，返回所有子图集的图片
-        if (result.data.children) {
-          return result.data.children.map((child: any) => ({
-            gallery: this.transformGalleryDetail(child.gallery),
-            images: this.transformImageData(child.images)
-          }));
-        }
-      }
-      return [];
-    } catch (error) {
-      console.error('获取子图集图片失败:', error);
+    const result = await apiClient.get<any>(`/gallery/${galleryId}/children-images/`);
+    if (result.error) {
+      console.error('获取子图集图片失败:', result.error.message);
       return [];
     }
+    if (result.data) {
+      if (result.data.gallery) {
+        return [{
+          gallery: this.transformGalleryDetail(result.data.gallery),
+          images: this.transformImageData(result.data.images)
+        }];
+      }
+      if (result.data.children) {
+        return result.data.children.map((child: any) => ({
+          gallery: this.transformGalleryDetail(child.gallery),
+          images: this.transformImageData(child.images)
+        }));
+      }
+    }
+    return [];
   }
 
   /**
