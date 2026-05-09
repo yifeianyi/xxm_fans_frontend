@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import { Users, MessageCircle, Search, TrendingUp, ExternalLink, Star } from 'lucide-react';
 import { fansService } from '../../infrastructure/api';
 import { FanRankingItem, DanmakuRankingItem, FansSearchResult, FansStats } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import { PageDecorations } from '../components/common/PageDecorations';
+import { CircularProgress } from '../components/common/CircularProgress';
+import { BarProgress } from '../components/common/BarProgress';
 
 type TabKey = 'attendance' | 'danmaku' | 'search';
 
@@ -19,48 +21,6 @@ const formatUsername = (name: string): string => {
     return name;
 };
 
-const CircularProgress: React.FC<{ pct: number; size?: number; strokeWidth?: number }> = ({
-    pct, size = 48, strokeWidth = 4
-}) => {
-    const r = (size - strokeWidth) / 2;
-    const c = 2 * Math.PI * r;
-    const offset = c - (Math.min(pct, 100) / 100) * c;
-    const hue = Math.min(120, (pct / 100) * 120);
-    const color = `hsl(${hue}, 70%, 55%)`;
-    return (
-        <svg width={size} height={size} className="shrink-0">
-            <circle cx={size/2} cy={size/2} r={r} fill="none"
-                stroke="currentColor" strokeWidth={strokeWidth}
-                className="text-[#8eb69b]/15" />
-            <circle cx={size/2} cy={size/2} r={r} fill="none"
-                stroke={color} strokeWidth={strokeWidth}
-                strokeLinecap="round"
-                strokeDasharray={c} strokeDashoffset={offset}
-                transform={`rotate(-90 ${size/2} ${size/2})`}
-                className="transition-all duration-500" />
-            <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
-                className="fill-[#8eb69b] text-[11px] font-black"
-                style={{ fontSize: size < 40 ? 9 : 11 }}>
-                {pct.toFixed(0)}%
-            </text>
-        </svg>
-    );
-};
-
-const BarProgress: React.FC<{ value: number; max: number }> = ({ value, max }) => {
-    const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
-    const hue = Math.min(120, (pct / 100) * 120);
-    const color = `hsl(${hue}, 70%, 55%)`;
-    return (
-        <div className="w-full h-1.5 rounded-full bg-[#8eb69b]/15 overflow-hidden">
-            <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: color }}
-            />
-        </div>
-    );
-};
-
 const FansPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabKey>('attendance');
 
@@ -68,12 +28,13 @@ const FansPage: React.FC = () => {
     const [attendanceTotal, setAttendanceTotal] = useState(0);
     const [attendancePage, setAttendancePage] = useState(1);
     const [attendanceLoading, setAttendanceLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState<number | undefined>(2026);
+    const [attendanceYear, setAttendanceYear] = useState<number | undefined>(2026);
 
     const [danmakuData, setDanmakuData] = useState<DanmakuRankingItem[]>([]);
     const [danmakuTotal, setDanmakuTotal] = useState(0);
     const [danmakuPage, setDanmakuPage] = useState(1);
     const [danmakuLoading, setDanmakuLoading] = useState(false);
+    const [danmakuYear, setDanmakuYear] = useState<number | undefined>(2026);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchData, setSearchData] = useState<FansSearchResult[]>([]);
@@ -82,6 +43,8 @@ const FansPage: React.FC = () => {
     const [searchLoading, setSearchLoading] = useState(false);
 
     const [stats, setStats] = useState<FansStats | null>(null);
+
+    const searchAbortRef = useRef<AbortController | null>(null);
 
     const pageSize = 20;
 
@@ -92,10 +55,11 @@ const FansPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        if (activeTab !== 'attendance') return;
         const fetchAttendance = async () => {
             setAttendanceLoading(true);
             const result = await fansService.getAttendanceRanking({
-                year: selectedYear,
+                year: attendanceYear,
                 page: attendancePage,
                 page_size: pageSize,
             });
@@ -105,14 +69,15 @@ const FansPage: React.FC = () => {
             }
             setAttendanceLoading(false);
         };
-        if (activeTab === 'attendance') fetchAttendance();
-    }, [activeTab, attendancePage, selectedYear]);
+        fetchAttendance();
+    }, [activeTab, attendancePage, attendanceYear]);
 
     useEffect(() => {
+        if (activeTab !== 'danmaku') return;
         const fetchDanmaku = async () => {
             setDanmakuLoading(true);
             const result = await fansService.getDanmakuRanking({
-                year: selectedYear,
+                year: danmakuYear,
                 page: danmakuPage,
                 page_size: pageSize,
             });
@@ -122,8 +87,8 @@ const FansPage: React.FC = () => {
             }
             setDanmakuLoading(false);
         };
-        if (activeTab === 'danmaku') fetchDanmaku();
-    }, [activeTab, danmakuPage, selectedYear]);
+        fetchDanmaku();
+    }, [activeTab, danmakuPage, danmakuYear]);
 
     useEffect(() => {
         if (!searchQuery.trim()) {
@@ -131,31 +96,46 @@ const FansPage: React.FC = () => {
             setSearchTotal(0);
             return;
         }
+
+        searchAbortRef.current?.abort();
+        const controller = new AbortController();
+        searchAbortRef.current = controller;
+
         const timer = setTimeout(async () => {
             setSearchLoading(true);
             const result = await fansService.searchFans({
                 q: searchQuery,
                 page: searchPage,
                 page_size: pageSize,
-            });
-            if (result.data) {
+            }, controller.signal);
+            if (!controller.signal.aborted && result.data) {
                 setSearchData(result.data.results || []);
                 setSearchTotal(result.data.total || 0);
             }
-            setSearchLoading(false);
+            if (!controller.signal.aborted) {
+                setSearchLoading(false);
+            }
         }, 400);
-        return () => clearTimeout(timer);
+
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
     }, [searchQuery, searchPage]);
 
-    const handleTabChange = (tab: TabKey) => {
+    const handleTabChange = useCallback((tab: TabKey) => {
         setActiveTab(tab);
-    };
+    }, []);
 
-    const handleYearChange = (year: number | undefined) => {
-        setSelectedYear(year);
-        setAttendancePage(1);
-        setDanmakuPage(1);
-    };
+    const handleYearChange = useCallback((year: number | undefined) => {
+        if (activeTab === 'attendance') {
+            setAttendanceYear(year);
+            setAttendancePage(1);
+        } else {
+            setDanmakuYear(year);
+            setDanmakuPage(1);
+        }
+    }, [activeTab]);
 
     const totalPages = (total: number) => Math.max(1, Math.ceil(total / pageSize));
 
@@ -168,6 +148,8 @@ const FansPage: React.FC = () => {
         }
         return years;
     })();
+
+    const currentSelectedYear = activeTab === 'attendance' ? attendanceYear : danmakuYear;
 
     return (
         <>
@@ -242,7 +224,7 @@ const FansPage: React.FC = () => {
                             <button
                                 onClick={() => handleYearChange(undefined)}
                                 className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
-                                    !selectedYear ? 'bg-[#8eb69b] text-white' : 'bg-white/60 text-[#8eb69b]'
+                                    !currentSelectedYear ? 'bg-[#8eb69b] text-white' : 'bg-white/60 text-[#8eb69b]'
                                 }`}
                             >
                                 全部
@@ -252,7 +234,7 @@ const FansPage: React.FC = () => {
                                     key={y}
                                     onClick={() => handleYearChange(y)}
                                     className={`px-3 py-1 rounded-full text-xs font-black transition-all ${
-                                        selectedYear === y ? 'bg-[#8eb69b] text-white' : 'bg-white/60 text-[#8eb69b]'
+                                        currentSelectedYear === y ? 'bg-[#8eb69b] text-white' : 'bg-white/60 text-[#8eb69b]'
                                     }`}
                                 >
                                     {y}
@@ -274,7 +256,7 @@ const FansPage: React.FC = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {renderAttendanceRanking(attendanceData)}
+                                    {attendanceData.map((item) => renderRankingItem(item, 'attendance', danmakuData))}
                                     <Pagination
                                         page={attendancePage}
                                         totalPages={totalPages(attendanceTotal)}
@@ -298,7 +280,7 @@ const FansPage: React.FC = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {renderDanmakuRanking(danmakuData)}
+                                    {danmakuData.map((item) => renderRankingItem(item, 'danmaku', danmakuData))}
                                     <Pagination
                                         page={danmakuPage}
                                         totalPages={totalPages(danmakuTotal)}
@@ -410,72 +392,46 @@ const FansPage: React.FC = () => {
                                     />
                                 </>
                             ) : (
-                                <div className="text-center py-12 text-[#8eb69b]">
-                                    <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                    <p className="font-black">搜索小满虫</p>
-                                    <p className="text-xs mt-1">输入用户名或 B站 UID 搜索</p>
-                                </div>
+                                !searchQuery.trim() && (
+                                    <div className="text-center py-12 text-[#8eb69b]">
+                                        <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                                        <p className="font-black">搜索你的满虫好友</p>
+                                        <p className="text-xs mt-1">输入用户名或 B站 UID 搜索</p>
+                                    </div>
+                                )
                             )}
                         </div>
                     )}
-
-                    {/* About section */}
-                    <div className="mt-12 glass-card rounded-3xl p-6">
-                        <h3 className="text-lg font-black text-[#8eb69b] mb-3 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-[#f8b195]" />
-                            关于出勤率
-                        </h3>
-                        <div className="space-y-2 text-sm text-[#8eb69b]">
-                            <p>数据来源于B站直播间 <span className="font-black text-[#f8b195]">8777</span>（咻咻满），统计自 2026年5月10日 起的B站直播场次。</p>
-                            <p>上舰续舰、SC醒目留言、投喂礼物、发弹幕、观看一定时长，达成任何一项都会视为成功出勤。</p>
-                            <p>出勤率会在每场直播结束后结算，短时间的直播中断、重启等会视为同一场直播。</p>
-                            <p className="text-xs text-[#8eb69b]/60 mt-3">
-                                出勤率排名同一排名可能会有超过一个人。数据每天凌晨更新。数据的准确度会因直播间系统、网络波动及服务器异常等情况而受影响。
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </>
     );
 };
 
-const renderAttendanceRanking = (data: FanRankingItem[]) => (
-    data.map((item) => (
-        <a
-            key={`${item.uid}-${item.rank}`}
-            href={`https://space.bilibili.com/${item.uid}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 glass-card rounded-2xl hover:shadow-md transition-all group"
-        >
-            <div className="w-10 md:w-12 text-center shrink-0">
-                <span className="text-lg md:text-xl font-black text-[#f8b195]">{item.rank}</span>
-            </div>
-            <img
-                src={getAvatarUrl(item.avatar_url)}
-                alt={item.username}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white object-cover shrink-0"
-                loading="lazy"
-            />
-            <div className="min-w-0 flex-1">
-                <div className="text-sm font-black text-[#8eb69b] truncate flex items-center gap-1">
-                    {formatUsername(item.username)}
-                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                </div>
-                <div className="text-xs text-[#8eb69b]/60">
-                    {item.attended_count} / {item.total_livestreams} 场
-                </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-                <CircularProgress pct={item.attendance_rate} size={38} strokeWidth={3} />
-            </div>
-        </a>
-    ))
-);
+type RankingMode = 'attendance' | 'danmaku';
 
-const renderDanmakuRanking = (data: DanmakuRankingItem[]) => (
-    data.map((item) => (
+const renderRankingItem = (
+    item: FanRankingItem | DanmakuRankingItem,
+    mode: RankingMode,
+    allDanmakuData?: DanmakuRankingItem[]
+) => {
+    const isTop3 = item.rank <= 3;
+    const rankColor = mode === 'attendance' || isTop3 ? 'text-[#f8b195]' : 'text-[#8eb69b]';
+
+    const infoLine = mode === 'attendance'
+        ? `${(item as FanRankingItem).attended_count} / ${(item as FanRankingItem).total_livestreams} 场`
+        : `${(item as DanmakuRankingItem).danmaku_count} 条弹幕 · 占比 ${(item as DanmakuRankingItem).percentage.toFixed(1)}%`;
+
+    const metric = mode === 'attendance'
+        ? <CircularProgress pct={(item as FanRankingItem).attendance_rate} size={38} strokeWidth={3} />
+        : (
+            <BarProgress
+                value={(item as DanmakuRankingItem).danmaku_count}
+                max={Math.max(...(allDanmakuData || []).map(d => d.danmaku_count), 1)}
+            />
+        );
+
+    return (
         <a
             key={`${item.uid}-${item.rank}`}
             href={`https://space.bilibili.com/${item.uid}`}
@@ -484,7 +440,7 @@ const renderDanmakuRanking = (data: DanmakuRankingItem[]) => (
             className="flex items-center gap-3 p-3 glass-card rounded-2xl hover:shadow-md transition-all group"
         >
             <div className="w-10 md:w-12 text-center shrink-0">
-                <span className={`text-lg md:text-xl font-black ${item.rank <= 3 ? 'text-[#f8b195]' : 'text-[#8eb69b]'}`}>
+                <span className={`text-lg md:text-xl font-black ${rankColor}`}>
                     {item.rank}
                 </span>
             </div>
@@ -500,18 +456,15 @@ const renderDanmakuRanking = (data: DanmakuRankingItem[]) => (
                     <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
                 <div className="text-xs text-[#8eb69b]/60">
-                    占全年弹幕 {item.percentage.toFixed(2)}%
+                    {infoLine}
                 </div>
             </div>
-            <div className="text-right shrink-0">
-                <div className="text-lg md:text-xl font-black text-[#f8b195]">
-                    {item.danmaku_count.toLocaleString()}
-                </div>
-                <div className="text-xs text-[#8eb69b]/60">弹幕</div>
+            <div className="flex items-center gap-2 shrink-0">
+                {metric}
             </div>
         </a>
-    ))
-);
+    );
+};
 
 const Pagination: React.FC<{
     page: number;
