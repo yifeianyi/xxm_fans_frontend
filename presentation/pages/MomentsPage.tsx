@@ -54,6 +54,7 @@ const MomentsPage: React.FC = () => {
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [videoType, setVideoType] = useState<'embed' | 'direct' | undefined>(undefined);
+    const [error, setError] = useState<string | null>(null);
 
     const pageRef = useRef(1);
     const sentinelRef = useRef<HTMLDivElement>(null);
@@ -62,20 +63,26 @@ const MomentsPage: React.FC = () => {
     const pageSize = 20;
 
     const fetchMoments = useCallback(async (pageNum: number, append: boolean) => {
-        const params: { page: number; limit: number; source?: 'weibo' | 'bilibili' } = { page: pageNum, limit: pageSize };
-        if (filterRef.current !== 'all') params.source = filterRef.current as 'weibo' | 'bilibili';
+        try {
+            const params: { page: number; limit: number; source?: 'weibo' | 'bilibili' } = { page: pageNum, limit: pageSize };
+            if (filterRef.current !== 'all') params.source = filterRef.current as 'weibo' | 'bilibili';
 
-        const result = await momentsService.getMoments(params);
-        if (result.data) {
-            const newItems = result.data.results || [];
-            if (append) {
-                setMoments(prev => [...prev, ...newItems]);
+            const result = await momentsService.getMoments(params);
+            if (result.data) {
+                const newItems = result.data.results || [];
+                if (append) {
+                    setMoments(prev => [...prev, ...newItems]);
+                } else {
+                    setMoments(newItems);
+                }
+                setHasMore(newItems.length >= pageSize);
+                setError(null);
             } else {
-                setMoments(newItems);
+                setHasMore(false);
+                if (!append) setError(result.message || '加载失败，请稍后重试');
             }
-            setHasMore(newItems.length >= pageSize);
-        } else {
-            setHasMore(false);
+        } catch (e) {
+            if (!append) setError('网络错误，请检查连接后重试');
         }
     }, []);
 
@@ -83,8 +90,9 @@ const MomentsPage: React.FC = () => {
         filterRef.current = filter;
         pageRef.current = 1;
         setHasMore(true);
+        setError(null);
         setInitialLoading(true);
-        fetchMoments(1, false).then(() => setInitialLoading(false));
+        fetchMoments(1, false).finally(() => setInitialLoading(false));
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [filter, fetchMoments]);
 
@@ -99,7 +107,7 @@ const MomentsPage: React.FC = () => {
                     setLoadingMore(true);
                     const nextPage = pageRef.current + 1;
                     pageRef.current = nextPage;
-                    fetchMoments(nextPage, true).then(() => setLoadingMore(false));
+                    fetchMoments(nextPage, true).finally(() => setLoadingMore(false));
                 }
             },
             { rootMargin: '200px' }
@@ -169,6 +177,11 @@ const MomentsPage: React.FC = () => {
 
                 {initialLoading ? (
                     <div className="py-32"><Loading text="正在加载动态..." size="lg" /></div>
+                ) : error ? (
+                    <div className="text-center py-20">
+                        <Newspaper className="w-12 h-12 mx-auto text-[#f8b195]/30 mb-4" />
+                        <p className="text-[#f8b195] font-bold">{error}</p>
+                    </div>
                 ) : moments.length === 0 ? (
                     <div className="text-center py-20">
                         <Newspaper className="w-12 h-12 mx-auto text-[#8eb69b]/30 mb-4" />
@@ -242,7 +255,8 @@ const MomentsPage: React.FC = () => {
                                 {moment.images.length === 0 && moment.video_url && !moment.video_bvid && (
                                     <div className="mb-4">
                                         <button onClick={() => {
-                                            if (moment.video_url.includes('.mp4') || moment.video_url.includes('sinaimg.cn')) {
+                                            const lowerUrl = moment.video_url.toLowerCase();
+                                            if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || lowerUrl.endsWith('.webm')) {
                                                 setVideoUrl(moment.video_url);
                                                 setVideoType('direct');
                                             } else {
