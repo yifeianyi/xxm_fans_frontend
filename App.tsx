@@ -6,6 +6,7 @@ import ErrorBoundary from './presentation/components/common/ErrorBoundary';
 import Navbar from './presentation/components/layout/Navbar';
 import Footer from './presentation/components/layout/Footer';
 import { Loading } from './presentation/components/common/Loading';
+import BackToTop from './presentation/components/common/BackToTop';
 
 // 使用 React.lazy 实现路由级代码分割
 // 将页面组件拆分为独立的 chunk，按需加载
@@ -71,6 +72,7 @@ const App: React.FC = () => {
                             </ReactRouterDOM.Routes>
                         </Suspense>
                     </main>
+                    <BackToTop />
                     <Footer />
                 </div>
             </ErrorBoundary>
