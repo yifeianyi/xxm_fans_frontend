@@ -5,6 +5,7 @@ import { momentsService } from '../../infrastructure/api';
 import { Moment } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import VideoModal from '../components/common/VideoModal';
+import ImageLightbox from '../components/common/ImageLightbox';
 import { PageDecorations } from '../components/common/PageDecorations';
 
 const SourceLabel: React.FC<{ source: 'weibo' | 'bilibili' }> = ({ source }) => {
@@ -55,6 +56,9 @@ const MomentsPage: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [videoType, setVideoType] = useState<'embed' | 'direct' | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
+
+    const [lightboxImages, setLightboxImages] = useState<{ url: string }[]>([]);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     const pageRef = useRef(1);
     const sentinelRef = useRef<HTMLDivElement>(null);
@@ -141,7 +145,7 @@ const MomentsPage: React.FC = () => {
 
             <PageDecorations theme="fans" glowColors={['#f8b195', '#f67280']} />
 
-            <div className="max-w-3xl mx-auto px-4 py-12 space-y-8 animate-in fade-in duration-700">
+            <div className="max-w-xl mx-auto px-4 py-12 space-y-8 animate-in fade-in duration-700">
                 <div className="text-center space-y-3 py-4">
                     <div className="inline-block px-4 py-1 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-500 text-[10px] font-black uppercase tracking-[0.3em] rounded-full border border-amber-200/50 mb-2">
                         Moments
@@ -188,10 +192,10 @@ const MomentsPage: React.FC = () => {
                         <p className="text-[#8eb69b] font-bold">暂无动态，稍后再来看看吧</p>
                     </div>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-3">
                         {moments.map(moment => (
-                            <div key={moment.id} className="bg-white rounded-[2rem] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(248,177,149,0.12)] transition-all duration-300 border-2 border-transparent hover:border-white">
-                                <div className="flex items-center justify-between mb-3">
+                            <div key={moment.id} className="bg-white rounded-[1.5rem] p-3 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(248,177,149,0.12)] transition-all duration-300 border-2 border-transparent hover:border-white">
+                                <div className="flex items-center justify-between mb-1.5">
                                     <div className="flex items-center gap-2">
                                         <SourceLabel source={moment.source} />
                                         <span className="text-xs text-[#8eb69b]/60 font-bold">
@@ -203,7 +207,7 @@ const MomentsPage: React.FC = () => {
                                     </a>
                                 </div>
 
-                                <div className="mb-4">
+                                <div className="mb-2">
                                     <p className={`text-[#4a3728] font-bold leading-relaxed ${expandedId !== moment.id && moment.content.length > 200 ? 'line-clamp-4' : ''}`}>
                                         {moment.content}
                                     </p>
@@ -215,7 +219,7 @@ const MomentsPage: React.FC = () => {
                                 </div>
 
                                 {moment.images.length > 0 && (
-                                    <div className={`grid gap-2 mb-4 ${moment.images.length === 1 ? 'grid-cols-1' : moment.images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                    <div className={`grid gap-2 mb-2 ${moment.images.length === 1 ? 'grid-cols-1' : moment.images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                                         {moment.images.slice(0, 9).map((img, idx) => {
                                             const isVideo = moment.video_bvid && idx === 0;
                                             return (
@@ -224,8 +228,11 @@ const MomentsPage: React.FC = () => {
                                                     href={isVideo ? undefined : img.original_url}
                                                     target={isVideo ? undefined : '_blank'}
                                                     rel={isVideo ? undefined : 'noopener noreferrer'}
-                                                    onClick={isVideo ? (e) => { e.preventDefault(); setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); setVideoType(undefined); } : undefined}
-                                                    className="block aspect-square rounded-2xl overflow-hidden bg-[#fef5f0] border border-white/50 relative group cursor-pointer"
+                                                    onClick={isVideo
+                                                        ? (e) => { e.preventDefault(); setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); setVideoType(undefined); }
+                                                        : (e) => { e.preventDefault(); setLightboxImages(moment.images.map(i => ({ url: i.original_url }))); setLightboxIndex(idx); }
+                                                    }
+                                                    className={`block rounded-2xl overflow-hidden bg-[#fef5f0] border border-white/50 relative group cursor-pointer ${isVideo ? 'aspect-video' : 'aspect-square'}`}
                                                 >
                                                     <img src={img.thumbnail_url} alt={`图片 ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" />
                                                     {isVideo && (
@@ -242,7 +249,7 @@ const MomentsPage: React.FC = () => {
                                 )}
 
                                 {moment.images.length === 0 && moment.video_bvid && (
-                                    <div className="mb-4">
+                                    <div className="mb-2">
                                         <button onClick={() => { setVideoUrl(`https://www.bilibili.com/video/${moment.video_bvid}`); setVideoType(undefined); }} className="w-full aspect-video rounded-2xl bg-gradient-to-br from-[#f8b195]/20 to-[#f67280]/10 border-2 border-dashed border-[#f8b195]/30 flex items-center justify-center gap-3 hover:bg-[#f8b195]/10 transition-all group">
                                             <div className="w-14 h-14 bg-[#f8b195] rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
                                                 <Play fill="currentColor" size={24} className="ml-1" />
@@ -253,7 +260,7 @@ const MomentsPage: React.FC = () => {
                                 )}
 
                                 {moment.images.length === 0 && moment.video_url && !moment.video_bvid && (
-                                    <div className="mb-4">
+                                    <div className="mb-2">
                                         <button onClick={() => {
                                             const lowerUrl = moment.video_url.toLowerCase();
                                             if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || lowerUrl.endsWith('.webm')) {
@@ -292,6 +299,14 @@ const MomentsPage: React.FC = () => {
                 )}
 
                 <VideoModal isOpen={!!videoUrl} onClose={() => setVideoUrl(null)} videoUrl={videoUrl || ''} videoType={videoType} />
+                <ImageLightbox
+                    isOpen={lightboxImages.length > 0}
+                    onClose={() => setLightboxImages([])}
+                    images={lightboxImages}
+                    currentIndex={lightboxIndex}
+                    onPrev={() => setLightboxIndex(i => Math.max(0, i - 1))}
+                    onNext={() => setLightboxIndex(i => Math.min(lightboxImages.length - 1, i + 1))}
+                />
             </div>
         </>
     );
