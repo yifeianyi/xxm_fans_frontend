@@ -56,7 +56,7 @@ export const WorkDeepObservation: React.FC = () => {
         setError(result.error.message);
       } else if (result.data) {
         setTimeline(result.data);
-        setActiveTab(result.data.hasWeekData ? 'week' : 'daily');
+        setActiveTab('week');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载失败');
@@ -67,7 +67,10 @@ export const WorkDeepObservation: React.FC = () => {
 
   const currentSeries = useMemo(() => {
     if (!timeline) return [];
-    return activeTab === 'week' ? timeline.weekSeries : timeline.dailySeries;
+    if (activeTab === 'week') return timeline.weekSeries;
+    // 累计日线：数据不足7天时，与发布后一周显示相同内容
+    if (timeline.dailySeries.length < 7) return timeline.weekSeries;
+    return timeline.dailySeries;
   }, [timeline, activeTab]);
 
   const chartData = useMemo(() => {
@@ -139,13 +142,10 @@ export const WorkDeepObservation: React.FC = () => {
           <div className="flex items-center gap-3 px-4">
             <button
               onClick={() => setActiveTab('week')}
-              disabled={!timeline.hasWeekData}
               className={`px-5 py-2.5 rounded-2xl text-xs font-black tracking-wider transition-all border-2 ${
                 activeTab === 'week'
                   ? 'bg-[#4a3728] text-white border-[#4a3728] shadow-md'
-                  : timeline.hasWeekData
-                  ? 'bg-white text-[#8eb69b] border-white hover:border-[#f8b195]'
-                  : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'
+                  : 'bg-white text-[#8eb69b] border-white hover:border-[#f8b195]'
               }`}
             >
               发布后一周
