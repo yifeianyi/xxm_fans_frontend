@@ -80,22 +80,19 @@ export const WorkDeepObservation: React.FC = () => {
   const currentMetric = METRICS.find(m => m.key === activeMetric)!;
 
   const xAxisFormatter = useCallback((time: string) => {
-    if (activeTab === 'week') {
+    if (time.includes(' ')) {
       // 2026-05-01 12:00 -> 05/01 12:00
       const parts = time.split(' ');
-      if (parts.length === 2) {
-        const dateParts = parts[0].split('-');
-        return `${dateParts[1]}/${dateParts[2]} ${parts[1]}`;
-      }
-      return time;
+      const dateParts = parts[0].split('-');
+      return `${dateParts[1]}/${dateParts[2]} ${parts[1]}`;
     }
-    // daily: 2026-05-01 -> 05/01
+    // 2026-05-01 -> 05/01
     const parts = time.split('-');
     if (parts.length >= 3) {
       return `${parts[1]}/${parts[2]}`;
     }
     return time;
-  }, [activeTab]);
+  }, []);
 
   return (
     <section className="space-y-6">
@@ -160,9 +157,6 @@ export const WorkDeepObservation: React.FC = () => {
             >
               累计日线
             </button>
-            {!timeline.hasWeekData && (
-              <span className="text-[10px] font-bold text-gray-400">该作品无发布后一周内的观测数据</span>
-            )}
           </div>
 
           {/* 图表卡片 */}

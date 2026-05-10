@@ -10,6 +10,7 @@ interface CorrelationChartProps {
 }
 
 const GRID_LINES = 4;
+const MAX_VISIBLE_COVERS = 50;
 
 const formatShort = (n: number): string => {
   const abs = Math.abs(n);
@@ -111,22 +112,26 @@ export const CorrelationChart: React.FC<CorrelationChartProps> = ({ timeline, wo
         )}
       </svg>
 
-      {timeline.map((d, ti) => {
-        const work = workDateIndex[d.time];
-        if (!work?.coverUrl) return null;
-        return (
-          <img
-            key={work.workId}
-            src={work.coverUrl}
-            alt={work.title}
-            title={work.title}
-            className="absolute bottom-0 w-5 h-5 rounded object-cover border border-white/60 shadow-sm hover:w-12 hover:h-12 hover:z-20 transition-all cursor-pointer"
-            style={{ left: `calc(${toX(ti)}% - 10px)` }}
-            loading="lazy"
-            onClick={() => onWorkClick?.(work)}
-          />
-        );
-      })}
+      {(() => {
+        let coverCount = 0;
+        return timeline.map((d, ti) => {
+          const work = workDateIndex[d.time];
+          if (!work?.coverUrl) return null;
+          if (coverCount++ >= MAX_VISIBLE_COVERS) return null;
+          return (
+            <img
+              key={work.workId}
+              src={work.coverUrl}
+              alt={work.title}
+              title={work.title}
+              className="absolute bottom-0 w-5 h-5 rounded object-cover border border-white/60 shadow-sm hover:w-12 hover:h-12 hover:z-20 transition-all cursor-pointer"
+              style={{ left: `calc(${toX(ti)}% - 10px)` }}
+              loading="lazy"
+              onClick={() => onWorkClick?.(work)}
+            />
+          );
+        });
+      })()}
 
       {/* hover tooltip */}
       {hoveredIndex !== null && (
