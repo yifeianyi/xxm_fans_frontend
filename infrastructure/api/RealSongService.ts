@@ -334,13 +334,11 @@ export class RealSongService implements ISongService {
 
   async getCorrelationData(
     accountId: string,
-    days: number = 90,
-    workLimit: number = 5
+    days: number = 90
   ): Promise<ApiResult<CorrelationResponse>> {
     const params = new URLSearchParams();
     params.set('account_id', accountId);
     params.set('days', days.toString());
-    params.set('work_limit', workLimit.toString());
     return apiClient.get<CorrelationResponse>(
       `/data-analytics/correlation/?${params.toString()}`
     );
