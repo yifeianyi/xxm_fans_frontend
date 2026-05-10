@@ -23,6 +23,7 @@ class ApiClient {
             const response = await fetch(url, {
                 ...restOptions,
                 signal: controller.signal,
+                cache: 'no-store',
                 headers: {
                     'Content-Type': 'application/json',
                     ...restOptions.headers,
