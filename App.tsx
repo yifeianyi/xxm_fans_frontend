@@ -52,15 +52,23 @@ const PageLoading: React.FC = () => (
 );
 
 const App: React.FC = () => {
-    const [bgImage, setBgImage] = useState<string | null>(null);
+    const [headBg, setHeadBg] = useState<string | null>(null);
+    const [containBg, setContainBg] = useState<string | null>(null);
 
     useEffect(() => {
         siteSettingsService.getSiteSettings().then(result => {
-            if (result.data?.background_active && result.data?.background_image_url) {
-                setBgImage(result.data.background_image_url);
+            if (result.data?.head_background_active && result.data?.head_background_image_url) {
+                setHeadBg(result.data.head_background_image_url);
+            }
+            if (result.data?.contain_background_active && result.data?.contain_background_image_url) {
+                setContainBg(result.data.contain_background_image_url);
             }
         }).catch(() => {});
     }, []);
+
+    const bodyStyle = containBg
+        ? { backgroundImage: `url(${containBg})`, backgroundSize: 'cover', backgroundPosition: 'center top', backgroundAttachment: 'fixed' }
+        : {};
 
     return (
         <ReactRouterDOM.BrowserRouter>
@@ -68,11 +76,11 @@ const App: React.FC = () => {
                 <meta name="keywords" content="咻咻满, XXM, 小满虫, 唱见, 音乐主播, 独立音乐人, B站up主 , 戏腔, 治愈系" />
             </Helmet>
             <ErrorBoundary>
-                <div className="min-h-screen flex flex-col transition-all duration-500">
+                <div className="min-h-screen flex flex-col transition-all duration-500" style={bodyStyle}>
                     <Navbar />
-                    {bgImage && (
+                    {headBg && (
                         <img
-                            src={bgImage}
+                            src={headBg}
                             alt=""
                             className="w-full"
                             style={{ display: 'block' }}

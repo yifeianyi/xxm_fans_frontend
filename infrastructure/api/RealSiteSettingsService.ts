@@ -21,9 +21,12 @@ export interface SiteSettings {
   qq_music_url?: string;
   xiaohongshu_url?: string;
   douyin_url?: string;
-  background_image?: string;
-  background_image_url?: string;
-  background_active?: boolean;
+  head_background_image?: string;
+  head_background_image_url?: string;
+  head_background_active?: boolean;
+  contain_background_image?: string;
+  contain_background_image_url?: string;
+  contain_background_active?: boolean;
   created_at: string;
   updated_at: string;
 }
