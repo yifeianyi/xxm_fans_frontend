@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Users, MessageCircle, Search, TrendingUp, ExternalLink, Star, Ship } from 'lucide-react';
 import { fansService } from '../../infrastructure/api';
 import { FanRankingItem, DanmakuRankingItem, FansSearchResult, FansStats, GuardItem } from '../../domain/types';
@@ -24,7 +25,10 @@ const formatUsername = (name: string): string => {
 };
 
 const FansPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<TabKey>('attendance');
+    const { tab } = useParams<{ tab?: string }>();
+    const navigate = useNavigate();
+    const activeTab = (tab && ['attendance', 'danmaku', 'search', 'guards'].includes(tab)
+        ? tab : 'attendance') as TabKey;
 
     const [attendanceData, setAttendanceData] = useState<FanRankingItem[]>([]);
     const [attendanceTotal, setAttendanceTotal] = useState(0);
@@ -131,31 +135,37 @@ const FansPage: React.FC = () => {
         };
     }, [searchQuery, searchPage]);
 
+    const fetchGuardLevel = useCallback(async (level: number, page: number) => {
+        setGuardLoading(prev => ({ ...prev, [level]: true }));
+        const result = await fansService.getGuards({
+            guard_level: level,
+            page,
+            page_size: guardPageSize,
+        });
+        if (result.data) {
+            setGuardData(prev => ({ ...prev, [level]: result.data!.results }));
+            setGuardTotals(prev => ({ ...prev, [level]: result.data!.total }));
+        }
+        setGuardLoading(prev => ({ ...prev, [level]: false }));
+    }, []);
+
     useEffect(() => {
         if (activeTab !== 'guards') return;
-        const fetchGuards = async (level: number) => {
-            setGuardLoading(prev => ({ ...prev, [level]: true }));
-            const result = await fansService.getGuards({
-                guard_level: level,
-                page: guardPages[level],
-                page_size: guardPageSize,
-            });
-            if (result.data) {
-                setGuardData(prev => ({ ...prev, [level]: result.data!.results }));
-                setGuardTotals(prev => ({ ...prev, [level]: result.data!.total }));
+        [1, 2, 3].forEach(level => {
+            if (guardData[level].length === 0) {
+                fetchGuardLevel(level, 1);
             }
-            setGuardLoading(prev => ({ ...prev, [level]: false }));
-        };
-        [1, 2, 3].forEach(level => fetchGuards(level));
-    }, [activeTab, guardPages[1], guardPages[2], guardPages[3]]);
+        });
+    }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGuardPageChange = useCallback((level: number, page: number) => {
         setGuardPages(prev => ({ ...prev, [level]: page }));
-    }, []);
+        fetchGuardLevel(level, page);
+    }, [fetchGuardLevel]);
 
-    const handleTabChange = useCallback((tab: TabKey) => {
-        setActiveTab(tab);
-    }, []);
+    const handleTabChange = useCallback((newTab: TabKey) => {
+        navigate(`/fans/${newTab}`, { replace: true });
+    }, [navigate]);
 
     const handleYearChange = useCallback((year: number | undefined) => {
         if (activeTab === 'attendance') {

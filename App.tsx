@@ -41,7 +41,8 @@ const routes = [
     { path: '/about', element: <AboutPage /> },
     { path: '/contact', element: <ContactPage /> },
     { path: '/moments', element: <MomentsPage /> },
-    { path: '/fans', element: <FansPage /> },
+    { path: '/fans', element: <ReactRouterDOM.Navigate to="/fans/attendance" replace /> },
+    { path: '/fans/:tab', element: <FansPage /> },
 ];
 
 // 页面加载 fallback 组件
