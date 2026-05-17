@@ -29,7 +29,7 @@ import { Loading } from '../../components/common/Loading';
 import { PageDecorations } from '../../components/common/PageDecorations';
 
 const LivestreamPage: React.FC = () => {
-  const { currentDate, lives, loading, error, changeMonth, loadLives, calendarCells, todayStr } = useLivestreamData();
+  const { currentDate, minYear, lives, loading, error, changeMonth, setMonthDate, calendarCells, todayStr } = useLivestreamData();
   const { selectedLive, handleSelectLive, clearSelection, liveDetailRef } = useLivestreamDetail();
 
   // 当切换月份时，清除选中的直播
@@ -59,12 +59,16 @@ const LivestreamPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12 animate-in fade-in duration-1000">
         {/* 顶部控制栏 */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 p-6 rounded-[3rem] border-2 border-white shadow-xl backdrop-blur-md">
+        <div
+          className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 p-6 rounded-[3rem] border-2 border-white shadow-xl backdrop-blur-md"
+          data-livestream-header-bar
+        >
           <LivestreamHeader />
           <CalendarControl
             currentDate={currentDate}
             onMonthChange={changeMonth}
-            onDateChange={loadLives}
+            onDateChange={setMonthDate}
+            minYear={minYear}
           />
         </div>
 
@@ -90,7 +94,11 @@ const LivestreamPage: React.FC = () => {
         )}
 
         {/* 直播详情 */}
-        {selectedLive && !loading && <LiveDetail live={selectedLive} />}
+        {selectedLive && !loading && (
+          <div ref={liveDetailRef}>
+            <LiveDetail live={selectedLive} />
+          </div>
+        )}
       </div>
     </>
   );

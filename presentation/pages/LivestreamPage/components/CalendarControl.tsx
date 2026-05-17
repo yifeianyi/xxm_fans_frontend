@@ -23,6 +23,7 @@
 
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import YearMonthSelector from './YearMonthSelector';
 
 interface CalendarControlProps {
   /** 当前显示的日期 */
@@ -51,9 +52,11 @@ const CalendarControl: React.FC<CalendarControlProps> = ({
         <ChevronLeft size={20} />
       </button>
 
-      <div className="px-4 py-2 hover:bg-white rounded-2xl text-[#4a3728] font-black tabular-nums transition-all">
-        {currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月
-      </div>
+      <YearMonthSelector
+        currentDate={currentDate}
+        minYear={minYear}
+        onDateChange={onDateChange}
+      />
 
       <button
         onClick={() => onMonthChange(1)}

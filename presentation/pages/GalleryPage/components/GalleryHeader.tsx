@@ -28,7 +28,7 @@
  */
 
 import React from 'react';
-import { Gallery, Breadcrumb } from '../../../domain/types';
+import { Gallery, Breadcrumb } from '../../../../domain/types';
 import { Menu, Search, ChevronRight } from 'lucide-react';
 
 interface GalleryHeaderProps {
@@ -60,7 +60,7 @@ const GalleryHeader: React.FC<GalleryHeaderProps> = ({
   onSearchResultClick,
   onQuickSelect
 }) => {
-  const renderQuickSelectOptions = (galleries: Gallery[], level: number = 0): JSX.Element[] => {
+  const renderQuickSelectOptions = (galleries: Gallery[], level: number = 0): React.ReactElement[] => {
     return galleries.flatMap(gallery => {
       const indent = '　'.repeat(level);
       const prefix = gallery.children?.length ? '📁 ' : '📄 ';

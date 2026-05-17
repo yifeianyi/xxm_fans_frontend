@@ -18,7 +18,7 @@
  */
 
 import React from 'react';
-import { GalleryImage } from '../../../domain/types';
+import { GalleryImage } from '../../../../domain/types';
 import { Play } from 'lucide-react';
 import LazyImage from '../../../components/common/LazyImage';
 

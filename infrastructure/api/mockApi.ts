@@ -24,11 +24,12 @@ const generateSongRecords = (date: string, count: number): SongRecord[] => {
     return Array.from({ length: count }, (_, i) => ({
         id: `record-${date}-${i}`,
         songId: `song-${songs[i % songs.length]}`,
+        songName: songs[i % songs.length],
         date: date,
         cover: `https://picsum.photos/seed/record-${date}-${i}/800/600`,
         coverThumbnailUrl: `https://picsum.photos/seed/record-${date}-${i}/160/120`,
         note: `精彩演唱 #${i + 1}`,
-        url: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
+        videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
     }));
 };
 
@@ -39,38 +40,47 @@ const MOCK_GALLERIES: Gallery[] = [
         title: '森林日常',
         description: '记录满满在森林中的日常生活瞬间',
         coverUrl: 'https://picsum.photos/seed/forest1/400/500',
+        level: 0,
         imageCount: 24,
-        tags: ['日常', '风景', '生活']
+        folderPath: '/gallery/forest',
+        tags: ['日常', '风景', '生活'],
+        isLeaf: true
     },
     {
         id: '2',
         title: '演唱会现场',
         description: '精彩演唱瞬间回顾',
         coverUrl: 'https://picsum.photos/seed/concert/400/500',
+        level: 0,
         imageCount: 36,
-        tags: ['演出', '舞台', '精彩']
+        folderPath: '/gallery/concert',
+        tags: ['演出', '舞台', '精彩'],
+        isLeaf: true
     },
     {
         id: '3',
         title: '粉丝见面会',
         description: '与粉丝互动的美好时光',
         coverUrl: 'https://picsum.photos/seed/fans/400/500',
+        level: 0,
         imageCount: 18,
-        tags: ['互动', '粉丝', '温馨']
+        folderPath: '/gallery/fans',
+        tags: ['互动', '粉丝', '温馨'],
+        isLeaf: true
     }
 ];
 
 // Mock 图集图片数据
-const MOCK_GALLERY_IMAGES: GalleryImage[] = Array.from({ length: 24 }, (_, i) => ({
+const MOCK_GALLERY_IMAGES: (GalleryImage & { galleryIds: string[] })[] = Array.from({ length: 24 }, (_, i) => ({
     id: `img-${i}`,
     url: `https://picsum.photos/seed/forest${i}/800/600`,
+    filename: `forest-${i}.jpg`,
     title: `森林瞬间 #${i + 1}`,
-    date: `2025-01-${(i % 30 + 1).toString().padStart(2, '0')}`,
     galleryIds: ['1']
 }));
 
 // Mock 直播数据 - 生成多月份的数据
-const MOCK_LIVESTREAMS_BY_MONTH: Record<string, Livestream[]> = {
+const MOCK_LIVESTREAMS_BY_MONTH: Record<string, any[]> = {
     '2025-12': [
         {
             id: 'live-2025-12-05',
@@ -389,10 +399,11 @@ const MOCK_ORIGINAL_WORKS: OriginalWork[] = [
 const MOCK_MONTHLY_RECORDS: SongRecord[] = Array.from({ length: 12 }, (_, i) => ({
     id: `rec-${i}`,
     songId: `song-${i % 3}`,
+    songName: `歌曲 ${i + 1}`,
     date: `2025-01-${(i * 2 + 1).toString().padStart(2, '0')}`,
     cover: `https://picsum.photos/seed/rec${i}/800/600`,
     note: `精彩演唱瞬间 #${i + 1}`,
-    url: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
+    videoUrl: 'https://player.bilibili.com/player.html?bvid=BV1xx411c7mD'
 }));
 
 export const mockApi = {
@@ -402,21 +413,21 @@ export const mockApi = {
         return { data: [
             {
                 id: 'main',
-                song_name: '咻咻满 (主站)',
+                name: '咻咻满 (主站)',
                 totalFollowers: 1254800,
                 history: {
-                    HOUR: generatePoints(24, 1250000, 300),
                     DAY: generatePoints(30, 1200000, 5000),
+                    WEEK: generatePoints(12, 1220000, 8000),
                     MONTH: generatePoints(12, 1000000, 100000)
                 }
             },
             {
                 id: 'sub',
-                song_name: '小满虫的树洞',
+                name: '小满虫的树洞',
                 totalFollowers: 158000,
                 history: {
-                    HOUR: generatePoints(24, 150000, 50),
                     DAY: generatePoints(30, 140000, 800),
+                    WEEK: generatePoints(12, 145000, 1200),
                     MONTH: generatePoints(12, 100000, 15000)
                 }
             }
@@ -439,15 +450,15 @@ export const mockApi = {
             danmaku: Math.floor(Math.random() * 10) + 1,
             favs: Math.floor(Math.random() * 50) + 1,
             metrics: {
-                HOUR: { views: generatePoints(24, 10000, 500), likes: generatePoints(24, 500, 20), danmaku: generatePoints(24, 100, 5) },
                 DAY: { views: generatePoints(30, 100000, 8000), likes: generatePoints(30, 5000, 400), danmaku: generatePoints(30, 1000, 80) },
+                WEEK: { views: generatePoints(12, 180000, 12000), likes: generatePoints(12, 8000, 600), danmaku: generatePoints(12, 1500, 120) },
                 MONTH: { views: generatePoints(12, 500000, 100000), likes: generatePoints(12, 20000, 5000), danmaku: generatePoints(12, 5000, 1000) }
             }
         }));
     },
 
     getCorrelation: async (granularity: TimeGranularity): Promise<CorrelationData[]> => {
-        const counts = { HOUR: 24, DAY: 30, MONTH: 12 };
+        const counts: Record<TimeGranularity, number> = { DAY: 30, WEEK: 12, MONTH: 12 };
         return Array.from({ length: counts[granularity] }, (_, i) => ({
             time: `${i}`,
             videoViewDelta: Math.floor(Math.random() * 50000) + 10000,

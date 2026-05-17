@@ -18,12 +18,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { songService } from '../../../../infrastructure/api';
-import { Livestream } from '../../domain/types';
+import { Livestream } from '../../../../domain/types';
 import { CalendarCellData } from '../components/CalendarCell';
 
 interface UseLivestreamDataReturn {
   /** 当前日期（月份的第一天） */
   currentDate: Date;
+  /** 最小年份 */
+  minYear: number;
   /** 直播记录列表 */
   lives: Livestream[];
   /** 加载状态 */
@@ -40,6 +42,8 @@ interface UseLivestreamDataReturn {
   loadLives: (year: number, month: number) => Promise<void>;
   /** 刷新当前月份数据 */
   refresh: () => Promise<void>;
+  /** 设置当前显示月份 */
+  setMonthDate: (date: Date) => void;
 }
 
 export const useLivestreamData = (): UseLivestreamDataReturn => {
@@ -48,6 +52,7 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
+  const [minYear, setMinYear] = useState(2019);
   const [lives, setLives] = useState<Livestream[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,27 +122,63 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
     }
   }, []);
 
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const result = await songService.getLivestreamConfig();
+        if (result.data?.minYear) {
+          setMinYear(result.data.minYear);
+        }
+      } catch (err) {
+        console.error('获取直播配置失败:', err);
+      }
+    };
+
+    loadConfig();
+  }, []);
+
   const changeMonth = useCallback((offset: number) => {
     // 限制 offset 范围，防止跳转到无效日期
     if (offset === 0) return;
-    
+
     setCurrentDate(prev => {
-      const newDate = new Date(
-        prev.getFullYear(),
-        prev.getMonth() + offset,
-        1
-      );
-      // 限制年份范围在 2020-2030 之间
+      const newDate = new Date(prev.getFullYear(), prev.getMonth() + offset, 1);
       const year = newDate.getFullYear();
-      if (year < 2020) {
-        return new Date(2020, 0, 1);
+      const maxYear = new Date().getFullYear();
+
+      if (year < minYear) {
+        return new Date(minYear, 0, 1);
       }
-      if (year > 2030) {
-        return new Date(2030, 11, 1);
+
+      if (year > maxYear) {
+        return new Date(maxYear, 11, 1);
       }
+
       return newDate;
     });
-  }, []);
+  }, [minYear]);
+
+  const setMonthDate = useCallback((date: Date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      setError('日期参数无效');
+      return;
+    }
+
+    const year = date.getFullYear();
+    const maxYear = new Date().getFullYear();
+
+    if (year < minYear) {
+      setCurrentDate(new Date(minYear, 0, 1));
+      return;
+    }
+
+    if (year > maxYear) {
+      setCurrentDate(new Date(maxYear, 11, 1));
+      return;
+    }
+
+    setCurrentDate(new Date(year, date.getMonth(), 1));
+  }, [minYear]);
 
   const refresh = useCallback(async () => {
     await loadLives(currentDate.getFullYear(), currentDate.getMonth() + 1);
@@ -149,6 +190,7 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
 
   return {
     currentDate,
+    minYear,
     lives,
     loading,
     error,
@@ -156,6 +198,7 @@ export const useLivestreamData = (): UseLivestreamDataReturn => {
     todayStr,
     changeMonth,
     loadLives,
-    refresh
+    refresh,
+    setMonthDate
   };
 };

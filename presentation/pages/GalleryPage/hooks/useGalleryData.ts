@@ -44,7 +44,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { galleryService } from '../../../../infrastructure/api/RealGalleryService';
-import { Gallery, GalleryImage, Breadcrumb } from '../../../domain/types';
+import { Gallery, GalleryImage, Breadcrumb } from '../../../../domain/types';
 
 interface UseGalleryDataReturn {
   galleryTree: Gallery[];

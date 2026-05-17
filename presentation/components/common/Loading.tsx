@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export interface LoadingProps {
@@ -12,7 +13,7 @@ const sizeClasses = {
   lg: 'w-12 h-12'
 };
 
-export const Loading: React.FC<LoadingProps> = ({ size = 'md', text, className = '' }) => {
+export const Loading: FC<LoadingProps> = ({ size = 'md', text, className = '' }) => {
   return (
     <div className={`flex flex-col items-center gap-3 ${className}`}>
       <Loader2 className={`${sizeClasses[size]} animate-spin text-[#f8b195]`} />

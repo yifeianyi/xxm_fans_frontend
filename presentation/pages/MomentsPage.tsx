@@ -83,7 +83,7 @@ const MomentsPage: React.FC = () => {
                 setError(null);
             } else {
                 setHasMore(false);
-                if (!append) setError(result.message || '加载失败，请稍后重试');
+                if (!append) setError(result.error?.message || '加载失败，请稍后重试');
             }
         } catch (e) {
             if (!append) setError('网络错误，请检查连接后重试');

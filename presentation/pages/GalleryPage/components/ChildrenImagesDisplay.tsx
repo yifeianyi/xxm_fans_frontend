@@ -23,7 +23,7 @@
 
 import React from 'react';
 import { Play } from 'lucide-react';
-import { Gallery, GalleryImage } from '../../../domain/types';
+import { Gallery, GalleryImage } from '../../../../domain/types';
 import LazyImage from '../../../components/common/LazyImage';
 
 interface ChildrenImagesDisplayProps {

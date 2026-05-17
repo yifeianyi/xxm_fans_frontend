@@ -10,7 +10,7 @@ import { songService, fanDIYService } from '../api/RealSongService';
 export const swrConfig: SWRConfiguration = {
     // 错误重试
     errorRetryCount: 3,
-    errorRetryInterval: (retryCount: number) => Math.min(1000 * 2 ** retryCount, 30000),
+    errorRetryInterval: 5000,
     
     // 去重间隔
     dedupingInterval: 2000,

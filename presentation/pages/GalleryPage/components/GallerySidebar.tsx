@@ -26,7 +26,7 @@
  */
 
 import React from 'react';
-import { Gallery } from '../../../domain/types';
+import { Gallery } from '../../../../domain/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface GallerySidebarProps {

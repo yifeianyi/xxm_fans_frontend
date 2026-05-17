@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { songService } from '../../infrastructure/api/MockSongService';
+import { songService } from '../../infrastructure/api';
 import { GetSongsParams, ApiResult, PaginatedResult } from '../../infrastructure/api/apiTypes';
 import { Song } from '../../domain/types';
 

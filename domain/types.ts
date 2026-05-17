@@ -208,6 +208,7 @@ export interface Livestream {
     endTime?: string;                          // 下播时间
     duration?: string;                         // 直播时长
     bvid?: string;                             // B站视频BV号
+    replayUrl?: string;                        // 直播回放完整地址（优先使用）
     parts?: number;                            // 视频分段数
     coverUrl?: string;                         // 封面图URL（基本信息）
     recordings?: LivestreamRecording[];        // 后端生成的完整视频链接列表（详细信息）

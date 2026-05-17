@@ -17,8 +17,9 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
+import type { RefObject } from 'react';
 import { songService } from '../../../../infrastructure/api';
-import { Livestream } from '../../domain/types';
+import { Livestream } from '../../../../domain/types';
 
 interface UseLivestreamDetailReturn {
   /** 选中的直播记录 */
@@ -34,7 +35,7 @@ interface UseLivestreamDetailReturn {
   /** 清除选择 */
   clearSelection: () => void;
   /** 直播详情区域的引用 */
-  liveDetailRef: React.RefObject<HTMLDivElement | null>;
+  liveDetailRef: RefObject<HTMLDivElement | null>;
 }
 
 export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
@@ -43,9 +44,9 @@ export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
   const [error, setError] = useState<string | null>(null);
   const liveDetailRef = useRef<HTMLDivElement>(null);
 
-  const fetchLivestreamDetail = useCallback(async (date: string): Promise<void> => {
-    if (!date) {
-      setError('日期参数无效');
+  const fetchLivestreamDetail = useCallback(async (identifier: string): Promise<void> => {
+    if (!identifier) {
+      setError('直播标识无效');
       return;
     }
 
@@ -53,7 +54,7 @@ export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
     setError(null);
 
     try {
-      const result = await songService.getLivestreamByDate(date);
+      const result = await songService.getLivestreamDetail(identifier);
 
       if (result.error) {
         setError(result.error.message || '获取直播详情失败');
@@ -76,16 +77,16 @@ export const useLivestreamDetail = (): UseLivestreamDetailReturn => {
   }, []);
 
   const handleSelectLive = useCallback((live: Livestream) => {
-    if (!live?.date) {
+    if (!live?.id) {
       setError('直播数据无效');
       return;
     }
-    fetchLivestreamDetail(live.date);
+    fetchLivestreamDetail(live.id);
   }, [fetchLivestreamDetail]);
 
   const reload = useCallback(async () => {
-    if (selectedLive?.date) {
-      await fetchLivestreamDetail(selectedLive.date);
+    if (selectedLive?.id) {
+      await fetchLivestreamDetail(selectedLive.id);
     }
   }, [selectedLive, fetchLivestreamDetail]);
 

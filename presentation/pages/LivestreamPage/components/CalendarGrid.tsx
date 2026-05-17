@@ -25,6 +25,7 @@
 
 import React from 'react';
 import CalendarCell, { CalendarCellData } from './CalendarCell';
+import { Livestream } from '../../../../domain/types';
 
 interface CalendarGridProps {
   /** 当前显示的月份 */
@@ -34,7 +35,7 @@ interface CalendarGridProps {
   /** 今天的日期字符串（YYYY-MM-DD格式） */
   todayStr: string;
   /** 点击单元格的回调 */
-  onCellClick: (cell: CalendarCellData) => void;
+  onCellClick: (live: Livestream) => void;
   /** 选中的日期字符串（可选） */
   selectedDate?: string;
 }
@@ -70,7 +71,11 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
           cell={cell}
           todayStr={todayStr}
           isSelected={selectedDate === cell.date}
-          onClick={() => onCellClick(cell)}
+          onClick={() => {
+            if (cell.live) {
+              onCellClick(cell.live);
+            }
+          }}
         />
       ))}
     </div>

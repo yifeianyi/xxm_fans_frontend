@@ -17,7 +17,7 @@ const OriginalsPage = lazy(() => import('./presentation/pages/OriginalsPage'));
 const FansDIYPage = lazy(() => import('./presentation/pages/FansDIYPage'));
 const AboutPage = lazy(() => import('./presentation/pages/AboutPage'));
 const GalleryPage = lazy(() => import('./presentation/pages/GalleryPage'));
-const LivestreamPage = lazy(() => import('./presentation/pages/LivestreamPage'));
+const LivestreamPage = lazy(() => import('./presentation/pages/LivestreamPage/index'));
 const DataAnalysisPage = lazy(() => import('./presentation/pages/DataAnalysisPage'));
 const ContactPage = lazy(() => import('./presentation/pages/ContactPage'));
 const MomentsPage = lazy(() => import('./presentation/pages/MomentsPage'));
@@ -90,11 +90,12 @@ const App: React.FC = () => {
                         <Suspense fallback={<PageLoading />}>
                             <ReactRouterDOM.Routes>
                                 {routes.map((route) => (
-                                    <ReactRouterDOM.Route
-                                        key={route.path}
-                                        path={route.path}
-                                        element={route.element}
-                                    />
+                                    <React.Fragment key={route.path}>
+                                        <ReactRouterDOM.Route
+                                            path={route.path}
+                                            element={route.element}
+                                        />
+                                    </React.Fragment>
                                 ))}
                             </ReactRouterDOM.Routes>
                         </Suspense>

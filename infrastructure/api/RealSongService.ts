@@ -235,17 +235,21 @@ export class RealSongService implements ISongService {
   }
 
   /**
-   * 获取指定日期的直播记录详情
+   * 获取指定直播记录详情（ID 主路径，兼容日期）
    */
-  async getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>> {
+  async getLivestreamDetail(identifier: string): Promise<ApiResult<Livestream | null>> {
     const result = await apiClient.get<Livestream | null>(
-      `/livestreams/${dateStr}/`
+      `/livestreams/${identifier}/`
     );
 
     if (result.data) {
       return { data: result.data };
     }
     return { data: null };
+  }
+
+  async getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>> {
+    return this.getLivestreamDetail(dateStr);
   }
 
   /**

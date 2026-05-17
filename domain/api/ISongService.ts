@@ -17,6 +17,7 @@ export interface ISongService {
   
   getLivestreams(year: number, month: number): Promise<ApiResult<Livestream[]>>;
   getLivestreamByDate(dateStr: string): Promise<ApiResult<Livestream | null>>;
+  getLivestreamDetail(identifier: string): Promise<ApiResult<Livestream | null>>;
   getLivestreamConfig(): Promise<ApiResult<LivestreamConfig>>;
   
   getAccounts(): Promise<ApiResult<AccountData[]>>;

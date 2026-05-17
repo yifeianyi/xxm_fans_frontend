@@ -32,7 +32,7 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { GalleryImage } from '../../../domain/types';
+import { GalleryImage } from '../../../../domain/types';
 import { X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 interface ImageViewerProps {

@@ -18,7 +18,7 @@
  */
 
 import React from 'react';
-import { Gallery } from '../../../domain/types';
+import { Gallery } from '../../../../domain/types';
 import GalleryCard from './GalleryCard';
 
 interface GalleryGridProps {
