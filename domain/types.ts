@@ -465,3 +465,14 @@ export interface FansStats {
     total_danmaku: number;
     fans_label: string;
 }
+
+export interface GuardItem {
+    uid: number;
+    username: string;
+    face: string;
+    guard_level: number;
+    guard_type: string;
+    medal_name: string;
+    medal_level: number;
+    accompany: number;
+}

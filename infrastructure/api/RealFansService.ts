@@ -6,6 +6,7 @@ import {
     DanmakuRankingItem,
     FansSearchResult,
     FansStats,
+    GuardItem,
 } from '../../domain/types';
 
 export interface GetRankingParams {
@@ -16,6 +17,12 @@ export interface GetRankingParams {
 
 export interface GetSearchParams {
     q: string;
+    page?: number;
+    page_size?: number;
+}
+
+export interface GetGuardsParams {
+    guard_level?: number;
     page?: number;
     page_size?: number;
 }
@@ -51,6 +58,14 @@ export class RealFansService {
 
     async getStats(): Promise<ApiResult<FansStats>> {
         return apiClient.get<FansStats>('/livefans/stats/');
+    }
+
+    async getGuards(params?: GetGuardsParams): Promise<ApiResult<PaginatedResult<GuardItem>>> {
+        const queryParams = new URLSearchParams();
+        if (params?.guard_level !== undefined) queryParams.set('guard_level', params.guard_level.toString());
+        if (params?.page) queryParams.set('page', params.page.toString());
+        if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+        return apiClient.get<PaginatedResult<GuardItem>>(`/livefans/guards/?${queryParams.toString()}`);
     }
 }
 

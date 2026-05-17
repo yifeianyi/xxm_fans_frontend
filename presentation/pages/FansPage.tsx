@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
-import { Users, MessageCircle, Search, TrendingUp, ExternalLink, Star } from 'lucide-react';
+import { Users, MessageCircle, Search, TrendingUp, ExternalLink, Star, Ship } from 'lucide-react';
 import { fansService } from '../../infrastructure/api';
-import { FanRankingItem, DanmakuRankingItem, FansSearchResult, FansStats } from '../../domain/types';
+import { FanRankingItem, DanmakuRankingItem, FansSearchResult, FansStats, GuardItem } from '../../domain/types';
 import { Loading } from '../components/common/Loading';
 import { PageDecorations } from '../components/common/PageDecorations';
 import { CircularProgress } from '../components/common/CircularProgress';
 import { BarProgress } from '../components/common/BarProgress';
 
-type TabKey = 'attendance' | 'danmaku' | 'search';
+type TabKey = 'attendance' | 'danmaku' | 'search' | 'guards';
+
+const GUARD_LEVELS: Record<number, string> = { 1: '总督', 2: '提督', 3: '舰长' };
 
 const getAvatarUrl = (avatarUrl: string): string => {
     if (!avatarUrl) return '/favicon-32x32.png';
@@ -44,9 +46,15 @@ const FansPage: React.FC = () => {
 
     const [stats, setStats] = useState<FansStats | null>(null);
 
+    const [guardData, setGuardData] = useState<Record<number, GuardItem[]>>({ 1: [], 2: [], 3: [] });
+    const [guardPages, setGuardPages] = useState<Record<number, number>>({ 1: 1, 2: 1, 3: 1 });
+    const [guardTotals, setGuardTotals] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0 });
+    const [guardLoading, setGuardLoading] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false });
+
     const searchAbortRef = useRef<AbortController | null>(null);
 
     const pageSize = 20;
+    const guardPageSize = 10;
 
     useEffect(() => {
         fansService.getStats().then((r) => {
@@ -122,6 +130,28 @@ const FansPage: React.FC = () => {
             controller.abort();
         };
     }, [searchQuery, searchPage]);
+
+    useEffect(() => {
+        if (activeTab !== 'guards') return;
+        const fetchGuards = async (level: number) => {
+            setGuardLoading(prev => ({ ...prev, [level]: true }));
+            const result = await fansService.getGuards({
+                guard_level: level,
+                page: guardPages[level],
+                page_size: guardPageSize,
+            });
+            if (result.data) {
+                setGuardData(prev => ({ ...prev, [level]: result.data!.results }));
+                setGuardTotals(prev => ({ ...prev, [level]: result.data!.total }));
+            }
+            setGuardLoading(prev => ({ ...prev, [level]: false }));
+        };
+        [1, 2, 3].forEach(level => fetchGuards(level));
+    }, [activeTab, guardPages[1], guardPages[2], guardPages[3]]);
+
+    const handleGuardPageChange = useCallback((level: number, page: number) => {
+        setGuardPages(prev => ({ ...prev, [level]: page }));
+    }, []);
 
     const handleTabChange = useCallback((tab: TabKey) => {
         setActiveTab(tab);
@@ -202,6 +232,7 @@ const FansPage: React.FC = () => {
                             { key: 'attendance' as TabKey, label: '出勤率排名', icon: TrendingUp },
                             { key: 'danmaku' as TabKey, label: '弹幕排名', icon: MessageCircle },
                             { key: 'search' as TabKey, label: '搜索小满虫', icon: Search },
+                            { key: 'guards' as TabKey, label: '大航海', icon: Ship },
                         ]).map((tab) => (
                             <button
                                 key={tab.key}
@@ -219,7 +250,7 @@ const FansPage: React.FC = () => {
                     </div>
 
                     {/* Year selector (attendance & danmaku) */}
-                    {activeTab !== 'search' && (
+                    {activeTab !== 'search' && activeTab !== 'guards' && (
                         <div className="flex justify-center gap-2 mb-6">
                             <button
                                 onClick={() => handleYearChange(undefined)}
@@ -330,6 +361,7 @@ const FansPage: React.FC = () => {
                                                         alt={fan.username}
                                                         className="w-12 h-12 rounded-full border-2 border-white object-cover shrink-0 mt-0.5"
                                                         loading="lazy"
+                                                        referrerPolicy="no-referrer"
                                                     />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 mb-2">
@@ -402,6 +434,65 @@ const FansPage: React.FC = () => {
                             )}
                         </div>
                     )}
+
+                    {/* Guards - 大航海 */}
+                    {activeTab === 'guards' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[1, 2, 3].map(level => (
+                                <div key={level} className="glass-card rounded-2xl p-4">
+                                    <h3 className="text-center text-lg font-black text-[#f8b195] mb-4">
+                                        {GUARD_LEVELS[level]}
+                                        <span className="text-sm font-medium text-[#8eb69b] ml-2">
+                                            ({guardTotals[level]})
+                                        </span>
+                                    </h3>
+                                    {guardLoading[level] ? (
+                                        <Loading />
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2 min-h-[200px]">
+                                                {guardData[level].map(g => (
+                                                    <a
+                                                        key={g.uid}
+                                                        href={`https://space.bilibili.com/${g.uid}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 p-2 rounded-xl bg-white/40 hover:bg-white/60 transition-all group"
+                                                    >
+                                                        <div className="w-9 h-9 rounded-full border-2 border-white overflow-hidden shrink-0">
+                                                            <img
+                                                                src={getAvatarUrl(g.face)}
+                                                                alt={g.username}
+                                                                className="w-full h-full object-cover"
+                                                                loading="lazy"
+                                                                referrerPolicy="no-referrer"
+                                                            />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="text-sm font-black text-[#8eb69b] truncate flex items-center gap-1">
+                                                                {formatUsername(g.username)}
+                                                                <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs text-[#8eb69b]/60 mt-0.5">
+                                                                <span>🛡️ {g.medal_name} Lv.{g.medal_level}</span>
+                                                                <span>·</span>
+                                                                <span>{g.accompany} 天</span>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                            <Pagination
+                                                page={guardPages[level]}
+                                                totalPages={Math.max(1, Math.ceil(guardTotals[level] / guardPageSize))}
+                                                onPageChange={(p) => handleGuardPageChange(level, p)}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </>
@@ -449,6 +540,7 @@ const renderRankingItem = (
                 alt={item.username}
                 className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white object-cover shrink-0"
                 loading="lazy"
+                referrerPolicy="no-referrer"
             />
             <div className="min-w-0 flex-1">
                 <div className="text-sm font-black text-[#8eb69b] truncate flex items-center gap-1">
