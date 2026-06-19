@@ -23,6 +23,7 @@ const Footer: React.FC = () => {
     const externalLinks = [
         { name: '咻咻满B站空间', href: 'https://space.bilibili.com/37754047' },
         { name: '咻小满B站空间', href: 'https://space.bilibili.com/480116537' },
+        { name: '小满虫工具箱下载地址', href: 'https://pan.baidu.com/s/1gEW6S5AzVwNg1a8edhuyGQ?pwd=0319' },
     ];
 
     return (
